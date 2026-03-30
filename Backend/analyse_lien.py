@@ -1,3 +1,4 @@
+import re
 # Dictionnaire avec catégorie et mots-clés
 lexique = {
     "Cuisine": {
@@ -10,12 +11,12 @@ lexique = {
     }
 }
 
-scores = {"Cuisine": 0, "Sport": 0}
-
 # système de scoring à l'aide du dictionnaire "lexique"
 def analyse_texte(texte):
     global scores
-    mots = texte.split()
+    scores = {"Cuisine": 0, "Sport": 0}
+    texte_min = texte.lower()
+    mots = re.findall(r'\w+', texte_min)
 
     for mot in mots:
         # On teste pour la CUISINE
@@ -41,7 +42,10 @@ def analyse_texte(texte):
 
 # Test
 test_1 = print(analyse_texte("une recette pour mon entrainement"))
-socre_1 = print(f"Détail des scores : {scores}")
+scores_1 = print(f"Détail des scores : {scores}")
 
 test_2 = print(analyse_texte("une Recette pour mon entrainement"))
-socre_2 = print(f"Détail des scores : {scores}")
+scores_2 = print(f"Détail des scores : {scores}")
+
+test_3 = print(analyse_texte("une CUISSON parfaite !"))
+scores_3 = print(f"Détail des scores : {scores}")

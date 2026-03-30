@@ -17,5 +17,8 @@ V0.1.0 :
 - Premier prototype de classification par mots-clés.
 - Algorithme de scoring initial en Python.
 
-
+VO.2.0 :
+- Implémentation d'un regex simple.
+- Passage du texte à analyser en minuscule.
+- Déplacement de la variable "scores" en global dans la fonction, donc en local pour éviter un cumul de score.
 
