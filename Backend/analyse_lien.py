@@ -1,51 +1,56 @@
 import re
-# Dictionnaire avec catégorie et mots-clés
-lexique = {
-    "Cuisine": {
-        "Master": ["recette", "cuisson"],
-        "High": ["delicieux", "saveur"]
-    },
-    "Sport": {
-        "Master": ["entrainement", "musculation"],
-        "High": ["cardio", "performance"]
-    }
-}
+# Création de la classe primaire, de notre objet
+class AnalyseLien:
+    # Constructeur : initialise l'objet avec son lexique et ses scores
+    def __init__(self):
+        # Définition des attributs de l'instance
+        self.lexique = {
+            "Cuisine": {
+                "Master": ["recette", "cuisson"],
+                "High": ["delicieux", "saveur"]
+            },
+            "Sport": {
+                "Master": ["entrainement", "musculation"],
+                "High": ["cardio", "performance"]
+            }
+        }
+        # Initialisation des scores à zéro à chaque création d'objet
+        self.scores = {"Cuisine": 0, "Sport": 0}
 
-# système de scoring à l'aide du dictionnaire "lexique"
-def analyse_texte(texte):
-    global scores
-    scores = {"Cuisine": 0, "Sport": 0}
-    texte_min = texte.lower()
-    mots = re.findall(r'\w+', texte_min)
+    def analyse_texte(self, texte):
+        # Les scores sont remis à zéro pour une nouvelle analyse avec le même objet
+        self.scores = {"Cuisine": 0, "Sport": 0}
+        # Passage du texte en minusculue et extraction des mots sans ponctuation
+        texte_min = texte.lower()
+        mots = re.findall(r'\w+', texte_min)
 
-    for mot in mots:
-        # On teste pour la CUISINE
-        if mot in lexique["Cuisine"]["Master"]:
-            scores["Cuisine"] += 50
-        elif mot in lexique["Cuisine"]["High"]:
-            scores["Cuisine"] += 20
+        for mot in mots:
+            # Test Cuisine
+            if mot in self.lexique["Cuisine"]["Master"]:
+                self.scores["Cuisine"] += 50
+            elif mot in self.lexique["Cuisine"]["High"]:
+                self.scores["Cuisine"] += 20
 
-        # On teste pour le SPORT
-        if mot in lexique["Sport"]["Master"]:
-            scores["Sport"] += 50
-        elif mot in lexique["Sport"]["High"]:
-            scores["Sport"] += 20
+            # Test Sport
+            if mot in self.lexique["Sport"]["Master"]:
+                self.scores["Sport"] += 50
+            elif mot in self.lexique["Sport"]["High"]:
+                self.scores["Sport"] += 20
 
-    # Choix de la catégorie final
-    if scores["Cuisine"] > scores["Sport"]:
-        return "Cuisine"
-    elif scores["Sport"] == scores["Cuisine"]:
-        return "Cuisine"
-    else:
-        return "Sport"
+        # Choix catégorie final
+        if self.scores["Cuisine"] >= self.scores["Sport"]:
+            return "Cuisine"
+        else:
+            return "Sport"
 
 
-# Test
-test_1 = print(analyse_texte("une recette pour mon entrainement"))
-scores_1 = print(f"Détail des scores : {scores}")
+# Création de l'instance
+analyse = AnalyseLien()
 
-test_2 = print(analyse_texte("une Recette pour mon entrainement"))
-scores_2 = print(f"Détail des scores : {scores}")
+# 2. Premier test
+resultat_1 = analyse.analyse_texte("une recette pour mon entrainement")
+print(f"Test 1 : {resultat_1} | Scores : {analyse.scores}")
 
-test_3 = print(analyse_texte("une CUISSON parfaite !"))
-scores_3 = print(f"Détail des scores : {scores}")
+# 3. Deuxième test (Les scores repartent de zéro grâce à la méthode POO)
+resultat_2 = analyse.analyse_texte("Mélanger musculation et performance")
+print(f"Test 2 : {resultat_2} | Scores : {analyse.scores}")

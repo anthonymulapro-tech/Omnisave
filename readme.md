@@ -22,3 +22,7 @@ VO.2.0 :
 - Passage du texte à analyser en minuscule.
 - Déplacement de la variable "scores" en global dans la fonction, donc en local pour éviter un cumul de score.
 
+V0.3.0 :
+- Refactorisation en POO
+- Création de la classe AnalyseLien (Encapsulation).
+- Gestion des attributs d'instance pour isoler les données.
