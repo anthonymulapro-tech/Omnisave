@@ -28,6 +28,12 @@ V0.3.0 :
 - Gestion des attributs d'instance pour isoler les données.
 
 V0.3.5 :
-- Découpage en plusieurs fonction
-- Algorithme dynamique pour les boucles
-- Gestion d'erreur avec l'ajout d'un résultat nul
+- Découpage en plusieurs fonction.
+- Algorithme dynamique pour les boucles.
+- Gestion d'erreur avec l'ajout d'un résultat nul.
+
+V0.4.0 :
+- Création d'un fichier JSON pour une gestion indépendante du code source.
+- Gestion d'erreur avec un bloc try/execpt en cas d'échec d'ouverture du fichier.
+- Gestion d'erreur avec méthode .get concernant les KeyError si une clé est manquante dans le dictionnaire.
+- Affichage différent pour l'utilisateur si c'est une erreur système ou mots non trouvés.

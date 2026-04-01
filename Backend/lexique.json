@@ -1,0 +1,14 @@
+{
+  "cuisine": {
+    "master": ["recette", "cuisson"],
+    "high": ["delicieux", "saveur", "cuit"]
+  },
+  "sport": {
+    "master": ["entraînement", "musculation"],
+    "high": ["cardio", "performance"]
+  },
+  "finance": {
+    "master": ["bourse", "dividende"],
+    "high": ["entreprise", "salaire"]
+  }
+}
