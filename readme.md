@@ -26,3 +26,8 @@ V0.3.0 :
 - Refactorisation en POO
 - Création de la classe AnalyseLien (Encapsulation).
 - Gestion des attributs d'instance pour isoler les données.
+
+V0.3.5 :
+- Découpage en plusieurs fonction
+- Algorithme dynamique pour les boucles
+- Gestion d'erreur avec l'ajout d'un résultat nul

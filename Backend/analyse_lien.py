@@ -14,43 +14,56 @@ class AnalyseLien:
                 "High": ["cardio", "performance"]
             }
         }
-        # Initialisation des scores à zéro à chaque création d'objet
-        self.scores = {"Cuisine": 0, "Sport": 0}
 
-    def analyse_texte(self, texte):
-        # Les scores sont remis à zéro pour une nouvelle analyse avec le même objet
-        self.scores = {"Cuisine": 0, "Sport": 0}
-        # Passage du texte en minusculue et extraction des mots sans ponctuation
-        texte_min = texte.lower()
-        mots = re.findall(r'\w+', texte_min)
+    # Passage du texte en minusculue et extraction des mots sans ponctuation
+    def nettoyer_texte(self, texte):
+        return re.findall(r'\w+', texte.lower())
 
+    # Calcul dynamique des scores en fonction du lexique
+    def calculer_scores(self, mots):
+        # Initialisation des scores pour chaque analyse
+        scores = {"Cuisine": 0, "Sport": 0}
         for mot in mots:
+            # Parcours dynamique des catégories et leurs niveaux
+            for cat, niveaux in self.lexique.items():
             # Test Cuisine
-            if mot in self.lexique["Cuisine"]["Master"]:
-                self.scores["Cuisine"] += 50
-            elif mot in self.lexique["Cuisine"]["High"]:
-                self.scores["Cuisine"] += 20
+             if mot in niveaux["Master"]:
+                scores[cat] += 50
+             elif mot in niveaux["High"]:
+                scores[cat] += 20
+        return scores
 
-            # Test Sport
-            if mot in self.lexique["Sport"]["Master"]:
-                self.scores["Sport"] += 50
-            elif mot in self.lexique["Sport"]["High"]:
-                self.scores["Sport"] += 20
+    # Choix de la catégorie dominante
+    def trancher_vainqueur(self, points):
+        if max(points.values()) == 0:
+            return None
 
-        # Choix catégorie final
-        if self.scores["Cuisine"] >= self.scores["Sport"]:
+        if points["Cuisine"] >= points["Sport"]:
             return "Cuisine"
+
         else:
             return "Sport"
 
+    # Coordinateur des étapes de l'analyse
+    def analyser(self,texte):
+        mots = self.nettoyer_texte(texte)
+        points = self.calculer_scores(mots)
+        resultat = self.trancher_vainqueur(points)
+
+
+        print(f"--- ANALYSE TERMINEE ---")
+        print(f"Texte analysé : '{texte}'")
+        print(f"Scores obtenus : {points}")
+        if resultat is None:
+            print(f"Nous n'avons pas trouvé de mots clés associés aux catégories présente, veuillez ajouter le/les mots clés dans la catégorie concernée ou bien ajouter une nouvelle catégorie ")
+        else:
+            print(f"Résultat final : {resultat}")
+        print("------------------------\n")
+        return resultat
 
 # Création de l'instance
-analyse = AnalyseLien()
+test = AnalyseLien()
 
-# 2. Premier test
-resultat_1 = analyse.analyse_texte("une recette pour mon entrainement")
-print(f"Test 1 : {resultat_1} | Scores : {analyse.scores}")
-
-# 3. Deuxième test (Les scores repartent de zéro grâce à la méthode POO)
-resultat_2 = analyse.analyse_texte("Mélanger musculation et performance")
-print(f"Test 2 : {resultat_2} | Scores : {analyse.scores}")
+# TEST
+test.analyser("Le restaurant est super ici!")
+test.analyser("La recette est incroyable")
