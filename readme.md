@@ -37,3 +37,9 @@ V0.4.0 :
 - Gestion d'erreur avec un bloc try/execpt en cas d'échec d'ouverture du fichier.
 - Gestion d'erreur avec méthode .get concernant les KeyError si une clé est manquante dans le dictionnaire.
 - Affichage différent pour l'utilisateur si c'est une erreur système ou mots non trouvés.
+
+V0.4.5 :
+- Distinction entre les scores bruts (comptage initial) et les scores finaux (après pondération).
+- Introduction d'une pondération par catégorie à l'aide d'un coefficient dans le JSON pour améliorer la précision.
+- Amélioration du choix de la catégorie final à l'aide de max(key=get) ainsi.
+- Priorisation lexicale pour certains mots-clés à forte domination dans un texte (ex: "recette" ou "entreprise").

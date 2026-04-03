@@ -1,14 +1,23 @@
 {
   "cuisine": {
+    "coefficient": 1.0,
+    "mot_cles" :{
     "master": ["recette", "cuisson"],
-    "high": ["delicieux", "saveur", "cuit"]
-  },
+    "high": ["delicieux", "saveur","cuit"]
+    }
+},
   "sport": {
+    "coefficient" : 1.2,
+    "mot_cles": {
     "master": ["entraînement", "musculation"],
     "high": ["cardio", "performance"]
+      }
   },
-  "finance": {
-    "master": ["bourse", "dividende"],
-    "high": ["entreprise", "salaire"]
+  "Finance": {
+    "coefficient" : 2.0,
+    "mot_cles": {
+    "master": ["bourse", "dividende","entreprise"],
+    "high": ["salaire"]
+      }
   }
 }
