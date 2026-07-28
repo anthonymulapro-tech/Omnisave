@@ -106,7 +106,7 @@ class AnalyseLien:
         return resultat
 
 # Création de l'instance
-test = AnalyseLien("lexique2.json")
+test = AnalyseLien("../data/lexique.json")
 
 # TEST
 test.analyser("Le restaurant est super ici!")
