@@ -1,0 +1,23 @@
+{
+  "cooking": {
+    "coefficient": 1.0,
+    "keywords" :{
+      "master": ["recette", "cuisson"],
+      "high": ["delicieux", "saveur", "cuit"]
+    }
+  },
+  "sports": {
+    "coefficient" : 1.2,
+    "keywords": {
+      "master": ["entraînement", "musculation"],
+      "high": ["cardio", "performance"]
+    }
+  },
+  "finance": {
+    "coefficient" : 2.0,
+    "keywords": {
+      "master": ["bourse", "dividende", "entreprise"],
+      "high": ["salaire"]
+    }
+  }
+}
