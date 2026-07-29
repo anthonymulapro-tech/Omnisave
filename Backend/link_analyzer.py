@@ -1,102 +1,92 @@
-import re
 import json
+import spacy
+import os
 
 
 class LinkAnalyzer:
     def __init__(self, json_path):
-        self.lexicon = self._load_lexicon(json_path)
+        """Initialise l'analyseur en chargeant le lexique et le modèle IA."""
+        with open(json_path, 'r', encoding='utf-8') as file:
+            self.lexicon = json.load(file)
 
-    def _load_lexicon(self, path):
-        try:
-            with open(path, 'r', encoding='utf-8') as file:
-                return json.load(file)
-        except FileNotFoundError:
-            print(f"[CRITICAL ERROR] The file {path} was not found.")
-            return None
-
-    def clean_text(self, text):
-        return re.findall(r'[a-zà-ÿ]{3,}', text.lower())
-
-    def _create_flexible_pattern(self, keyword):
-        p = keyword.lower()
-        p = p.replace('e', '[eéèêë]')
-        p = p.replace('i', '[iîï]')
-        p = p.replace('a', '[aàâä]')
-        p = p.replace('u', '[uûüù]')
-        return rf"^{p}(s|x|es)?$"
-
-    def calculate_scores(self, extracted_words):
-        if self.lexicon is None:
-            return {}, {}
-
-        raw_scores = {category: 0 for category in self.lexicon.keys()}
-
-        for raw_word in extracted_words:
-            for category, config in self.lexicon.items():
-                reference_dict = config.get("keywords", {})
-
-                for level, word_list in reference_dict.items():
-                    for keyword in word_list:
-                        pattern = self._create_flexible_pattern(keyword)
-
-                        if re.fullmatch(pattern, raw_word):
-                            if keyword == "recette":
-                                raw_scores[category] += 150
-                            elif keyword == "entreprise":
-                                raw_scores[category] += 100
-                            else:
-                                raw_scores[category] += 50 if level == "master" else 20
-                            break
-
-        final_scores = {}
-        for category, points in raw_scores.items():
-            coef = self.lexicon[category].get("coefficient", 1.0)
-            final_scores[category] = round(points * coef, 2)
-
-        return raw_scores, final_scores
-
-    def determine_winner(self, points):
-        if not points or max(points.values()) == 0:
-            return None
-
-        score_winner = max(points, key=points.get)
-        c = points.get("cooking", 0)
-        s = points.get("sports", 0)
-
-        if c > 0 and c >= s:
-            if points[score_winner] > c:
-                return score_winner
-            return "cooking"
-        return score_winner
+        print("Chargement du modèle NLP spaCy (fr_core_news_sm)...")
+        self.nlp = spacy.load("fr_core_news_sm")
 
     def analyze(self, text):
-        if self.lexicon is None:
-            print("SYSTEM ERROR: Analysis impossible (lexicon missing).")
-            return "SYSTEM_ERROR"
+        """Analyse le texte et retourne la catégorie gagnante en utilisant la grammaire."""
+        scores = {category: 0 for category in self.lexicon.keys()}
 
-        extracted_words = self.clean_text(text)
-        raw_scores, final_scores = self.calculate_scores(extracted_words)
-        result = self.determine_winner(final_scores)
+        doc = self.nlp(text)
 
-        print("--- ANALYSIS COMPLETE ---")
-        print(f"Analyzed text: '{text}'")
-        print(f"Raw scores: {raw_scores}")
-        print(f"Final scores: {final_scores}")
+        for token in doc:
+            if token.is_punct or token.is_space:
+                continue
 
-        if result is None:
-            print("No keywords associated with the current categories were found. Please update the lexicon.")
-        else:
-            print(f"Final result: {result}")
-        print("------------------------\n")
+            mot_racine = token.lemma_.lower()
+            role_grammatical = token.dep_
 
-        return result
+            # Multiplicateur syntaxique
+            multiplicateur_grammaire = 1.0
+            if role_grammatical in ["ROOT", "nsubj", "nsubj:pass"]:
+                multiplicateur_grammaire = 1.5
+            elif role_grammatical in ["obl"]:
+                multiplicateur_grammaire = 0.5
+
+            # Calcul des points depuis le JSON
+            for category, data in self.lexicon.items():
+                coef = data.get("coefficient", 1.0)
+
+                for group_name, group_data in data.get("groups", {}).items():
+                    points = group_data["points"]
+                    words = [w.lower() for w in group_data["words"]]
+
+                    if mot_racine in words:
+                        scores[category] += (points * coef * multiplicateur_grammaire)
+
+        return self._determine_winner(scores)
+
+    def _determine_winner(self, scores):
+        """Trouve la catégorie avec le plus haut score."""
+        if all(score == 0 for score in scores.values()):
+            return "Non catégorisé"
+
+        best_category = max(scores, key=scores.get)
+        return best_category
 
 
 if __name__ == '__main__':
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    json_path = os.path.join(base_dir, 'data', 'lexicon.json')
 
-    analyzer = LinkAnalyzer("../data/lexicon.json")
+    analyzer = LinkAnalyzer(json_path)
 
-    analyzer.analyze("Le restaurant est super ici!")
-    analyzer.analyze("La nouvelle recette pour mon entraînement en musculation!")
-    analyzer.analyze("Mon entraînement est savoureux, remplis de saveur, je finis pas cuit à la fin")
-    analyzer.analyze("Les recettes de mon entreprise en 2025")
+    print("\n--- RÉSULTATS DES TESTS ---")
+
+    print("Test 1 :", analyzer.analyze("La restauration est super ici!"))
+    print("Test 2 :", analyzer.analyze("La nouvelle recette pour mon entraînement en musculation!"))
+    print("Test 3 :", analyzer.analyze("Mon entraînement est savoureux, remplis de saveur, je finis pas cuit à la fin"))
+    print("Test 4 :", analyzer.analyze("Les recettes de mon entreprise en 2025"))
+    print("Test 5 :", analyzer.analyze("On a eu chaud mais les recettes de 2025 sont arrivé, et mon entreprise est rentable"))
+    print("Test 6 :", analyzer.analyze("La recette pour un entraînement réussis passe par la régularité des séances de sport"))
+
+    print("\n--- TEST PIÈGE ULTIME ---")
+
+    phrase = "Nouvelle vidéo d'entraînement pour la musculation a combiner avec mon autre vidéo sur les recettes"
+    print(f"Phrase 1 : '{phrase}'")
+    print(f"Catégorie détectée : {analyzer.analyze(phrase).upper()}")
+
+    phrase ="Avant mon entraînement de musculation, je prépare une recette rapide avec peu d'ingrédients."
+    print(f"Phrase 2 : '{phrase}'")
+    print(f"Catégorie détectée : {analyzer.analyze(phrase).upper()}")
+
+    phrase ="J'ai investi mon salaire dans un restaurant pour lancer une nouvelle entreprise de gastronomie."
+    print(f"Phrase 3 : '{phrase}'")
+    print(f"Catégorie détectée : {analyzer.analyze(phrase).upper()}")
+
+    phrase = "Le coût de mon abonnement en salle de sport pèse lourd sur mon budget mensuel et mon épargne."
+    print(f"Phrase 4 : '{phrase}'")
+    print(f"Catégorie détectée : {analyzer.analyze(phrase).upper()}")
+
+    phrase = "Préparer son équipement physique bien au chaud avant de courir sous la pluie."
+    print(f"Phrase 5 : '{phrase}'")
+    print(f"Catégorie détectée : {analyzer.analyze(phrase).upper()}")

@@ -1,23 +1,65 @@
 {
   "cooking": {
     "coefficient": 1.0,
-    "keywords" :{
-      "master": ["recette", "cuisson"],
-      "high": ["delicieux", "saveur", "cuit"]
+    "groups": {
+      "core": {
+        "points": 300,
+        "words": ["recette","ingrédient", "cuisson", "gastronomie", "pâtisserie"]
+      },
+      "strong": {
+        "points": 150,
+        "words": ["cuire", "restaurant", "restauration", "repas", "plat"]
+      },
+      "medium": {
+        "points": 50,
+        "words": ["saveur", "préparer", "délicieux", "casserole", "four", "poêle", "cuisine", "goûter", "déguster", "gourmand"]
+      },
+      "bonus": {
+        "points": 15,
+        "words": ["chaud", "froid", "eau", "manger", "faim", "sucré", "salé"]
+      }
     }
   },
   "sports": {
-    "coefficient" : 1.2,
-    "keywords": {
-      "master": ["entraînement", "musculation"],
-      "high": ["cardio", "performance"]
+    "coefficient": 1.5,
+    "groups": {
+      "core": {
+        "points": 300,
+        "words": ["entraînement", "cardio", "fractionné", "vma"]
+      },
+      "strong": {
+        "points": 150,
+        "words": ["musculation","courir", "performance", "fitness", "sport", "athlète", "marathon", "footing"]
+      },
+      "medium": {
+        "points": 50,
+        "words": ["salle", "poids", "muscle", "effort", "rythme", "cardiaque", "vitesse", "endurance", "vo2"]
+      },
+      "bonus": {
+        "points": 15,
+        "words": ["transpirer", "sueur", "respirer", "physique", "santé", "bouger", "marche"]
+      }
     }
   },
   "finance": {
-    "coefficient" : 2.0,
-    "keywords": {
-      "master": ["bourse", "dividende", "entreprise"],
-      "high": ["salaire"]
+    "coefficient": 2.0,
+    "groups": {
+      "core": {
+        "points": 300,
+        "words": ["entreprise","bourse", "dividende", "investissement", "action", "crypto", "trading"]
+      },
+      "strong": {
+        "points": 150,
+        "words": ["salaire", "patrimoine", "épargne", "rentabilité", "investir", "capital"]
+      },
+      "medium": {
+        "points": 50,
+        "words": ["argent", "marché", "immobilier", "crédit", "budget", "bénéfice", "loyer"]
+      },
+      "bonus": {
+        "points": 15,
+        "words": ["compte", "banque", "payer", "acheter", "vendre", "prix", "euro"]
+      }
     }
   }
 }
