@@ -18,13 +18,13 @@ class ImageExtractor(BaseExtractor):
         """
         try:
             # 1. Nettoyage de l'URL pour récupérer le shortcode
-            # Exemple d'URL : https://www.instagram.com/p/CABCDEFG123/
-            # Le shortcode est 'CABCDEFG123'
+            # On supprime d'abord les paramètres d'URL (comme ?img_index=1 pour les carrousels)
+            clean_url = url.split('?')[0]
 
             # On retire le / final s'il existe, puis on coupe par les /
-            url_parts = url.rstrip("/").split("/")
+            url_parts = clean_url.rstrip("/").split("/")
 
-            # Le shortcode est généralement le dernier élément après "p"
+            # Le shortcode est généralement le dernier élément
             shortcode = url_parts[-1]
 
             # 2. Récupération des données du post
@@ -39,7 +39,6 @@ class ImageExtractor(BaseExtractor):
         except Exception as e:
             print(f"Erreur lors de l'extraction Instagram pour {url} : {str(e)}")
             return None
-
 
 # --- TEST ---
 if __name__ == "__main__":

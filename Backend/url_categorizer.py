@@ -41,5 +41,5 @@ def categorize_url(url):
 
 # --- TEST ---
 if __name__ == "__main__":
-    lien_test = "https://www.instagram.com/p/Da_ffzusbIS/"
+    lien_test = "https://www.instagram.com/p/Da8b_BFDZUO/?img_index=1"
     categorize_url(lien_test)
