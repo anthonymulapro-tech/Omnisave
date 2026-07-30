@@ -1,7 +1,7 @@
 import yt_dlp
+from .base_extractor import BaseExtractor
 
-
-class VideoExtractor:
+class VideoExtractor(BaseExtractor):
     def __init__(self):
         # Options de base : on ne veut pas télécharger la vidéo, juste les infos textuelles
         self.ydl_opts = {
