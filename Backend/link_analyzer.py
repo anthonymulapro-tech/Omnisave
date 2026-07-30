@@ -12,6 +12,24 @@ class LinkAnalyzer:
         print("Chargement du modèle NLP spaCy (fr_core_news_sm)...")
         self.nlp = spacy.load("fr_core_news_sm")
 
+    def _log_unknown_words(self, doc):
+        """
+        Extrait les mots pertinents d'un document non catégorisé et les sauvegarde.
+        """
+        mots_utiles = set()
+
+        for token in doc:
+            # On ne garde que les Noms, Noms Propres et Verbes (sans les Stop Words)
+            if token.pos_ in ['NOUN', 'PROPN', 'VERB'] and not token.is_stop and token.is_alpha:
+                mots_utiles.add(token.lemma_.lower())
+
+        if mots_utiles:
+            # Sauvegarde dans le même dossier que ce script
+            filepath = os.path.join(os.path.dirname(__file__), "unknown_words.txt")
+            with open(filepath, "a", encoding="utf-8") as f:
+                f.write(f"--- Mots extraits d'un post NON CATÉGORISÉ ---\n")
+                f.write(", ".join(mots_utiles) + "\n\n")
+
     def analyze(self, text):
         """Analyse le texte et retourne la catégorie gagnante en utilisant la grammaire."""
         scores = {category: 0 for category in self.lexicon.keys()}
@@ -43,14 +61,26 @@ class LinkAnalyzer:
                     if mot_racine in words:
                         scores[category] += (points * coef * multiplicateur_grammaire)
 
-        return self._determine_winner(scores)
+        best_category = self._determine_winner(scores)
+
+        # Si aucune catégorie n'est trouvée, on lance le Shadow Logging
+        if best_category == "Non catégorisé":
+            self._log_unknown_words(doc)
+
+        return best_category
 
     def _determine_winner(self, scores):
-        """Trouve la catégorie avec le plus haut score."""
-        if all(score == 0 for score in scores.values()):
+        """Trouve la catégorie avec le plus haut score, avec un seuil de sécurité."""
+        seuil_minimum = 50
+
+        # On trouve la catégorie qui a le plus de points
+        best_category = max(scores, key=scores.get)
+        best_score = scores[best_category]
+
+        # Si le meilleur score n'atteint pas le seuil, on refuse de catégoriser
+        if best_score < seuil_minimum:
             return "Non catégorisé"
 
-        best_category = max(scores, key=scores.get)
         return best_category
 
 

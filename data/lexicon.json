@@ -2,63 +2,204 @@
   "cooking": {
     "coefficient": 1.0,
     "groups": {
-      "core": {
+      "core_fr": {
         "points": 300,
-        "words": ["recette","ingrédient", "cuisson", "gastronomie", "pâtisserie"]
+        "words": [
+          "recette", "cuisine", "cuisson", "ingrédients", "repas", "four", "poêle",
+          "préparation", "plat", "menu", "cuisiner", "marmite", "fait-tout", "cuistot", "saveurs", "mijoter", "bouillon"
+        ]
       },
-      "strong": {
+      "strong_fr": {
         "points": 150,
-        "words": ["cuire", "restaurant", "restauration", "repas", "plat"]
+        "words": [
+          "casserole", "chef", "gastronomie", "dégustation", "mijoté", "gourmand", "protéines", "poulet", "thon", "œufs", "fromage", "légumes", "fruits",
+          "viande", "poisson", "pâtes", "riz", "sauce", "assaisonnement", "hacher", "émincer", "rôtir", "griller"
+        ]
       },
-      "medium": {
+      "medium_fr": {
         "points": 50,
-        "words": ["saveur", "préparer", "délicieux", "casserole", "four", "poêle", "cuisine", "goûter", "déguster", "gourmand"]
+        "words": [
+          "pâtisserie", "dessert", "salé", "sucré", "épices", "nutrition", "calories",
+          "gâteau", "tarte", "chocolat", "vanille", "poivre", "sel", "herbes", "végétarien", "vegan", "diététique"
+        ]
       },
-      "bonus": {
+      "bonus_fr": {
         "points": 15,
-        "words": ["chaud", "froid", "eau", "manger", "faim", "sucré", "salé"]
+        "words": [
+          "chaud", "froid", "eau", "manger", "faim",
+          "boisson", "verre", "assiette", "couteau", "fourchette", "cuillère", "frais", "cuit", "cru", "tiède"
+        ]
+      },
+      "core_en": {
+        "points": 300,
+        "words": [
+          "recipe", "cooking", "food", "kitchen", "meal", "baking", "chef",
+          "dish", "menu", "cook", "bake", "oven", "pan", "pot", "flavor", "taste", "prep"
+        ]
+      },
+      "strong_en": {
+        "points": 150,
+        "words": [
+          "ingredients", "tasty", "delicious", "dinner", "lunch", "breakfast",
+          "meat", "fish", "pasta", "rice", "sauce", "seasoning", "chop", "slice", "roast", "grill"
+        ]
+      },
+      "medium_en": {
+        "points": 50,
+        "words": [
+          "protein", "chicken", "eggs", "tuna", "cheese",
+          "vegetables", "fruits", "beef", "pork", "spices", "nutrition", "calories", "sweet", "salty", "dessert"
+        ]
+      },
+      "bonus_en": {
+        "points": 15,
+        "words": [
+          "hot", "cold", "water", "eat", "hungry", "sugar", "salt",
+          "drink", "glass", "plate", "knife", "fork", "spoon", "fresh", "cooked", "raw"
+        ]
+      },
+      "anglicisms": {
+        "points": 150,
+        "words": [
+          "cheatmeal", "foodporn", "batchcooking", "healthy", "diet", "snack", "shaker", "foodie", "fastfood", "streetfood", "tupperware",
+          "airfryer", "smoothie", "bowl", "topping", "brunch", "pancakes", "vegan", "lowcarb", "cleaneating", "porridge"
+        ]
       }
     }
   },
   "sports": {
     "coefficient": 1.5,
     "groups": {
-      "core": {
+      "core_fr": {
         "points": 300,
-        "words": ["entraînement", "cardio", "fractionné", "vma"]
+        "words": [
+          "entraînement", "cardio", "fractionné", "vma",
+          "exercice", "séance", "échauffement", "gainage", "gymnastique", "athlétisme", "natation", "vélo", "course", "intensité"
+        ]
       },
-      "strong": {
+      "strong_fr": {
         "points": 150,
-        "words": ["musculation","courir", "performance", "fitness", "sport", "athlète", "marathon", "footing"]
+        "words": [
+          "musculation", "courir", "performance", "fitness", "sport", "athlète", "marathon", "footing",
+          "haltères", "pompes", "tractions", "abdos", "squat", "soulevé", "étirement", "souplesse", "récupération", "blessure"
+        ]
       },
-      "medium": {
+      "medium_fr": {
         "points": 50,
-        "words": ["salle", "poids", "muscle", "effort", "rythme", "cardiaque", "vitesse", "endurance", "vo2"]
+        "words": [
+          "salle", "poids", "muscle", "effort", "rythme", "cardiaque", "vitesse", "endurance", "vo2",
+          "chronomètre", "podomètre", "distance", "kilomètres", "foulée", "respiration", "pulsations", "oxygène", "énergie", "fatigue"
+        ]
       },
-      "bonus": {
+      "bonus_fr": {
         "points": 15,
-        "words": ["transpirer", "sueur", "respirer", "physique", "santé", "bouger", "marche"]
+        "words": [
+          "transpirer", "sueur", "respirer", "physique", "santé", "bouger", "marche",
+          "courbatures", "forme", "tonique", "actif", "dynamique", "sauter", "lancer", "attraper", "jouer", "gagner"
+        ]
+      },
+      "core_en": {
+        "points": 300,
+        "words": [
+          "workout", "training", "running", "match",
+          "exercise", "warmup", "cardio", "endurance", "athletics", "swimming", "cycling", "basketball", "football", "soccer"
+        ]
+      },
+      "strong_en": {
+        "points": 150,
+        "words": [
+          "fitness", "gym", "coach", "sport", "championship", "winner", "loser",
+          "dumbbells", "pushups", "pullups", "abs", "squat", "deadlift", "stretching", "flexibility", "recovery", "injury"
+        ]
+      },
+      "medium_en": {
+        "points": 50,
+        "words": [
+          "goal", "stadium",
+          "weight", "muscle", "effort", "rhythm", "heartbeat", "speed", "distance", "kilometers", "energy", "fatigue"
+        ]
+      },
+      "bonus_en": {
+        "points": 15,
+        "words": [
+          "sweat", "physical", "breath", "health", "move", "walk", "walking",
+          "soreness", "shape", "active", "dynamic", "jump", "throw", "catch", "play", "win", "run", "game", "player", "team"
+        ]
+      },
+      "anglicisms": {
+        "points": 150,
+        "words": [
+          "vo2 max", "cardio", "crossfit", "legday", "fullbody", "runner", "jogging", "coaching", "playoffs", "sprint", "fitness", "stretching", "sparring", "doping", "suppléments",
+          "workout", "push", "pull", "split", "hiit", "pump", "gains", "whey", "preworkout", "bodybuilding"
+        ]
       }
     }
   },
   "finance": {
     "coefficient": 2.0,
     "groups": {
-      "core": {
+      "core_fr": {
         "points": 300,
-        "words": ["entreprise","bourse", "dividende", "investissement", "action", "crypto", "trading"]
+        "words": [
+          "entreprise", "bourse", "dividende", "investissement", "action", "crypto", "trading",
+          "finance", "économie", "portefeuille", "actifs", "marchés", "obligations", "fonds", "capitalisation", "rendement", "plus-value"
+        ]
       },
-      "strong": {
+      "strong_fr": {
         "points": 150,
-        "words": ["salaire", "patrimoine", "épargne", "rentabilité", "investir", "capital"]
+        "words": [
+          "salaire", "patrimoine", "épargne", "rentabilité", "investir", "capital",
+          "revenus", "impôts", "fiscalité", "trésorerie", "chiffre", "affaires", "bénéfices", "pertes", "dividendes", "intérêts"
+        ]
       },
-      "medium": {
+      "medium_fr": {
         "points": 50,
-        "words": ["argent", "marché", "immobilier", "crédit", "budget", "bénéfice", "loyer"]
+        "words": [
+          "argent", "marché", "immobilier", "crédit", "budget", "bénéfice", "loyer",
+          "emprunt", "dette", "taux", "inflation", "déflation", "banquier", "courtier", "assurance", "cotisations", "taxes"
+        ]
       },
-      "bonus": {
+      "bonus_fr": {
         "points": 15,
-        "words": ["compte", "banque", "payer", "acheter", "vendre", "prix", "euro"]
+        "words": [
+          "compte", "banque", "payer", "acheter", "vendre", "prix", "euro",
+          "monnaie", "billet", "pièce", "dépense", "facture", "solde", "virement", "carte", "guichet", "retrait"
+        ]
+      },
+      "core_en": {
+        "points": 300,
+        "words": [
+          "money", "business", "trading", "investment", "stock market", "crypto",
+          "finance", "economy", "portfolio", "assets", "markets", "bonds", "funds", "capitalization", "yield", "profit"
+        ]
+      },
+      "strong_en": {
+        "points": 150,
+        "words": [
+          "wealth", "cash", "finance", "real estate", "stocks", "shares",
+          "income", "taxes", "taxation", "revenue", "sales", "earnings", "losses", "dividends", "interest", "capital"
+        ]
+      },
+      "medium_en": {
+        "points": 50,
+        "words": [
+          "economy", "income", "taxes",
+          "loan", "debt", "rate", "inflation", "deflation", "banker", "broker", "insurance", "fees", "budget"
+        ]
+      },
+      "bonus_en": {
+        "points": 15,
+        "words": [
+          "bank", "paid", "buy", "sell", "price", "euro",
+          "currency", "bill", "coin", "spend", "invoice", "balance", "transfer", "card", "atm", "withdrawal"
+        ]
+      },
+      "anglicisms": {
+        "points": 150,
+        "words": [
+          "trading", "cashflow", "startup", "bull market", "bear market", "hold", "mindset", "hustle", "broker", "crypto", "bitcoin", "nft", "business plan", "b2b", "b2c", "roi", "scalable",
+          "freelance", "sidehustle", "dropshipping", "ecommerce", "passiveincome", "blockchain", "altcoin", "dump", "pump", "scam"
+        ]
       }
     }
   }
