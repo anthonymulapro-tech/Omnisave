@@ -27,7 +27,7 @@ def categorize_url(url):
         analyzer = LinkAnalyzer(json_path)
         categorie_finale = analyzer.analyze(texte_extrait)
 
-        # 4. Affichage du succès (doit être dans le try, pas dans le except)
+        # 4. Affichage du succès
         print("-" * 50)
         print(f"🎉 RÉSULTAT : Ce post parle de {categorie_finale.upper()} !")
         print("-" * 50)
@@ -41,5 +41,5 @@ def categorize_url(url):
 
 # --- TEST ---
 if __name__ == "__main__":
-    lien_test = "https://www.instagram.com/p/Da8b_BFDZUO/?img_index=1"
+    lien_test = "https://www.instagram.com/p/DaBQvjqOdK9/"
     categorize_url(lien_test)
