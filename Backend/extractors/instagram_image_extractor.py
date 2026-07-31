@@ -44,8 +44,7 @@ class ImageExtractor(BaseExtractor):
 if __name__ == "__main__":
     extractor = ImageExtractor()
 
-    # Test avec un vrai post Instagram (photo)
-    # Remplace par un lien public valide
+    # Test post Instagram (photo)
     test_url = "https://www.instagram.com/p/C_TEST_LINK_ICI/"
 
     texte_extrait = extractor.extract_text(test_url)

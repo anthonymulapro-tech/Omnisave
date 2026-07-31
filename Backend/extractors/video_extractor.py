@@ -39,7 +39,6 @@ class VideoExtractor(BaseExtractor):
 if __name__ == "__main__":
     extractor = VideoExtractor()
 
-    # Testons avec un YouTube Short (tu pourras tester avec d'autres liens)
     test_url = "https://www.youtube.com/shorts/69orUBi41jw"
 
     texte_extrait = extractor.extract_text(test_url)
