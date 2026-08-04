@@ -98,9 +98,14 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     # 3. Success (Controller response)
-    logging.info(f"Successful login for user ID: {user.user_id}")
+    logging.info(f"Successful login for user ID: {user.user_id}. Generating token...")
+
+    # Generate the JWT token using the Service layer
+    token = AuthService.generate_token(user.user_id)
+
     return jsonify({
         "message": "Login successful",
+        "token": token,
         "user": user.to_dict()
     }), 200
 
