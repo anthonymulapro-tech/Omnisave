@@ -72,3 +72,10 @@ CREATE TABLE lien_tag (
     FOREIGN KEY (tag_id) REFERENCES tag(tag_id) ON DELETE CASCADE,
     FOREIGN KEY (url_id) REFERENCES lien(url_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
+-- Insertion des données de référence (Seed Data)
+-- --------------------------------------------------------
+INSERT INTO role (role_id, nom_role) VALUES
+(1, 'Utilisateur'),
+(2, 'Administrateur');
