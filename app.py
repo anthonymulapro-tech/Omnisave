@@ -11,7 +11,7 @@ from models.user import User
 from repositories.user_repository import UserRepository
 
 # --- Imports services ---
-from services.auth_service import AuthService
+from backend.services.auth_service import AuthService, token_required
 
 app = Flask(__name__)
 CORS(app)
@@ -149,6 +149,23 @@ def analyze_api():
     except Exception as e:
         logging.error(f"Critical error during link analysis: {e}")
         return jsonify({'error': "An error occurred during processing."}), 500
+
+
+@app.route('/api/profile', methods=['GET'])
+@token_required
+def get_profile(current_user_id):
+    """
+    Protected test route.
+    Requires a valid JWT token in the Authorization header.
+    """
+    logging.info(f"Accessing protected profile for user ID: {current_user_id}")
+
+    # Normally, you would use UserRepository here to fetch user details.
+    # For this test, we just return a success message and the decoded ID.
+    return jsonify({
+        "message": "Access granted! Your token is valid.",
+        "user_id": current_user_id
+    }), 200
 
 
 if __name__ == '__main__':
