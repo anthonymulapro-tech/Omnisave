@@ -67,6 +67,43 @@ def create_user():
         logging.error(f"Database insertion failed for user: {data.get('email')}")
         return jsonify({"error": "Failed to create user in the database"}), 500
 
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """
+    Endpoint to authenticate a user.
+    """
+    data = request.get_json()
+
+    # Basic field validation
+    if not data or not data.get('email') or not data.get('password'):
+        logging.warning("Login failed: Missing email or password")
+        return jsonify({"error": "Email and password are required"}), 400
+
+    email = data['email']
+    password_attempt = data['password']
+
+    logging.info(f"Login attempt for email: {email}")
+
+    # 1. Ask the Repository to find the user (Separation of concerns: Database)
+    user = UserRepository.get_by_email(email)
+
+    if not user:
+        # We never expose "Email not found" for security reasons (prevents username enumeration)
+        logging.warning(f"Login failed: User not found for email {email}")
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # 2. Ask the Service to verify the password (Separation of concerns: Security)
+    if not AuthService.verify_password(user.password, password_attempt):
+        logging.warning(f"Login failed: Incorrect password for email {email}")
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # 3. Success (Controller response)
+    logging.info(f"Successful login for user ID: {user.user_id}")
+    return jsonify({
+        "message": "Login successful",
+        "user": user.to_dict()
+    }), 200
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_api():
     """
