@@ -1,56 +1,108 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from backend.link_analyzer import LinkAnalyzer
-from backend.extractors.extractor_factory import ExtractorFactory  # <-- Nouvel import indispensable
 import os
+
+# --- Imports for AI Link Analysis ---
+from backend.link_analyzer import LinkAnalyzer
+from backend.extractors.extractor_factory import ExtractorFactory
+
+# --- Imports for Database & Models ---
+from models.user import User
+from repositories.user_repository import UserRepository
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialisation globale de l'IA (meilleur pour les performances)
+# ==========================================
+# AI INITIALIZATION
+# ==========================================
+# Global initialization of the AI (better for performance)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 json_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
 analyzer = LinkAnalyzer(json_path)
 
+# ==========================================
+# API ENDPOINTS (ROUTES)
+# ==========================================
+
+import logging
+
+# Configuration professionnelle des logs
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
+
+@app.route('/api/users', methods=['POST'])
+def create_user():
+    """
+    Endpoint to create a new user in the database.
+    """
+    data = request.get_json()
+
+    if not data or not data.get('email') or not data.get('password'):
+        logging.warning("User creation failed: Missing email or password")
+        return jsonify({"error": "Email and password are required"}), 400
+
+    logging.info(f"Processing new user creation for: {data.get('email')}")
+
+    new_user = User(
+        email=data['email'],
+        password=data['password'],
+        first_name=data.get('first_name'),
+        last_name=data.get('last_name'),
+        country=data.get('country')
+    )
+
+    saved_user = UserRepository.create(new_user)
+
+    if saved_user:
+        logging.info(f"Successfully created user with ID: {saved_user.user_id}")
+        return jsonify({
+            "message": "User successfully created",
+            "user": saved_user.to_dict()
+        }), 201
+    else:
+        logging.error(f"Database insertion failed for user: {data.get('email')}")
+        return jsonify({"error": "Failed to create user in the database"}), 500
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_api():
+    """
+    Endpoint to analyze a URL and detect its category using AI (spaCy).
+    """
     data = request.get_json()
 
     if not data or 'text_input' not in data:
-        return jsonify({'error': 'Aucun lien fourni'}), 400
+        logging.warning("Analysis failed: No link provided in the request payload")
+        return jsonify({'error': 'No link provided'}), 400
 
     url = data['text_input']
-
-    print(f"\n--- NOUVELLE ANALYSE ---")
-    print(f"🔗 1. Lien reçu de React : {url}")
+    logging.info(f"Starting analysis for link: {url}")
 
     try:
-        # --- LOGIQUE D'EXTRACTION ---
-        print("🔍 2. Démarrage de l'extracteur...")
+        # --- EXTRACTION LOGIC ---
+        logging.info("Initializing the appropriate extractor...")
         extractor = ExtractorFactory.get_extractor(url)
-        texte_extrait = extractor.extract_text(url)
+        extracted_text = extractor.extract_text(url)
 
-        if not texte_extrait:
-            print("❌ Erreur : Impossible d'extraire du texte de ce lien.")
-            return jsonify(
-                {'error': "Impossible d'extraire le contenu de ce lien (profil privé ou lien invalide)."}), 400
+        if not extracted_text:
+            logging.warning(f"Extraction failed: Cannot extract content from {url} (private profile or invalid).")
+            return jsonify({
+                'error': "Cannot extract content from this link (private profile or invalid link)."
+            }), 400
 
-        # On limite l'affichage dans la console à 100 caractères pour que ça reste lisible
-        print(f"✅ 3. Texte récupéré : '{texte_extrait[:100]}...'")
-        print("🤖 4. Envoi à l'IA (spaCy)...")
+        # Limit console output to 100 characters for readability
+        logging.info(f"Text successfully retrieved. Snippet: '{extracted_text[:100]}...'")
+        logging.info("Sending text to AI analyzer (spaCy)...")
 
-        # --- LOGIQUE D'ANALYSE ---
-        category = analyzer.analyze(texte_extrait)
+        # --- ANALYSIS LOGIC ---
+        category = analyzer.analyze(extracted_text)
 
-        print(f"🎯 5. Catégorie trouvée : {category}")
-        print(f"------------------------\n")
+        logging.info(f"Analysis complete. Category detected: {category}")
 
         return jsonify({'category': category}), 200
 
     except Exception as e:
-        print(f"❌ Erreur critique : {e}")
-        return jsonify({'error': "Une erreur est survenue lors du traitement."}), 500
+        logging.error(f"Critical error during link analysis: {e}")
+        return jsonify({'error': "An error occurred during processing."}), 500
 
 
 if __name__ == '__main__':
