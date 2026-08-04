@@ -10,6 +10,9 @@ from backend.extractors.extractor_factory import ExtractorFactory
 from models.user import User
 from repositories.user_repository import UserRepository
 
+# --- Imports services ---
+from backend.services.auth_service import AuthService, token_required
+
 app = Flask(__name__)
 CORS(app)
 
@@ -42,10 +45,11 @@ def create_user():
         return jsonify({"error": "Email and password are required"}), 400
 
     logging.info(f"Processing new user creation for: {data.get('email')}")
+    hashed_password = AuthService.hash_password(data['password'])
 
     new_user = User(
         email=data['email'],
-        password=data['password'],
+        password=hashed_password,
         first_name=data.get('first_name'),
         last_name=data.get('last_name'),
         country=data.get('country')
@@ -62,6 +66,48 @@ def create_user():
     else:
         logging.error(f"Database insertion failed for user: {data.get('email')}")
         return jsonify({"error": "Failed to create user in the database"}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """
+    Endpoint to authenticate a user.
+    """
+    data = request.get_json()
+
+    # Basic field validation
+    if not data or not data.get('email') or not data.get('password'):
+        logging.warning("Login failed: Missing email or password")
+        return jsonify({"error": "Email and password are required"}), 400
+
+    email = data['email']
+    password_attempt = data['password']
+
+    logging.info(f"Login attempt for email: {email}")
+
+    # 1. Ask the Repository to find the user (Separation of concerns: Database)
+    user = UserRepository.get_by_email(email)
+
+    if not user:
+        # We never expose "Email not found" for security reasons (prevents username enumeration)
+        logging.warning(f"Login failed: User not found for email {email}")
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # 2. Ask the Service to verify the password (Separation of concerns: Security)
+    if not AuthService.verify_password(user.password, password_attempt):
+        logging.warning(f"Login failed: Incorrect password for email {email}")
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # 3. Success (Controller response)
+    logging.info(f"Successful login for user ID: {user.user_id}. Generating token...")
+
+    # Generate the JWT token using the Service layer
+    token = AuthService.generate_token(user.user_id)
+
+    return jsonify({
+        "message": "Login successful",
+        "token": token,
+        "user": user.to_dict()
+    }), 200
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_api():
@@ -103,6 +149,23 @@ def analyze_api():
     except Exception as e:
         logging.error(f"Critical error during link analysis: {e}")
         return jsonify({'error': "An error occurred during processing."}), 500
+
+
+@app.route('/api/profile', methods=['GET'])
+@token_required
+def get_profile(current_user_id):
+    """
+    Protected test route.
+    Requires a valid JWT token in the Authorization header.
+    """
+    logging.info(f"Accessing protected profile for user ID: {current_user_id}")
+
+    # Normally, you would use UserRepository here to fetch user details.
+    # For this test, we just return a success message and the decoded ID.
+    return jsonify({
+        "message": "Access granted! Your token is valid.",
+        "user_id": current_user_id
+    }), 200
 
 
 if __name__ == '__main__':
