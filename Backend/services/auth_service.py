@@ -3,14 +3,17 @@ import jwt
 import datetime
 from functools import wraps
 from flask import request, jsonify
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class AuthService:
     """
     Service class handling all authentication and security logic.
     """
 
-    SECRET_KEY = "omnisave_super_secret_key_2026"
+    SECRET_KEY = os.getenv("SECRET_KEY")
 
     @staticmethod
     def hash_password(password: str) -> str:
