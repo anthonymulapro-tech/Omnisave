@@ -10,6 +10,9 @@ from backend.extractors.extractor_factory import ExtractorFactory
 from models.user import User
 from repositories.user_repository import UserRepository
 
+# --- Imports services ---
+from services.auth_service import AuthService
+
 app = Flask(__name__)
 CORS(app)
 
@@ -42,10 +45,11 @@ def create_user():
         return jsonify({"error": "Email and password are required"}), 400
 
     logging.info(f"Processing new user creation for: {data.get('email')}")
+    hashed_password = AuthService.hash_password(data['password'])
 
     new_user = User(
         email=data['email'],
-        password=data['password'],
+        password=hashed_password,
         first_name=data.get('first_name'),
         last_name=data.get('last_name'),
         country=data.get('country')
