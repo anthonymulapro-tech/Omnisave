@@ -1,18 +1,23 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
 import Analyzer from './components/Analyzer';
+
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* La page d'accueil affiche l'analyseur */}
+        {/* Homepage */}
         <Route path="/" element={<Analyzer />} />
 
-        {/* L'URL /login affiche ton formulaire */}
+        {/* URL /login */}
         <Route path="/login" element={<LoginForm />} />
 
-        {/* Si l'utilisateur tape n'importe quoi, on le renvoie à l'accueil */}
+        {/* URL /login */}
+        <Route path="/register" element={<RegisterForm />} />
+
+        {/* Return Homepage */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
