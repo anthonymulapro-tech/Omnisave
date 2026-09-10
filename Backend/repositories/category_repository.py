@@ -46,3 +46,28 @@ class CategoryRepository:
                     connection.close()
 
         return categories
+
+
+    @staticmethod
+    def get_by_title(title: str):
+        connection = DatabaseConnection.get_connection()
+        category = None
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                sql = "SELECT categorie_id, titre_categorie, description_categorie FROM categorie WHERE titre_categorie = %s;"
+                cursor.execute(sql, (title,))
+                row = cursor.fetchone()
+                if row:
+                    category = Category(
+                        category_id=row['categorie_id'],
+                        title=row['titre_categorie'],
+                        description=row['description_categorie']
+                    )
+            except Exception as e:
+                print(f"❌ Error fetching category: {e}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        return category

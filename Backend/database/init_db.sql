@@ -90,7 +90,7 @@ INSERT INTO role (role_id, nom_role) VALUES
 
 -- Ajout des 3 catégories par défaut
 INSERT INTO categorie (titre_categorie, description_categorie) VALUES
-('Cuisine', 'Contenu culinaire et recettes'),
+('Cooking', 'Contenu culinaire et recettes'),
 ('Sport', 'Activités physiques et sportives'),
 ('Finance', 'Économie et gestion de budget');
 

@@ -16,14 +16,11 @@ Content-Type: application/json
   "password": "Password123!"
 }
 
-### 3. Création d'un lien sécurisé (Remplace LE_TOKEN_ICI par le vrai token de l'étape 2)
+### 3. Création d'un lien (L'IA trouve la catégorie toute seule !)
 POST http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkxNDY4NDgsImlhdCI6MTc4OTA2MDQ0OH0.9Z-CR52uu5S9PQwJhjOvnXRfC1qL_WxrlaLSlW_6_Hg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkxNDg3ODAsImlhdCI6MTc4OTA2MjM4MH0.D86eChYv_XRBhJWim77_mcK93okB7mWtkg4G2AdhAo0
 
 {
-  "url": "https://developer.mozilla.org",
-  "title": "MDN Web Docs",
-  "platform": "Web",
-  "category_id": 1
+  "url": "https://www.instagram.com/reels/DdHV-EeodO7/"
 }

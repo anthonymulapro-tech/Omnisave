@@ -215,37 +215,70 @@ def get_categories():
 def create_link(current_user_id):
     """
     Endpoint to save a new link.
-    Protected route: automatically uses the user_id from the JWT token.
+    Automatically extracts web content, analyzes it with AI to determine the category,
+    and saves the link with the correct category_id.
     """
     data = request.get_json()
 
-    if not data or not data.get('url') or not data.get('category_id'):
-        logging.warning(f"Link creation failed for user {current_user_id}: Missing URL or Category ID")
-        return jsonify({"error": "Missing url or category_id"}), 400
+    # The frontend now ONLY needs to send the URL. The backend does the rest!
+    if not data or not data.get('url'):
+        logging.warning(f"Link creation failed for user {current_user_id}: Missing URL")
+        return jsonify({"error": "Missing url"}), 400
 
-    logging.info(f"User ID {current_user_id} is saving a new link: {data['url']}")
+    url = data['url']
+    logging.info(f"User ID {current_user_id} requested analysis and save for: {url}")
 
-    new_link = Link(
-        url=data['url'],
-        title=data.get('title'),
-        thumbnail_url=data.get('thumbnail_url'),
-        platform=data.get('platform'),
-        analysis_status=data.get('analysis_status', 'PENDING'),
-        category_id=data['category_id'],
-        user_id=current_user_id
-    )
+    try:
+        # --- 1. EXTRACTION ---
+        logging.info("Starting web extraction...")
+        extractor = ExtractorFactory.get_extractor(url)
+        extracted_text = extractor.extract_text(url)
 
-    success = LinkRepository.create(new_link)
+        if not extracted_text:
+            logging.warning("Extraction failed or content is empty.")
+            return jsonify({"error": "Cannot extract content from this link."}), 400
 
-    if success:
-        logging.info(f"Successfully saved link ID: {new_link.link_id}")
-        return jsonify({
-            "message": "Link successfully saved",
-            "link": new_link.to_dict()
-        }), 201
-    else:
-        logging.error(f"Database insertion failed for link: {data['url']}")
-        return jsonify({"error": "Erreur lors de la sauvegarde du lien"}), 500
+        # --- 2. AI ANALYSIS ---
+        logging.info("Sending extracted text to AI for categorization...")
+        category_title = analyzer.analyze(extracted_text)
+        logging.info(f"AI categorized the link as: {category_title}")
+
+        # --- 3. DATABASE MAPPING ---
+        # Find the corresponding category_id in the MySQL database
+        category = CategoryRepository.get_by_title(category_title)
+
+        if not category:
+            logging.warning(f"AI detected category '{category_title}' but it doesn't exist in the database.")
+            return jsonify({"error": f"Detected category '{category_title}' is not configured in the database."}), 400
+
+        # --- 4. SAVING THE LINK ---
+        new_link = Link(
+            url=url,
+            title=data.get('title', 'Titre généré automatiquement'),
+            # (Tu pourras plus tard extraire le vrai titre HTML)
+            thumbnail_url=data.get('thumbnail_url'),
+            platform=data.get('platform', 'Web'),
+            analysis_status='COMPLETED',  # Since the AI just processed it, status is COMPLETED
+            category_id=category.category_id,
+            user_id=current_user_id
+        )
+
+        success = LinkRepository.create(new_link)
+
+        if success:
+            logging.info(f"Successfully saved AI-categorized link ID: {new_link.link_id}")
+            return jsonify({
+                "message": "Link successfully analyzed and saved!",
+                "detected_category": category.title,
+                "link": new_link.to_dict()
+            }), 201
+        else:
+            logging.error(f"Database insertion failed for link: {url}")
+            return jsonify({"error": "Error saving the link to the database."}), 500
+
+    except Exception as e:
+        logging.error(f"Critical error during link creation flow: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
 
 
 @app.route('/api/links', methods=['GET'])
