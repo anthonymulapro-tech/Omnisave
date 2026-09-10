@@ -13,6 +13,11 @@ from repositories.user_repository import UserRepository
 # --- Imports services ---
 from backend.services.auth_service import AuthService, token_required
 
+# --- Imports repositories ---
+from models.link import Link
+from repositories.category_repository import CategoryRepository
+from repositories.link_repository import LinkRepository
+
 app = Flask(__name__)
 CORS(app)
 
@@ -186,6 +191,76 @@ def get_profile(current_user_id):
         "message": "Access granted! Your token is valid.",
         "user_id": current_user_id
     }), 200
+
+
+# ==========================================
+# CATEGORIES & LINKS ENDPOINTS
+# ==========================================
+
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    """
+    Endpoint to fetch all categories.
+    Public route (no token required) so the frontend can build dropdown menus easily.
+    """
+    logging.info("Fetching all categories from database.")
+    categories = CategoryRepository.get_all()
+    categories_data = [cat.to_dict() for cat in categories]
+
+    return jsonify(categories_data), 200
+
+
+@app.route('/api/links', methods=['POST'])
+@token_required
+def create_link(current_user_id):
+    """
+    Endpoint to save a new link.
+    Protected route: automatically uses the user_id from the JWT token.
+    """
+    data = request.get_json()
+
+    if not data or not data.get('url') or not data.get('category_id'):
+        logging.warning(f"Link creation failed for user {current_user_id}: Missing URL or Category ID")
+        return jsonify({"error": "Missing url or category_id"}), 400
+
+    logging.info(f"User ID {current_user_id} is saving a new link: {data['url']}")
+
+    new_link = Link(
+        url=data['url'],
+        title=data.get('title'),
+        thumbnail_url=data.get('thumbnail_url'),
+        platform=data.get('platform'),
+        analysis_status=data.get('analysis_status', 'PENDING'),
+        category_id=data['category_id'],
+        user_id=current_user_id
+    )
+
+    success = LinkRepository.create(new_link)
+
+    if success:
+        logging.info(f"Successfully saved link ID: {new_link.link_id}")
+        return jsonify({
+            "message": "Link successfully saved",
+            "link": new_link.to_dict()
+        }), 201
+    else:
+        logging.error(f"Database insertion failed for link: {data['url']}")
+        return jsonify({"error": "Erreur lors de la sauvegarde du lien"}), 500
+
+
+@app.route('/api/links', methods=['GET'])
+@token_required
+def get_links(current_user_id):
+    """
+    Endpoint to fetch all links for the logged-in user.
+    """
+    logging.info(f"Fetching links for user ID: {current_user_id}")
+
+    all_links = LinkRepository.get_all()
+
+    user_links = [link.to_dict() for link in all_links if link.user_id == current_user_id]
+
+    return jsonify(user_links), 200
 
 
 if __name__ == '__main__':

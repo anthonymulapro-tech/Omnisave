@@ -1,0 +1,29 @@
+### 1. Inscription d'un nouvel utilisateur de test
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "postman@omnisave.test",
+  "password": "Password123!"
+}
+
+### 2. Connexion (Pour récupérer le JWT Token)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "postman@omnisave.test",
+  "password": "Password123!"
+}
+
+### 3. Création d'un lien sécurisé (Remplace LE_TOKEN_ICI par le vrai token de l'étape 2)
+POST http://localhost:5000/api/links
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkxNDY4NDgsImlhdCI6MTc4OTA2MDQ0OH0.9Z-CR52uu5S9PQwJhjOvnXRfC1qL_WxrlaLSlW_6_Hg
+
+{
+  "url": "https://developer.mozilla.org",
+  "title": "MDN Web Docs",
+  "platform": "Web",
+  "category_id": 1
+}
