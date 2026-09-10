@@ -93,3 +93,8 @@ INSERT INTO categorie (titre_categorie, description_categorie) VALUES
 ('Cuisine', 'Contenu culinaire et recettes'),
 ('Sport', 'Activités physiques et sportives'),
 ('Finance', 'Économie et gestion de budget');
+
+INSERT INTO role (nom_role) VALUES ('Membre');
+
+INSERT INTO utilisateur (email, password, role_id)
+VALUES ('anthony@omnisave.test', 'Motdepasse123@', 1);
