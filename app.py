@@ -33,22 +33,42 @@ import logging
 # Configuration professionnelle des logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
 
-@app.route('/api/users', methods=['POST'])
-def create_user():
+
+@app.route('/api/auth/register', methods=['POST'])
+def register_user():
     """
-    Endpoint to create a new user in the database.
+    Endpoint to register a new user.
     """
     data = request.get_json()
 
     if not data or not data.get('email') or not data.get('password'):
-        logging.warning("User creation failed: Missing email or password")
+        logging.warning("Registration failed: Missing email or password")
         return jsonify({"error": "Email and password are required"}), 400
 
-    logging.info(f"Processing new user creation for: {data.get('email')}")
+    email = data['email']
+    password_attempt = data['password']
+
+    # --- Prevent duplicate accounts ---
+    # Check if the requested email is already registered in the database
+    existing_user = UserRepository.get_by_email(email)
+    if existing_user:
+        logging.warning(f"Registration failed: Email {email} already in use")
+        return jsonify({"error": "Cet email est déjà utilisé"}), 409
+
+    # --- Backend Password Strength Validation ---
+    if not AuthService.is_password_strong(password_attempt):
+        logging.warning(f"Registration failed: Weak password provided for {email}")
+        return jsonify({
+            "error": "Le mot de passe est trop faible. Il doit contenir 8 caractères, une majuscule, un chiffre et un caractère spécial."
+        }), 400
+
+    # -------------------------------------------------------
+
+    logging.info(f"Processing new user registration for: {email}")
     hashed_password = AuthService.hash_password(data['password'])
 
     new_user = User(
-        email=data['email'],
+        email=email,
         password=hashed_password,
         first_name=data.get('first_name'),
         last_name=data.get('last_name'),
@@ -58,14 +78,14 @@ def create_user():
     saved_user = UserRepository.create(new_user)
 
     if saved_user:
-        logging.info(f"Successfully created user with ID: {saved_user.user_id}")
+        logging.info(f"Successfully registered user with ID: {saved_user.user_id}")
         return jsonify({
-            "message": "User successfully created",
+            "message": "Inscription réussie",
             "user": saved_user.to_dict()
         }), 201
     else:
-        logging.error(f"Database insertion failed for user: {data.get('email')}")
-        return jsonify({"error": "Failed to create user in the database"}), 500
+        logging.error(f"Database insertion failed for user: {email}")
+        return jsonify({"error": "Erreur lors de la création du compte"}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
