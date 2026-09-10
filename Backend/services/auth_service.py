@@ -5,6 +5,7 @@ from functools import wraps
 from flask import request, jsonify
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -44,6 +45,27 @@ class AuthService:
         # Encode the payload into a JWT string using the secret key
         token = jwt.encode(payload, AuthService.SECRET_KEY, algorithm='HS256')
         return token
+
+    @staticmethod
+    def is_password_strong(password: str) -> bool:
+        """
+        Validates the password strength against security standards.
+
+        Rules:
+        - At least 8 characters long
+        - Contains at least one lowercase letter
+        - Contains at least one uppercase letter
+        - Contains at least one digit
+        - Contains at least one special character (@$!%*?&)
+
+        Args:
+            password (str): The plain text password to validate.
+
+        Returns:
+            bool: True if the password meets all criteria, False otherwise.
+        """
+        pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+        return bool(re.match(pattern, password))
 
 
 def token_required(f):
