@@ -1,6 +1,13 @@
--- Création de la base de données
-CREATE DATABASE IF NOT EXISTS omnisave;
+-- Suppression de l'ancienne base
 USE omnisave;
+
+DROP TABLE IF EXISTS lien_tag;
+DROP TABLE IF EXISTS lien;
+DROP TABLE IF EXISTS message_contact;
+DROP TABLE IF EXISTS utilisateur;
+DROP TABLE IF EXISTS tag;
+DROP TABLE IF EXISTS categorie;
+DROP TABLE IF EXISTS role;
 
 -- 1. Tables indépendantes
 
@@ -79,3 +86,9 @@ CREATE TABLE lien_tag (
 INSERT INTO role (role_id, nom_role) VALUES
 (1, 'Utilisateur'),
 (2, 'Administrateur');
+
+-- Ajout des 3 catégories par défaut
+INSERT INTO categorie (titre_categorie, description_categorie) VALUES
+('Cuisine', 'Contenu culinaire et recettes'),
+('Sport', 'Activités physiques et sportives'),
+('Finance', 'Économie et gestion de budget');
