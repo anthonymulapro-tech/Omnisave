@@ -63,6 +63,7 @@ CREATE TABLE lien (
     url_miniature VARCHAR(1024),
     plateforme VARCHAR(50),
     date_sauvegarde DATETIME DEFAULT CURRENT_TIMESTAMP,
+    statut_analyse VARCHAR(50) DEFAULT 'PENDING',
     categorie_id INT NOT NULL,
     utilisateur_id INT NOT NULL,
     FOREIGN KEY (categorie_id) REFERENCES categorie(categorie_id),
