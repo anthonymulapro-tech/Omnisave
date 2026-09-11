@@ -17,8 +17,10 @@ class Link:
         saved_at: Optional[datetime] = None,
         analysis_status: str = "PENDING",
         category_id: Optional[int] = None,
-        user_id: Optional[int] = None
-    ):
+        user_id: Optional[int] = None,
+        category_name: Optional[str] = None,
+        tags: Optional[list[str]] = None
+):
         self.link_id = link_id
         self.url = url
         self.title = title
@@ -28,6 +30,10 @@ class Link:
         self.analysis_status = analysis_status
         self.category_id = category_id
         self.user_id = user_id
+
+        self.category_name = category_name
+        # Default to an empty list to prevent NoneType iteration errors in the frontend
+        self.tags = tags if tags is not None else []
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -40,11 +46,13 @@ class Link:
             "title": self.title,
             "thumbnail_url": self.thumbnail_url,
             "platform": self.platform,
-            # React ne lit que du texte, on convertit la date Python en texte ISO :
             "saved_at": self.saved_at.isoformat() if self.saved_at else None,
             "analysis_status": self.analysis_status,
             "category_id": self.category_id,
-            "user_id": self.user_id
+            "user_id": self.user_id,
+            # Appended metadata for the frontend
+            "category_name": self.category_name,
+            "tags": self.tags
         }
 
     def __repr__(self) -> str:
