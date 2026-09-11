@@ -26,9 +26,11 @@ CORS(app)
 # ==========================================
 # Global initialization of the AI (better for performance)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
-analyzer = LinkAnalyzer(json_path)
 
+lexicon_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
+blacklist_path = os.path.join(BASE_DIR, 'data', 'blacklist.json')
+
+analyzer = LinkAnalyzer(lexicon_path, blacklist_path)
 # ==========================================
 # API ENDPOINTS (ROUTES)
 # ==========================================
@@ -215,12 +217,11 @@ def get_categories():
 def create_link(current_user_id):
     """
     Endpoint to save a new link.
-    Automatically extracts web content, analyzes it with AI to determine the category,
-    and saves the link with the correct category_id.
+    Extracts web content, analyzes it with AI for Category and Tags,
+    generates a smart title, and saves everything to the database.
     """
     data = request.get_json()
 
-    # The frontend now ONLY needs to send the URL. The backend does the rest!
     if not data or not data.get('url'):
         logging.warning(f"Link creation failed for user {current_user_id}: Missing URL")
         return jsonify({"error": "Missing url"}), 400
@@ -234,43 +235,53 @@ def create_link(current_user_id):
         extractor = ExtractorFactory.get_extractor(url)
         extracted_text = extractor.extract_text(url)
 
+        # ⚠️ NEXT STEP: Your extractor will also need to fetch the creator's name.
+        # For now, we extract the domain name (e.g., "instagram.com") to generate a clean title.
+        domain = url.split('/')[2].replace('www.', '') if '//' in url else 'Web'
+        author_placeholder = f"a creator on {domain}"
+
         if not extracted_text:
             logging.warning("Extraction failed or content is empty.")
             return jsonify({"error": "Cannot extract content from this link."}), 400
 
         # --- 2. AI ANALYSIS ---
-        logging.info("Sending extracted text to AI for categorization...")
-        category_title = analyzer.analyze(extracted_text)
-        logging.info(f"AI categorized the link as: {category_title}")
+        logging.info("Sending extracted text to AI for categorization and tagging...")
+
+        # The AI now returns a dictionary!
+        ai_result = analyzer.analyze(extracted_text)
+        category_title = ai_result["category"]
+        tags = ai_result["tags"]
+
+        logging.info(f"AI detected category: {category_title} with tags: {tags}")
 
         # --- 3. DATABASE MAPPING ---
-        # Find the corresponding category_id in the MySQL database
         category = CategoryRepository.get_by_title(category_title)
 
         if not category:
-            logging.warning(f"AI detected category '{category_title}' but it doesn't exist in the database.")
-            return jsonify({"error": f"Detected category '{category_title}' is not configured in the database."}), 400
+            logging.warning(f"AI detected '{category_title}' but it doesn't exist in DB.")
+            return jsonify({"error": f"Detected category '{category_title}' is not configured."}), 400
 
-        # --- 4. SAVING THE LINK ---
+        # --- 4. SAVING THE LINK & TAGS ---
         new_link = Link(
             url=url,
-            title=data.get('title', 'Titre généré automatiquement'),
-            # (Tu pourras plus tard extraire le vrai titre HTML)
+            title=data.get('title', f"Post by {author_placeholder}"),  # Dynamic title!
             thumbnail_url=data.get('thumbnail_url'),
-            platform=data.get('platform', 'Web'),
-            analysis_status='COMPLETED',  # Since the AI just processed it, status is COMPLETED
+            platform=data.get('platform', domain),
+            analysis_status='COMPLETED',
             category_id=category.category_id,
             user_id=current_user_id
         )
 
-        success = LinkRepository.create(new_link)
+        # ⚠️ CALLING THE NEW REPOSITORY METHOD
+        success = LinkRepository.create_with_tags(new_link, tags)
 
         if success:
-            logging.info(f"Successfully saved AI-categorized link ID: {new_link.link_id}")
+            logging.info(f"Successfully saved AI-categorized link with tags")
             return jsonify({
                 "message": "Link successfully analyzed and saved!",
                 "detected_category": category.title,
-                "link": new_link.to_dict()
+                "tags": tags,
+                "title": new_link.title
             }), 201
         else:
             logging.error(f"Database insertion failed for link: {url}")
@@ -279,7 +290,6 @@ def create_link(current_user_id):
     except Exception as e:
         logging.error(f"Critical error during link creation flow: {e}")
         return jsonify({"error": "An internal server error occurred."}), 500
-
 
 @app.route('/api/links', methods=['GET'])
 @token_required
@@ -294,7 +304,6 @@ def get_links(current_user_id):
     user_links = [link.to_dict() for link in all_links if link.user_id == current_user_id]
 
     return jsonify(user_links), 200
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

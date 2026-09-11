@@ -1,0 +1,13 @@
+{
+  "cooking": [
+    "gramme", "ingrédient", "recette", "cuillère",
+    "ml", "cl", "kg", "fourchette", "couteau", "kilo", "cuisson", "filet", "degré", "mode", "air"
+  ],
+  "global_noise": [
+    "lien", "abonné", "vidéo", "post", "description",
+    "partie", "minute", "heure", "jour", "mois", "année", "fois", "random"
+  ],
+  "social_media_noise": [
+    "like", "partage", "commentaire", "story", "reels"
+  ]
+}

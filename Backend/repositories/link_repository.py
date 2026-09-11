@@ -8,11 +8,11 @@ class LinkRepository:
     Responsible for saving new links and retrieving existing ones.
     """
 
-    @staticmethod
-    def create(link: Link) -> bool:
+    @classmethod
+    def create_with_tags(cls, link_obj, tags_list):
         """
-        Inserts a new Link object into the MySQL database.
-        Returns True if the insertion was successful, False otherwise.
+        Inserts a new link, manages tags creation, and links them in the join table.
+        Uses a SQL Transaction to ensure data integrity.
         """
         connection = DatabaseConnection.get_connection()
         success = False
@@ -21,36 +21,46 @@ class LinkRepository:
             try:
                 cursor = connection.cursor()
 
-                # We intentionally omit url_id (AUTO_INCREMENT) and date_sauvegarde (CURRENT_TIMESTAMP)
-                # MySQL will handle them automatically.
-                sql = """
-                      INSERT INTO lien
-                      (url, titre_url, url_miniature, plateforme, statut_analyse, categorie_id, utilisateur_id)
-                      VALUES (%s, %s, %s, %s, %s, %s, %s) \
-                      """
+                # 1. Insert the main link record
+                query_link = """
+                             INSERT INTO lien (url, titre_url, url_miniature, plateforme, statut_analyse, categorie_id, \
+                                               utilisateur_id)
+                             VALUES (%s, %s, %s, %s, %s, %s, %s) \
+                             """
+                cursor.execute(query_link, (
+                    link_obj.url, link_obj.title, link_obj.thumbnail_url, link_obj.platform,
+                    link_obj.analysis_status, link_obj.category_id, link_obj.user_id
+                ))
 
-                # Extracting values from the Python object
-                values = (
-                    link.url,
-                    link.title,
-                    link.thumbnail_url,
-                    link.platform,
-                    link.analysis_status,
-                    link.category_id,
-                    link.user_id
-                )
+                # Retrieve the ID of the newly created link (url_id)
+                url_id = cursor.lastrowid
 
-                cursor.execute(sql, values)
-                connection.commit()  # Save the data
+                # 2. Process each tag
+                for tag_name in tags_list:
+                    # Check if the tag already exists in the 'tag' table
+                    cursor.execute("SELECT tag_id FROM tag WHERE tag_libelle = %s", (tag_name,))
+                    result = cursor.fetchone()
 
-                # Get the auto-generated ID from MySQL and assign it to our Python object
-                link.link_id = cursor.lastrowid
+                    if result:
+                        # Standard cursor returns a tuple, e.g., (5,)
+                        tag_id = result[0]
+                    else:
+                        # Tag does not exist, so we create it
+                        cursor.execute("INSERT INTO tag (tag_libelle) VALUES (%s)", (tag_name,))
+                        tag_id = cursor.lastrowid
 
+                    # 3. Link the tag to the URL (Join table)
+                    cursor.execute("INSERT INTO lien_tag (tag_id, url_id) VALUES (%s, %s)", (tag_id, url_id))
+
+                # If everything succeeded, commit the transaction!
+                connection.commit()
                 success = True
 
             except Exception as e:
-                print(f"❌ Error inserting link: {e}")
-                connection.rollback()  # Cancel transaction in case of error
+                # In case of an error, rollback EVERYTHING to prevent corrupted data
+                connection.rollback()
+                print(f"❌ Database Transaction Error: {e}")
+                success = False
 
             finally:
                 if connection.is_connected():
