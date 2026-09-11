@@ -1,25 +1,35 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Analyzer from './components/Analyzer';
+import Dashboard from './components/Dashboard';
 
 
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Homepage */}
-        <Route path="/" element={<Analyzer />} />
+      {/* The Navbar is placed inside the Router but outside the Routes,
+          so it renders on every single page! */}
+      <Navbar />
 
-        {/* URL /login */}
-        <Route path="/login" element={<LoginForm />} />
+      {/* Main content wrapper with margin for spacing */}
+      <div className="container mt-4">
+        <Routes>
+          {/* Homepage (Analyzer) */}
+          <Route path="/" element={<Analyzer />} />
 
-        {/* URL /login */}
-        <Route path="/register" element={<RegisterForm />} />
+          {/* Authentication */}
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
 
-        {/* Return Homepage */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          {/* Dashboard (Placeholder for now) */}
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* Fallback route: Return to Homepage if URL is unknown */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
