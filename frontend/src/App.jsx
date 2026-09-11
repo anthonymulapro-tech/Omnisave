@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Analyzer from './components/Analyzer';
-// import Dashboard from './components/Dashboard'; //
+import Dashboard from './components/Dashboard';
 
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
           <Route path="/register" element={<RegisterForm />} />
 
           {/* Dashboard (Placeholder for now) */}
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Fallback route: Return to Homepage if URL is unknown */}
           <Route path="*" element={<Navigate to="/" />} />
