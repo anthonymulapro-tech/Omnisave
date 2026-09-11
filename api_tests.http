@@ -24,3 +24,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJle
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/"
 }
+
+### 4. Récupérer tous les liens de l'utilisateur
+GET http://127.0.0.1:5000/api/links
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkyMjY3OTUsImlhdCI6MTc4OTE0MDM5NX0.auAnYJcLxk_fNfYGPxX3MrHHXCID-O7dYljtvQx--Sg

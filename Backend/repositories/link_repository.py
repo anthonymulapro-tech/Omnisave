@@ -72,8 +72,8 @@ class LinkRepository:
     @staticmethod
     def get_all() -> list[Link]:
         """
-        Retrieves all links from the database.
-        Returns a list of Link objects.
+        Retrieves all links from the database, including their category name and associated tags.
+        Utilizes SQL JOINs and GROUP_CONCAT to prevent N+1 query performance issues.
         """
         connection = DatabaseConnection.get_connection()
         links = []
@@ -81,10 +81,26 @@ class LinkRepository:
         if connection:
             try:
                 cursor = connection.cursor(dictionary=True)
-                cursor.execute("SELECT * FROM lien;")
+
+                # Optimized query aggregating tags into a single comma-separated string
+                sql = """
+                      SELECT l.*, \
+                             c.titre_categorie, \
+                             GROUP_CONCAT(t.tag_libelle SEPARATOR ',') as tags_list
+                      FROM lien l
+                               LEFT JOIN categorie c ON l.categorie_id = c.categorie_id
+                               LEFT JOIN lien_tag lt ON l.url_id = lt.url_id
+                               LEFT JOIN tag t ON lt.tag_id = t.tag_id
+                      GROUP BY l.url_id; \
+                      """
+                cursor.execute(sql)
                 records = cursor.fetchall()
 
                 for row in records:
+                    # Parse the comma-separated string back into a Python list
+                    tags_string = row.get('tags_list')
+                    tags_list = tags_string.split(',') if tags_string else []
+
                     link = Link(
                         link_id=row['url_id'],
                         url=row['url'],
@@ -94,7 +110,9 @@ class LinkRepository:
                         saved_at=row['date_sauvegarde'],
                         analysis_status=row['statut_analyse'],
                         category_id=row['categorie_id'],
-                        user_id=row['utilisateur_id']
+                        user_id=row['utilisateur_id'],
+                        category_name=row['titre_categorie'],  # Injected category name
+                        tags=tags_list  # Injected tags array
                     )
                     links.append(link)
 
