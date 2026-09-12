@@ -8,68 +8,73 @@ class LinkRepository:
     Responsible for saving new links and retrieving existing ones.
     """
 
-    @classmethod
-    def create_with_tags(cls, link_obj, tags_list):
+    @staticmethod
+    def create_with_tags(link, tags: list[str]) -> bool:
         """
-        Inserts a new link, manages tags creation, and links them in the join table.
-        Uses a SQL Transaction to ensure data integrity.
+        Inserts a new link into the database and associates it with tags.
+        Intelligently handles tags to prevent duplication errors (upsert logic).
         """
         connection = DatabaseConnection.get_connection()
-        success = False
-
         if connection:
             try:
+                # We use a standard cursor here (not dictionary=True)
+                # to easily retrieve lastrowid and tuple results
                 cursor = connection.cursor()
 
-                # 1. Insert the main link record
-                query_link = """
-                             INSERT INTO lien (url, titre_url, url_miniature, plateforme, statut_analyse, categorie_id, \
-                                               utilisateur_id)
-                             VALUES (%s, %s, %s, %s, %s, %s, %s) \
-                             """
-                cursor.execute(query_link, (
-                    link_obj.url, link_obj.title, link_obj.thumbnail_url, link_obj.platform,
-                    link_obj.analysis_status, link_obj.category_id, link_obj.user_id
-                ))
+                # --- 1. INSERT THE LINK ---
+                sql_link = """
+                           INSERT INTO lien (url, titre_url, url_miniature, plateforme, statut_analyse, categorie_id, \
+                                             utilisateur_id)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s) \
+                           """
+                link_values = (
+                    link.url, link.title, link.thumbnail_url, link.platform,
+                    link.analysis_status, link.category_id, link.user_id
+                )
+                cursor.execute(sql_link, link_values)
 
-                # Retrieve the ID of the newly created link (url_id)
-                url_id = cursor.lastrowid
+                # Get the newly generated url_id
+                new_link_id = cursor.lastrowid
 
-                # 2. Process each tag
-                for tag_name in tags_list:
-                    # Check if the tag already exists in the 'tag' table
-                    cursor.execute("SELECT tag_id FROM tag WHERE tag_libelle = %s", (tag_name,))
-                    result = cursor.fetchone()
+                # --- 2. HANDLE TAGS INTELLIGENTLY ---
+                if tags:
+                    for tag_name in tags:
+                        # a) Check if the tag already exists in the 'tag' table
+                        sql_check_tag = "SELECT tag_id FROM tag WHERE tag_libelle = %s"
+                        cursor.execute(sql_check_tag, (tag_name,))
+                        existing_tag = cursor.fetchone()
 
-                    if result:
-                        # Standard cursor returns a tuple, e.g., (5,)
-                        tag_id = result[0]
-                    else:
-                        # Tag does not exist, so we create it
-                        cursor.execute("INSERT INTO tag (tag_libelle) VALUES (%s)", (tag_name,))
-                        tag_id = cursor.lastrowid
+                        if existing_tag:
+                            # Tag exists: retrieve its ID (existing_tag is a tuple like (5,))
+                            tag_id = existing_tag[0]
+                        else:
+                            # Tag doesn't exist: insert it and get the new ID
+                            sql_insert_tag = "INSERT INTO tag (tag_libelle) VALUES (%s)"
+                            cursor.execute(sql_insert_tag, (tag_name,))
+                            tag_id = cursor.lastrowid
 
-                        # 3. Link the tag to the URL (Join table)
-                        # We use INSERT IGNORE so MySQL silently skips duplicate tag associations
-                        # instead of crashing the entire transaction.
-                        cursor.execute("INSERT IGNORE INTO lien_tag (tag_id, url_id) VALUES (%s, %s)", (tag_id, url_id))
+                        # b) Link the tag to the video in the bridging table 'lien_tag'
+                        sql_link_tag = "INSERT INTO lien_tag (url_id, tag_id) VALUES (%s, %s)"
+                        cursor.execute(sql_link_tag, (new_link_id, tag_id))
 
-                # If everything succeeded, commit the transaction!
+                # --- 3. COMMIT EVERYTHING ---
+                # If everything went well, save the link AND the tags permanently
                 connection.commit()
-                success = True
+                return True
 
             except Exception as e:
-                # In case of an error, rollback EVERYTHING to prevent corrupted data
+                # SECURITY: If any query fails, undo EVERYTHING (rollback)
+                # This prevents having a link saved without its tags
                 connection.rollback()
-                print(f"❌ Database Transaction Error: {e}")
-                success = False
+                print(f"❌ Error saving link with tags: {e}")
+                return False
 
             finally:
                 if connection.is_connected():
                     cursor.close()
                     connection.close()
 
-        return success
+        return False
 
     @staticmethod
     def get_all() -> list[Link]:
