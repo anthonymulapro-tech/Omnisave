@@ -49,11 +49,9 @@ function Navbar() {
                             // Links visible ONLY to logged-in users
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/dashboard">Mes Liens</Link>
+                                    <Link className="nav-link" to="/dashboard">Accueil</Link>
                                 </li>
-                                <li className="nav-item">
-                                    <Link className="nav-link" to="/">Ajouter un lien</Link>
-                                </li>
+
                                 <li className="nav-item ms-lg-3">
                                     <button onClick={handleLogout} className="btn btn-outline-danger btn-sm mt-1">
                                         Se déconnecter

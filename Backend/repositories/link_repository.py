@@ -38,6 +38,8 @@ class LinkRepository:
 
                 # --- 2. HANDLE TAGS INTELLIGENTLY ---
                 if tags:
+                    linked_tag_ids = set()
+
                     for tag_name in tags:
                         # a) Check if the tag already exists in the 'tag' table
                         sql_check_tag = "SELECT tag_id FROM tag WHERE tag_libelle = %s"
@@ -45,7 +47,6 @@ class LinkRepository:
                         existing_tag = cursor.fetchone()
 
                         if existing_tag:
-                            # Tag exists: retrieve its ID (existing_tag is a tuple like (5,))
                             tag_id = existing_tag[0]
                         else:
                             # Tag doesn't exist: insert it and get the new ID
@@ -53,9 +54,11 @@ class LinkRepository:
                             cursor.execute(sql_insert_tag, (tag_name,))
                             tag_id = cursor.lastrowid
 
-                        # b) Link the tag to the video in the bridging table 'lien_tag'
-                        sql_link_tag = "INSERT INTO lien_tag (url_id, tag_id) VALUES (%s, %s)"
-                        cursor.execute(sql_link_tag, (new_link_id, tag_id))
+                        # b) Link the tag ONLY if it hasn't been linked yet for this video
+                        if tag_id not in linked_tag_ids:
+                            sql_link_tag = "INSERT INTO lien_tag (url_id, tag_id) VALUES (%s, %s)"
+                            cursor.execute(sql_link_tag, (new_link_id, tag_id))
+                            linked_tag_ids.add(tag_id)  # On l'ajoute à la mémoire pour ne pas le refaire !
 
                 # --- 3. COMMIT EVERYTHING ---
                 # If everything went well, save the link AND the tags permanently
