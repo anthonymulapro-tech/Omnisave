@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
 const LinkCard = ({ link }) => {
-    // Determine the category to display, fallback to the original name or "Autre"
+    const [imageError, setImageError] = useState(false);
+
     const displayCategory = CATEGORY_TRANSLATIONS[link.category_name] || link.category_name || "Autre";
 
-    // Format the date to French locale standards
     const formattedDate = new Date(link.saved_at).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: 'short',
@@ -13,7 +13,30 @@ const LinkCard = ({ link }) => {
     });
 
     return (
-        <div className="card mb-3 shadow-sm border-0">
+        <div className="card mb-3 shadow-sm border-0 overflow-hidden">
+
+            {link.thumbnail_url && !imageError ? (
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    <img
+                        src={link.thumbnail_url}
+                        alt={link.title}
+                        className="card-img-top"
+                        referrerPolicy="no-referrer"
+                        onError={() => setImageError(true)}
+                        style={{ height: '220px', objectFit: 'cover' }}
+                    />
+                </a>
+            ) : (
+                <div
+                    className="card-img-top bg-light d-flex align-items-center justify-content-center"
+                    style={{ height: '220px' }}
+                >
+                    <span className="text-muted fw-bold">
+                        📷 Image indisponible
+                    </span>
+                </div>
+            )}
+
             <div className="card-body">
                 {/* Header: Platform and Category translation */}
                 <div className="d-flex justify-content-between align-items-center mb-3">
