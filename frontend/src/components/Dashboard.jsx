@@ -1,97 +1,153 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import LinksDashboard from './LinksDashboard';
 
-/**
- * Dashboard component displaying the list of links saved by the authenticated user.
- * Fetches data from the API on mount and renders it in a responsive grid.
- *
- * @component
- * @returns {JSX.Element} The dashboard interface.
- */
-function Dashboard() {
+const Dashboard = () => {
+    // --- States for displaying links ---
     const [links, setLinks] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // --- States for adding a new link ---
+    const [newUrl, setNewUrl] = useState('');
+    const [isAdding, setIsAdding] = useState(false);
+    const [addMessage, setAddMessage] = useState(null);
+
+    // 1. Extract fetch logic into a reusable function
+    const fetchLinks = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/links', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch links');
+            }
+
+            const data = await response.json();
+            setLinks(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Trigger fetch on component mount
+    useEffect(() => {
+        fetchLinks();
+    }, []);
+
+    // 2. Handle the deletion (Prop drilling target)
     const handleDeleteLink = (deletedLinkId) => {
         setLinks(prevLinks => prevLinks.filter(link => link.link_id !== deletedLinkId));
     };
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
 
-    // useEffect runs automatically when the component is mounted
-    useEffect(() => {
-        const fetchLinks = async () => {
+    // 3. Handle the submission of a new link
+    const handleAddLink = async (e) => {
+        e.preventDefault();
+        if (!newUrl.trim()) return;
+
+        setIsAdding(true);
+        setAddMessage(null);
+
+        try {
             const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ url: newUrl })
+            });
 
-            // Security check: if no token, redirect to login
-            if (!token) {
-                navigate('/login');
-                return;
+            const data = await response.json();
+
+            if (response.ok) {
+                setAddMessage({ type: 'success', text: 'Link successfully analyzed and saved!' });
+                setNewUrl(''); // Clear the input field
+                fetchLinks(); // Refresh the grid to show the new card
+            } else {
+                setAddMessage({ type: 'danger', text: data.error || 'Failed to analyze link.' });
             }
+        } catch (err) {
+            setAddMessage({ type: 'danger', text: 'Server connection error.' });
+        } finally {
+            setIsAdding(false);
+        }
+    };
 
-            try {
-                // Fetch links from the protected backend route
-                const response = await fetch('http://127.0.0.1:5000/api/links', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.status === 401 || response.status === 422) {
-                    // Token expired or invalid
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-
-                // Set the links in state (handles if the backend sends an array directly or inside a property)
-                setLinks(data.links || data || []);
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                setError("❌ Impossible de charger vos liens.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchLinks();
-    }, [navigate]);
-
-    // Show a loading spinner while waiting for the API
     if (isLoading) {
         return (
             <div className="container mt-5 text-center">
                 <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Chargement...</span>
+                    <span className="visually-hidden">Loading...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="container mt-5">
-            <h2 className="mb-4">Mes Liens Sauvegardés</h2>
+        <div className="container mt-4">
 
-            {/* Display error message if the fetch failed */}
+            {/* --- ADD NEW LINK SECTION --- */}
+            <div className="card shadow-sm mb-5 border-0">
+                <div className="card-body p-4 bg-light rounded">
+                    <h4 className="mb-3">Save a new link</h4>
+                    <form onSubmit={handleAddLink}>
+                        <div className="input-group input-group-lg">
+                            <input
+                                type="url"
+                                className="form-control"
+                                placeholder="Paste your Instagram, TikTok, or X link here..."
+                                value={newUrl}
+                                onChange={(e) => setNewUrl(e.target.value)}
+                                disabled={isAdding}
+                                required
+                            />
+                            <button
+                                className="btn btn-primary px-4"
+                                type="submit"
+                                disabled={isAdding}
+                            >
+                                {isAdding ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Analyzing...
+                                    </>
+                                ) : (
+                                    'Analyze & Save'
+                                )}
+                            </button>
+                        </div>
+                    </form>
+
+                    {/* Feedback messages for the add action */}
+                    {addMessage && (
+                        <div className={`alert alert-${addMessage.type} mt-3 mb-0`} role="alert">
+                            {addMessage.text}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* --- SAVED LINKS SECTION --- */}
+            <h2 className="mb-4">My Saved Links</h2>
+
             {error && <div className="alert alert-danger">{error}</div>}
 
-            {/* Display a message if the array is empty */}
             {links.length === 0 && !error ? (
                 <div className="alert alert-info text-center">
-                    Vous n'avez pas encore sauvegardé de liens. Retournez sur l'accueil pour en ajouter !
+                    You haven't saved any links yet. Paste a URL above to get started!
                 </div>
             ) : (
                 <LinksDashboard initialLinks={links} onDelete={handleDeleteLink} />
             )}
         </div>
     );
-}
+};
 
 export default Dashboard;
