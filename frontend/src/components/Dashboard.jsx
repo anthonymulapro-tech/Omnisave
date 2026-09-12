@@ -11,6 +11,9 @@ import LinksDashboard from './LinksDashboard';
  */
 function Dashboard() {
     const [links, setLinks] = useState([]);
+    const handleDeleteLink = (deletedLinkId) => {
+        setLinks(prevLinks => prevLinks.filter(link => link.link_id !== deletedLinkId));
+    };
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -85,7 +88,7 @@ function Dashboard() {
                     Vous n'avez pas encore sauvegardé de liens. Retournez sur l'accueil pour en ajouter !
                 </div>
             ) : (
-                <LinksDashboard initialLinks={links} />
+                <LinksDashboard initialLinks={links} onDelete={handleDeleteLink} />
             )}
         </div>
     );

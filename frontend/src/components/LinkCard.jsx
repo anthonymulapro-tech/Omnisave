@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
-const LinkCard = ({ link }) => {
+const LinkCard = ({ link,onDelete }) => {
     const [imageError, setImageError] = useState(false);
 
     const displayCategory = CATEGORY_TRANSLATIONS[link.category_name] || link.category_name || "Autre";
@@ -12,8 +12,42 @@ const LinkCard = ({ link }) => {
         year: 'numeric'
     });
 
+    const handleDelete = async () => {
+        // Native browser confirmation
+        const isConfirmed = window.confirm("Are you sure you want to delete this link?");
+        if (!isConfirmed) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://127.0.0.1:5000/api/links/${link.link_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // If successful, tell the parent component to remove it from the UI
+                if (onDelete) onDelete(link.link_id);
+            } else {
+                alert("Failed to delete the link. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error deleting link:", error);
+            alert("An error occurred while deleting the link.");
+        }
+    };
+
     return (
-        <div className="card mb-3 shadow-sm border-0 overflow-hidden">
+        <div className="card mb-3 shadow-sm border-0 overflow-hidden position-relative">
+
+            <button
+                onClick={handleDelete}
+                className="btn-close position-absolute top-0 end-0 m-2 bg-light p-2 shadow-sm rounded-circle"
+                aria-label="Delete link"
+                style={{ zIndex: 10, cursor: 'pointer' }}
+                title="Delete this link"
+            ></button>
 
             {link.thumbnail_url && !imageError ? (
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
