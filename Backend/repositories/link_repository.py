@@ -127,3 +127,66 @@ class LinkRepository:
                     connection.close()
 
         return links
+
+    @staticmethod
+    def get_by_id(link_id: int):
+        """
+        Get a specific link by his ID
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                sql = "SELECT * FROM lien WHERE url_id = %s"
+                cursor.execute(sql, (link_id,))
+                row = cursor.fetchone()
+
+                if row:
+                    return Link(
+                        link_id=row['url_id'],
+                        url=row['url'],
+                        title=row['titre_url'],
+                        thumbnail_url=row['url_miniature'],
+                        platform=row['plateforme'],
+                        saved_at=row['date_sauvegarde'],
+                        analysis_status=row['statut_analyse'],
+                        category_id=row['categorie_id'],
+                        user_id=row['utilisateur_id']
+                    )
+            except Exception as e:
+                print(f"❌ Error fetching link by ID: {e}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        return None
+
+    @staticmethod
+    def delete(link_id: int) -> bool:
+        """
+        Delete the link from the database, if it exists.
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+
+                sql_tags = "DELETE FROM lien_tag WHERE url_id = %s"
+                cursor.execute(sql_tags, (link_id,))
+
+                sql_link = "DELETE FROM lien WHERE url_id = %s"
+                cursor.execute(sql_link, (link_id,))
+
+                connection.commit()
+                return True
+
+            except Exception as e:
+                connection.rollback()
+                print(f"❌ Error deleting link: {e}")
+                return False
+
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        return False

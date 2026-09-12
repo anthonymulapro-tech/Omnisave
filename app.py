@@ -303,5 +303,35 @@ def get_links(current_user_id):
 
     return jsonify(user_links), 200
 
+@app.route('/api/links/<int:link_id>', methods=['DELETE'])
+@token_required
+def delete_link(current_user_id, link_id):
+    """
+    Endpoint to delete a specific link.
+    """
+    logging.info(f"User ID {current_user_id} attempting to delete link {link_id}")
+
+    # 1. Use the Repository to find the link
+    link = LinkRepository.get_by_id(link_id)
+
+    if not link:
+        logging.warning(f"Delete failed: Link {link_id} not found.")
+        return jsonify({"error": "Lien introuvable."}), 404
+
+    # 2. SECURITY : Check if the link is owned by the user
+    if link.user_id != current_user_id:
+        logging.warning(f"Security Alert: User {current_user_id} tried to delete link {link_id} belonging to user {link.user_id}")
+        return jsonify({"error": "Action non autorisée."}), 403
+
+    # 3. Use the Repository to delete the link
+    success = LinkRepository.delete(link_id)
+
+    if success:
+        logging.info(f"Link {link_id} successfully deleted.")
+        return jsonify({"message": "Lien supprimé avec succès."}), 200
+    else:
+        logging.error(f"Failed to delete link {link_id} from database.")
+        return jsonify({"error": "Une erreur est survenue lors de la suppression."}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
