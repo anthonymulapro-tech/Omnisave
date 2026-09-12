@@ -94,6 +94,9 @@ INSERT INTO categorie (titre_categorie, description_categorie) VALUES
 ('Sport', 'Activités physiques et sportives'),
 ('Finance', 'Économie et gestion de budget');
 
+INSERT INTO categorie (titre_categorie)
+VALUES ('sports'), ('tech'), ('gaming');
+
 INSERT INTO role (nom_role) VALUES ('Membre');
 
 INSERT INTO utilisateur (email, password, role_id)

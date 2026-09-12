@@ -49,8 +49,10 @@ class LinkRepository:
                         cursor.execute("INSERT INTO tag (tag_libelle) VALUES (%s)", (tag_name,))
                         tag_id = cursor.lastrowid
 
-                    # 3. Link the tag to the URL (Join table)
-                    cursor.execute("INSERT INTO lien_tag (tag_id, url_id) VALUES (%s, %s)", (tag_id, url_id))
+                        # 3. Link the tag to the URL (Join table)
+                        # We use INSERT IGNORE so MySQL silently skips duplicate tag associations
+                        # instead of crashing the entire transaction.
+                        cursor.execute("INSERT IGNORE INTO lien_tag (tag_id, url_id) VALUES (%s, %s)", (tag_id, url_id))
 
                 # If everything succeeded, commit the transaction!
                 connection.commit()

@@ -125,11 +125,17 @@ class LinkAnalyzer:
         if best_category == "Non catégorisé":
             self._log_unknown_words(doc)
 
-        tags = self._extract_tags(text, doc)
+        # 1. Get the raw tags from the extraction method
+        raw_tags = self._extract_tags(text, doc)
+
+        # 2. Sanitize and deduplicate tags.
+        # We use dict.fromkeys() instead of set() here because dict preserves
+        # the order of the tags (keeping the most relevant ones first).
+        cleaned_tags = list(dict.fromkeys(tag.strip().lower() for tag in raw_tags))
 
         return {
             "category": best_category,
-            "tags": tags
+            "tags": cleaned_tags
         }
 
     def _determine_winner(self, scores):
