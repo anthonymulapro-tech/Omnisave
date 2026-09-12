@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LinkCard from './LinkCard';
 
 /**
  * Dashboard component displaying the list of links saved by the authenticated user.
@@ -14,7 +15,7 @@ function Dashboard() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // useEffect runs automatically when the component is mounted (displayed)
+    // useEffect runs automatically when the component is mounted
     useEffect(() => {
         const fetchLinks = async () => {
             const token = localStorage.getItem('token');
@@ -47,8 +48,7 @@ function Dashboard() {
 
                 const data = await response.json();
 
-                // Ensure we are setting an array (depends on your backend JSON structure)
-                // If your backend sends { "links": [...] }, use data.links
+                // Set the links in state (handles if the backend sends an array directly or inside a property)
                 setLinks(data.links || data || []);
             } catch (err) {
                 console.error("Fetch Error:", err);
@@ -59,7 +59,7 @@ function Dashboard() {
         };
 
         fetchLinks();
-    }, [navigate]); // navigate is included in the dependency array for best practices
+    }, [navigate]);
 
     // Show a loading spinner while waiting for the API
     if (isLoading) {
@@ -85,35 +85,12 @@ function Dashboard() {
                     Vous n'avez pas encore sauvegardé de liens. Retournez sur l'accueil pour en ajouter !
                 </div>
             ) : (
-                // Display the grid of links
+                // Display the grid of LinkCards
                 <div className="row">
-                    {links.map((link, index) => (
-                        <div className="col-md-6 col-lg-4 mb-4" key={link.link_id || index}>
-                            <div className="card shadow-sm h-100">
-                                <div className="card-body">
-                                    <h5 className="card-title text-truncate" title={link.title || "Titre inconnu"}>
-                                        {link.title || "Publication"}
-                                    </h5>
-
-                                    <div className="mb-3">
-                                        <span className="badge bg-primary me-2">
-                                            ID Catégorie : {link.category_id}
-                                        </span>
-                                        <span className="badge bg-secondary">
-                                            {link.platform || "Web"}
-                                        </span>
-                                    </div>
-
-                                    <a
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-dark btn-sm w-100"
-                                    >
-                                        Ouvrir le lien
-                                    </a>
-                                </div>
-                            </div>
+                    {links.map((link) => (
+                        <div className="col-md-6 col-lg-4 mb-4" key={link.link_id}>
+                            {/* Integrate our newly created LinkCard component here! */}
+                            <LinkCard link={link} />
                         </div>
                     ))}
                 </div>

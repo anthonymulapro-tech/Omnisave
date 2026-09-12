@@ -4,7 +4,9 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Analyzer from './components/Analyzer';
 import Dashboard from './components/Dashboard';
-
+import React from 'react';
+// Adjust the path depending on where you saved LinkCard.jsx
+import LinkCard from './components/LinkCard';
 
 function App() {
   return (
@@ -33,5 +35,6 @@ function App() {
     </Router>
   );
 }
+
 
 export default App;
