@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LinkCard from './LinkCard';
+import LinksDashboard from './LinksDashboard';
 
 /**
  * Dashboard component displaying the list of links saved by the authenticated user.
@@ -85,15 +85,7 @@ function Dashboard() {
                     Vous n'avez pas encore sauvegardé de liens. Retournez sur l'accueil pour en ajouter !
                 </div>
             ) : (
-                // Display the grid of LinkCards
-                <div className="row">
-                    {links.map((link) => (
-                        <div className="col-md-6 col-lg-4 mb-4" key={link.link_id}>
-                            {/* Integrate our newly created LinkCard component here! */}
-                            <LinkCard link={link} />
-                        </div>
-                    ))}
-                </div>
+                <LinksDashboard initialLinks={links} />
             )}
         </div>
     );
