@@ -12,7 +12,7 @@ class ImageExtractor(BaseExtractor):
             save_metadata=False
         )
 
-    def extract_text(self, url):
+    def extract_data(self, url):
         """
         Extrait la description d'un post photo Instagram à partir de son URL.
         """
@@ -33,11 +33,23 @@ class ImageExtractor(BaseExtractor):
             # 3. Extraction de la légende (caption)
             description = post.caption if post.caption else ""
 
-            print(f"Extraction réussie pour le post : {shortcode}")
-            return description
+            author = post.owner_username
+
+            thumbnail = post.url
+
+            print(f"Extraction successful for post: {shortcode} by @{author}")
+
+            # Return a complete dictionary of metadata
+            return {
+                "text": description,
+                "author": author,
+                "title": f"Post by @{author}",
+                "thumbnail_url": thumbnail
+            }
+
 
         except Exception as e:
-            print(f"Erreur lors de l'extraction Instagram pour {url} : {str(e)}")
+            print(f"Error during Instagram extraction for {url} : {str(e)}")
             return None
 
 # --- TEST ---
@@ -45,7 +57,7 @@ if __name__ == "__main__":
     extractor = ImageExtractor()
 
     # Test post Instagram (photo)
-    test_url = "https://www.instagram.com/p/C_TEST_LINK_ICI/"
+    test_url = "https://www.instagram.com/p/DbVK2BaS5x8/"
 
     texte_extrait = extractor.extract_text(test_url)
 
