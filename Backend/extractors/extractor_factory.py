@@ -7,11 +7,11 @@ class ExtractorFactory:
     def get_extractor(url: str):
         """Retourne la bonne classe d'extraction selon l'URL."""
 
-        if "instagram.com/p/" in url:
+        if "instagram.com" in url and "/p/" in url:
             print("📸 Lien Instagram (Photo) détecté. Lancement de l'InstagramExtractor.")
             return ImageExtractor()
 
-        elif "youtube.com" in url or "tiktok.com" in url or "instagram.com/reel" in url:
+        elif "youtube.com" in url or "tiktok.com" in url or ("instagram.com" in url and "/reel/" in url):
             print("🎥 Lien Vidéo détecté. Lancement du VideoExtractor.")
             return VideoExtractor()
 

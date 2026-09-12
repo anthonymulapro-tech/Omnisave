@@ -218,7 +218,7 @@ def create_link(current_user_id):
     """
     Endpoint to save a new link.
     Extracts web content, analyzes it with AI for Category and Tags,
-    generates a smart title, and saves everything to the database.
+    fetches dynamic metadata (title, author), and saves everything to the database.
     """
     data = request.get_json()
 
@@ -233,21 +233,19 @@ def create_link(current_user_id):
         # --- 1. EXTRACTION ---
         logging.info("Starting web extraction...")
         extractor = ExtractorFactory.get_extractor(url)
-        extracted_text = extractor.extract_text(url)
+        extracted_data = extractor.extract_data(url)
 
-        # ⚠️ NEXT STEP: Your extractor will also need to fetch the creator's name.
-        # For now, we extract the domain name (e.g., "instagram.com") to generate a clean title.
-        domain = url.split('/')[2].replace('www.', '') if '//' in url else 'Web'
-        author_placeholder = f"a creator on {domain}"
-
-        if not extracted_text:
+        if not extracted_data or not extracted_data.get("text"):
             logging.warning("Extraction failed or content is empty.")
             return jsonify({"error": "Cannot extract content from this link."}), 400
 
+        extracted_text = extracted_data["text"]
+        dynamic_title = extracted_data["title"]
+        dynamic_thumbnail = extracted_data["thumbnail_url"]
+        domain = url.split('/')[2].replace('www.', '') if '//' in url else 'Web'
+
         # --- 2. AI ANALYSIS ---
         logging.info("Sending extracted text to AI for categorization and tagging...")
-
-        # The AI now returns a dictionary!
         ai_result = analyzer.analyze(extracted_text)
         category_title = ai_result["category"]
         tags = ai_result["tags"]
@@ -264,15 +262,14 @@ def create_link(current_user_id):
         # --- 4. SAVING THE LINK & TAGS ---
         new_link = Link(
             url=url,
-            title=data.get('title', f"Post by {author_placeholder}"),  # Dynamic title!
-            thumbnail_url=data.get('thumbnail_url'),
+            title=data.get('title', dynamic_title),
+            thumbnail_url=data.get('thumbnail_url', dynamic_thumbnail),
             platform=data.get('platform', domain),
             analysis_status='COMPLETED',
             category_id=category.category_id,
             user_id=current_user_id
         )
 
-        # ⚠️ CALLING THE NEW REPOSITORY METHOD
         success = LinkRepository.create_with_tags(new_link, tags)
 
         if success:
@@ -290,6 +287,7 @@ def create_link(current_user_id):
     except Exception as e:
         logging.error(f"Critical error during link creation flow: {e}")
         return jsonify({"error": "An internal server error occurred."}), 500
+
 
 @app.route('/api/links', methods=['GET'])
 @token_required
