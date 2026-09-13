@@ -60,3 +60,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJle
   "category": "Cooking",
   "tags": ["tag-modifié", "mise-a-jour", "succes"]
 }
+
+### --- GESTION DU PROFIL ---
+
+### 6. Récupérer son profil
+GET http://localhost:5000/api/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug
+
+
+### 7. Modifier son profil (Prénom, Nom, Pseudo, Fast-Save, Pays)
+PUT http://localhost:5000/api/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug
+
+{
+  "first_name": "Anthony",
+  "last_name": "Mula",
+  "pseudo": "Anthodev",
+  "fast_save": true,
+  "country": "France"
+}
+
+
+### 8. Supprimer son compte (Efface l'utilisateur et tous ses liens)
+DELETE http://localhost:5000/api/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug

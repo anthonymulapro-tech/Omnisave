@@ -105,6 +105,49 @@ class UserRepository:
                 connection.close()
 
     @staticmethod
+    def get_by_id(user_id: int):
+        """
+        Retrieves a user from the database using their ID.
+        Returns a User object, or None if not found.
+        """
+        connection = DatabaseConnection.get_connection()
+        if not connection:
+            return None
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+            sql = "SELECT * FROM utilisateur WHERE utilisateur_id = %s"
+            cursor.execute(sql, (user_id,))
+
+            row = cursor.fetchone()
+
+            if row:
+                return User(
+                    user_id=row['utilisateur_id'],
+                    email=row['email'],
+                    password=row['password'],
+                    first_name=row['prenom'],
+                    last_name=row['nom'],
+                    pseudo=row['pseudo'],
+                    profile_picture=row['photo_profil'],
+                    fast_save=bool(row['fast_save']),
+                    country=row['pays'],
+                    is_active=bool(row['est_actif']),
+                    created_at=row['date_creation'],
+                    role_id=row['role_id']
+                )
+            return None
+
+        except Error as e:
+            print(f"❌ Error while fetching user by ID: {e}")
+            return None
+
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    @staticmethod
     def update(user: User) -> bool:
         """
         Updates an existing user's profile information in the database.
@@ -144,6 +187,48 @@ class UserRepository:
 
         except Error as e:
             print(f"❌ Error while updating user profile: {e}")
+            connection.rollback()
+            return False
+
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    @staticmethod
+    def delete(user_id: int) -> bool:
+        """
+        Deletes a user and all their associated data (links and tags) from the database.
+        Ensures proper cleanup to respect foreign key constraints.
+        """
+        connection = DatabaseConnection.get_connection()
+        if not connection:
+            return False
+
+        try:
+            cursor = connection.cursor()
+
+            # 1. Find all links belonging to the user
+            cursor.execute("SELECT url_id FROM lien WHERE utilisateur_id = %s", (user_id,))
+            links = cursor.fetchall()
+            link_ids = [row[0] for row in links]
+
+            # 2. Delete tag associations for these links
+            if link_ids:
+                format_strings = ','.join(['%s'] * len(link_ids))
+                cursor.execute(f"DELETE FROM lien_tag WHERE url_id IN ({format_strings})", tuple(link_ids))
+
+                # 3. Delete the user's links
+                cursor.execute("DELETE FROM lien WHERE utilisateur_id = %s", (user_id,))
+
+            # 4. Finally, delete the user account
+            cursor.execute("DELETE FROM utilisateur WHERE utilisateur_id = %s", (user_id,))
+
+            connection.commit()
+            return True
+
+        except Error as e:
+            print(f"❌ Error deleting user account: {e}")
             connection.rollback()
             return False
 

@@ -178,22 +178,82 @@ def analyze_api():
         return jsonify({'error': "An error occurred during processing."}), 500
 
 
+# ==========================================
+# CRUD PROFILE
+# ==========================================
+
+
 @app.route('/api/profile', methods=['GET'])
 @token_required
 def get_profile(current_user_id):
     """
-    Protected test route.
-    Requires a valid JWT token in the Authorization header.
+    Protected route to get the current user's profile data.
     """
-    logging.info(f"Accessing protected profile for user ID: {current_user_id}")
+    logging.info(f"User ID {current_user_id} requested their profile.")
 
-    # Normally, you would use UserRepository here to fetch user details.
-    # For this test, we just return a success message and the decoded ID.
-    return jsonify({
-        "message": "Access granted! Your token is valid.",
-        "user_id": current_user_id
-    }), 200
+    user = UserRepository.get_by_id(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
 
+    # We use the to_dict() method which strips the password automatically
+    return jsonify(user.to_dict()), 200
+
+
+@app.route('/api/profile', methods=['PUT'])
+@token_required
+def update_profile(current_user_id):
+    """
+    Protected route to update the current user's profile data.
+    """
+    logging.info(f"User ID {current_user_id} is updating their profile.")
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided."}), 400
+
+    user = UserRepository.get_by_id(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+
+    # Update the user object with new data (or keep existing if not provided)
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.pseudo = data.get('pseudo', user.pseudo)
+    user.profile_picture = data.get('profile_picture', user.profile_picture)
+
+    # Handle boolean conversion safely for fast_save
+    if 'fast_save' in data:
+        user.fast_save = bool(data['fast_save'])
+
+    user.country = data.get('country', user.country)
+
+    # Save the updated user to the database
+    success = UserRepository.update(user)
+
+    if success:
+        logging.info(f"User ID {current_user_id} successfully updated their profile.")
+        return jsonify({
+            "message": "Profile successfully updated!",
+            "user": user.to_dict()
+        }), 200
+    else:
+        return jsonify({"error": "An error occurred while updating the profile."}), 500
+
+@app.route('/api/profile', methods=['DELETE'])
+@token_required
+def delete_profile(current_user_id):
+    """
+    Protected route to delete the current user's account and all associated data.
+    """
+    logging.warning(f"User ID {current_user_id} requested account DELETION.")
+
+    success = UserRepository.delete(current_user_id)
+
+    if success:
+        logging.info(f"User ID {current_user_id} successfully deleted their account.")
+        return jsonify({"message": "Account successfully deleted."}), 200
+    else:
+        return jsonify({"error": "An error occurred while deleting the account."}), 500
 
 # ==========================================
 # CATEGORIES & LINKS ENDPOINTS
