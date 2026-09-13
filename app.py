@@ -212,31 +212,29 @@ def get_categories():
     return jsonify(categories_data), 200
 
 
-@app.route('/api/links', methods=['POST'])
+@app.route('/api/links/preview', methods=['POST'])
 @token_required
-def create_link(current_user_id):
+def preview_link(current_user_id):
     """
-    Endpoint to save a new link.
-    Extracts web content, analyzes it with AI for Category and Tags,
-    fetches dynamic metadata (title, author), and saves everything to the database.
+    Step 1: Preview Endpoint.
+    Extracts web content and analyzes it with AI.
+    Returns the proposed data to the frontend WITHOUT saving it to the database.
     """
     data = request.get_json()
 
     if not data or not data.get('url'):
-        logging.warning(f"Link creation failed for user {current_user_id}: Missing URL")
         return jsonify({"error": "Missing url"}), 400
 
     url = data['url']
-    logging.info(f"User ID {current_user_id} requested analysis and save for: {url}")
+    logging.info(f"User ID {current_user_id} requested PREVIEW for: {url}")
 
     try:
         # --- 1. EXTRACTION ---
-        logging.info("Starting web extraction...")
+        logging.info("Starting web extraction for preview...")
         extractor = ExtractorFactory.get_extractor(url)
         extracted_data = extractor.extract_data(url)
 
         if not extracted_data or not extracted_data.get("text"):
-            logging.warning("Extraction failed or content is empty.")
             return jsonify({"error": "Cannot extract content from this link."}), 400
 
         extracted_text = extracted_data["text"]
@@ -247,46 +245,72 @@ def create_link(current_user_id):
         # --- 2. AI ANALYSIS ---
         logging.info("Sending extracted text to AI for categorization and tagging...")
         ai_result = analyzer.analyze(extracted_text)
-        category_title = ai_result["category"]
-        tags = ai_result["tags"]
 
-        logging.info(f"AI detected category: {category_title} with tags: {tags}")
+        # --- 3. RETURN PREVIEW DATA ---
+        # We send everything back to React so the user can edit it in the Sidebar
+        return jsonify({
+            "url": url,
+            "title": dynamic_title,
+            "thumbnail_url": dynamic_thumbnail,
+            "platform": domain,
+            "category": ai_result["category"],
+            "tags": ai_result["tags"]
+        }), 200
 
-        # --- 3. DATABASE MAPPING ---
+    except Exception as e:
+        logging.error(f"Error during link preview flow: {e}")
+        return jsonify({"error": "An internal server error occurred during analysis."}), 500
+
+
+@app.route('/api/links', methods=['POST'])
+@token_required
+def save_link(current_user_id):
+    """
+    Step 2: Save Endpoint.
+    Receives the finalized (and potentially edited) data from the frontend Sidebar.
+    Saves the link and tags to the database.
+    """
+    data = request.get_json()
+
+    # We expect all these fields to be provided by the frontend after the preview
+    required_fields = ['url', 'title', 'category', 'tags']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields for saving"}), 400
+
+    logging.info(f"User ID {current_user_id} requested SAVE for: {data['url']}")
+
+    try:
+        # --- 1. DATABASE MAPPING ---
+        category_title = data['category']
         category = CategoryRepository.get_by_title(category_title)
 
         if not category:
-            logging.warning(f"AI detected '{category_title}' but it doesn't exist in DB.")
-            return jsonify({"error": f"Detected category '{category_title}' is not configured."}), 400
+            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
 
-        # --- 4. SAVING THE LINK & TAGS ---
+        # --- 2. PREPARE THE LINK OBJECT ---
         new_link = Link(
-            url=url,
-            title=data.get('title', dynamic_title),
-            thumbnail_url=data.get('thumbnail_url', dynamic_thumbnail),
-            platform=data.get('platform', domain),
+            url=data['url'],
+            title=data['title'],
+            thumbnail_url=data.get('thumbnail_url', ''),  # Default to empty if missing
+            platform=data.get('platform', 'Web'),
             analysis_status='COMPLETED',
             category_id=category.category_id,
             user_id=current_user_id
         )
 
-        success = LinkRepository.create_with_tags(new_link, tags)
+        # --- 3. SAVE TO DB ---
+        # We pass the tags list (which may have been modified by the user)
+        success = LinkRepository.create_with_tags(new_link, data['tags'])
 
         if success:
-            logging.info(f"Successfully saved AI-categorized link with tags")
-            return jsonify({
-                "message": "Link successfully analyzed and saved!",
-                "detected_category": category.title,
-                "tags": tags,
-                "title": new_link.title
-            }), 201
+            logging.info("Successfully saved user-validated link with tags")
+            return jsonify({"message": "Link successfully saved!"}), 201
         else:
-            logging.error(f"Database insertion failed for link: {url}")
             return jsonify({"error": "Error saving the link to the database."}), 500
 
     except Exception as e:
-        logging.error(f"Critical error during link creation flow: {e}")
-        return jsonify({"error": "An internal server error occurred."}), 500
+        logging.error(f"Critical error during link save flow: {e}")
+        return jsonify({"error": "An internal server error occurred while saving."}), 500
 
 
 @app.route('/api/links', methods=['GET'])
