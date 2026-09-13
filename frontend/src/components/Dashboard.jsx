@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LinksDashboard from './LinksDashboard';
+import SupervisionSidebar from './SupervisionSidebar';
 
 const Dashboard = () => {
     // --- States for displaying links ---
@@ -7,12 +8,16 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- States for adding a new link ---
+    // --- States for the input form ---
     const [newUrl, setNewUrl] = useState('');
-    const [isAdding, setIsAdding] = useState(false);
     const [addMessage, setAddMessage] = useState(null);
 
-    // 1. Extract fetch logic into a reusable function
+    // --- States for the Supervision Sidebar ---
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarLoading, setIsSidebarLoading] = useState(false);
+    const [previewData, setPreviewData] = useState(null);
+    const [sidebarError, setSidebarError] = useState(null);
+
     const fetchLinks = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -21,11 +26,7 @@ const Dashboard = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch links');
-            }
-
+            if (!response.ok) throw new Error('Impossible de récupérer les liens');
             const data = await response.json();
             setLinks(data);
         } catch (err) {
@@ -35,27 +36,28 @@ const Dashboard = () => {
         }
     };
 
-    // Trigger fetch on component mount
     useEffect(() => {
         fetchLinks();
     }, []);
 
-    // 2. Handle the deletion (Prop drilling target)
     const handleDeleteLink = (deletedLinkId) => {
         setLinks(prevLinks => prevLinks.filter(link => link.link_id !== deletedLinkId));
     };
 
-    // 3. Handle the submission of a new link
-    const handleAddLink = async (e) => {
+    // --- STEP 1: TRIGGER PREVIEW ---
+    const handlePreviewLink = async (e) => {
         e.preventDefault();
         if (!newUrl.trim()) return;
 
-        setIsAdding(true);
+        // Prepare and open the sidebar in loading state
         setAddMessage(null);
+        setIsSidebarOpen(true);
+        setIsSidebarLoading(true);
+        setPreviewData(null);
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/links', {
+            const response = await fetch('http://localhost:5000/api/links/preview', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -67,24 +69,63 @@ const Dashboard = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setAddMessage({ type: 'success', text: 'Link successfully analyzed and saved!' });
-                setNewUrl(''); // Clear the input field
-                fetchLinks(); // Refresh the grid to show the new card
+                // Pass the data to the sidebar, which will stop its loader
+                setPreviewData(data);
             } else {
-                setAddMessage({ type: 'danger', text: data.error || 'Failed to analyze link.' });
+                setAddMessage({ type: 'danger', text: data.error || "Échec de l'analyse du lien." });
+                setIsSidebarOpen(false); // Close if error
             }
         } catch (err) {
-            setAddMessage({ type: 'danger', text: 'Server connection error.' });
+            setAddMessage({ type: 'danger', text: 'Erreur de connexion au serveur.' });
+            setIsSidebarOpen(false);
         } finally {
-            setIsAdding(false);
+            setIsSidebarLoading(false);
         }
     };
+
+    // --- STEP 2: HANDLE FINAL SAVE FROM SIDEBAR ---
+    const handleSaveLink = async (finalizedData) => {
+    setIsSidebarLoading(true);
+    setSidebarError(null); // On nettoie les anciennes erreurs
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/links', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(finalizedData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            setAddMessage({ type: 'success', text: 'Lien sauvegardé avec succès !' });
+            setNewUrl('');
+            setIsSidebarOpen(false);
+            fetchLinks();
+        } else {
+            // L'API Python renvoie "Category '...' is not configured."
+            if (data.error && data.error.includes("not configured")) {
+                setSidebarError("Nous ne connaissons pas cette catégorie");
+            } else {
+                setSidebarError(data.error || 'Échec de la sauvegarde du lien.');
+            }
+        }
+    } catch (err) {
+        setSidebarError('Erreur de connexion au serveur lors de la sauvegarde.');
+    } finally {
+        setIsSidebarLoading(false);
+    }
+};
 
     if (isLoading) {
         return (
             <div className="container mt-5 text-center">
                 <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">Chargement...</span>
                 </div>
             </div>
         );
@@ -96,36 +137,28 @@ const Dashboard = () => {
             {/* --- ADD NEW LINK SECTION --- */}
             <div className="card shadow-sm mb-5 border-0">
                 <div className="card-body p-4 bg-light rounded">
-                    <h4 className="mb-3">Save a new link</h4>
-                    <form onSubmit={handleAddLink}>
+                    <h4 className="mb-3">Ajouter un lien</h4>
+                    <form onSubmit={handlePreviewLink}>
                         <div className="input-group input-group-lg">
                             <input
                                 type="url"
                                 className="form-control"
-                                placeholder="Paste your Instagram, TikTok, or X link here..."
+                                placeholder="Collez votre lien Instagram, TikTok, ou Youtube ici..."
                                 value={newUrl}
                                 onChange={(e) => setNewUrl(e.target.value)}
-                                disabled={isAdding}
+                                disabled={isSidebarOpen} // Disable input if sidebar is busy
                                 required
                             />
                             <button
                                 className="btn btn-primary px-4"
                                 type="submit"
-                                disabled={isAdding}
+                                disabled={isSidebarOpen}
                             >
-                                {isAdding ? (
-                                    <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Analyzing...
-                                    </>
-                                ) : (
-                                    'Analyze & Save'
-                                )}
+                                Analysez votre lien
                             </button>
                         </div>
                     </form>
 
-                    {/* Feedback messages for the add action */}
                     {addMessage && (
                         <div className={`alert alert-${addMessage.type} mt-3 mb-0`} role="alert">
                             {addMessage.text}
@@ -135,17 +168,28 @@ const Dashboard = () => {
             </div>
 
             {/* --- SAVED LINKS SECTION --- */}
-            <h2 className="mb-4">My Saved Links</h2>
+            <h2 className="mb-4">Mes liens sauvegardés</h2>
 
             {error && <div className="alert alert-danger">{error}</div>}
 
             {links.length === 0 && !error ? (
                 <div className="alert alert-info text-center">
-                    You haven't saved any links yet. Paste a URL above to get started!
+                    Vous n'avez pas encore sauvegardés de lien. Collez une URL ci-dessus pour commencer votre collection !
                 </div>
             ) : (
                 <LinksDashboard initialLinks={links} onDelete={handleDeleteLink} />
             )}
+
+            {/* --- SUPERVISION SIDEBAR COMPONENT --- */}
+            <SupervisionSidebar
+                isOpen={isSidebarOpen}
+                isLoading={isSidebarLoading}
+                previewData={previewData}
+                error={sidebarError}
+                onClose={() => setIsSidebarOpen(false)}
+                onSave={handleSaveLink}
+            />
+
         </div>
     );
 };
