@@ -47,13 +47,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJle
 ### 4. Récupérer tous les liens de l'utilisateur
 GET http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTc4NTAsImlhdCI6MTc4OTMzMTQ1MH0.tcUJRvr5AnAhlyLGVvQLR2pv2gGvHbjaD_m17uyA6Jo
 
 
 ### 5. 🆕 MODIFIER UN LIEN (Remplace le "1" à la fin par un vrai ID de ta base)
 PUT http://localhost:5000/api/links/35
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTc4NTAsImlhdCI6MTc4OTMzMTQ1MH0.tcUJRvr5AnAhlyLGVvQLR2pv2gGvHbjaD_m17uyA6Jo
 
 {
   "title": "Titre super modifié depuis le test HTTP !",
@@ -66,18 +66,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJle
 ### 6. Récupérer son profil
 GET http://localhost:5000/api/profile
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTgyMjksImlhdCI6MTc4OTMzMTgyOX0.ClwJOuyBu2LUiTKSVDXZtidndpO5t9xdiOvEzDRws5o
 
 
 ### 7. Modifier son profil (Prénom, Nom, Pseudo, Fast-Save, Pays)
 PUT http://localhost:5000/api/profile
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTgyMjksImlhdCI6MTc4OTMzMTgyOX0.ClwJOuyBu2LUiTKSVDXZtidndpO5t9xdiOvEzDRws5o
 
 {
   "first_name": "Anthony",
   "last_name": "Mula",
-  "pseudo": "Anthodev",
+  "pseudo": "Anthodev2",
   "fast_save": true,
   "country": "France"
 }
@@ -86,4 +86,49 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJle
 ### 8. Supprimer son compte (Efface l'utilisateur et tous ses liens)
 DELETE http://localhost:5000/api/profile
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk0MDIxNDQsImlhdCI6MTc4OTMxNTc0NH0.h4aQn1kdAqm5OQK48IlzRvfSsZQKlFoj-gAQqzCZqug
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE3ODk0MTc0MDYsImlhdCI6MTc4OTMzMTAwNn0.XxLP8uGhaq3cvpomQOeQdnN0J8Ct0YOj23BcjVlpdQc
+
+### --- GESTION DU PROFIL (SUITE) ---
+
+### 9. Modifier le profil avec un NOUVEL email
+# Remplace "nouveau.mail@ example.com" par un email de test.
+# Si tu mets un email déjà utilisé par un autre compte, tu dois recevoir une erreur 409.
+PUT http://localhost:5000/api/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTgyMjksImlhdCI6MTc4OTMzMTgyOX0.ClwJOuyBu2LUiTKSVDXZtidndpO5t9xdiOvEzDRws5o
+
+{
+  "email": "nouveau.mail2@example.com",
+  "first_name": "Anthony",
+  "last_name": "Mula",
+  "pseudo": "Anthodev2",
+  "fast_save": true,
+  "country": "France"
+}
+
+
+### --- SÉCURITÉ : MOT DE PASSE ---
+
+### 10. Modifier son mot de passe (ÉCHEC : mauvais ancien mot de passe)
+# Doit retourner une erreur 401 "Incorrect current password."
+PUT http://localhost:5000/api/profile/password
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTgyMjksImlhdCI6MTc4OTMzMTgyOX0.ClwJOuyBu2LUiTKSVDXZtidndpO5t9xdiOvEzDRws5o
+
+{
+  "old_password": "mauvais_mot_de_passe_123",
+  "new_password": "SuperNouveauPassword456!"
+}
+
+
+### 11. Modifier son mot de passe (SUCCÈS)
+# Remplace "ton_vrai_ancien_mot_de_passe" par celui avec lequel tu t'es connecté.
+# Doit retourner un succès 200.
+PUT http://localhost:5000/api/profile/password
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTgyMjksImlhdCI6MTc4OTMzMTgyOX0.ClwJOuyBu2LUiTKSVDXZtidndpO5t9xdiOvEzDRws5o
+
+{
+  "old_password": "Password123!",
+  "new_password": "SuperNouveauPassword456!"
+}

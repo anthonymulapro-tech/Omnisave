@@ -148,30 +148,32 @@ class UserRepository:
                 connection.close()
 
     @staticmethod
-    def update(user: User) -> bool:
+    def update(user: User):
         """
-        Updates an existing user's profile information in the database.
-        Does not update email or password (which should have their own dedicated methods).
+        Updates an existing user's profile information, including email, in the database.
+        Returns a tuple: (Success_boolean, Error_message_string)
         """
         connection = DatabaseConnection.get_connection()
         if not connection:
-            return False
+            return False, "Database connection failed"
 
         try:
             cursor = connection.cursor()
 
             sql = """
-                  UPDATE utilisateur 
-                  SET prenom = %s, 
-                      nom = %s, 
-                      pseudo = %s, 
-                      photo_profil = %s, 
-                      fast_save = %s, 
-                      pays = %s
-                  WHERE utilisateur_id = %s
+                  UPDATE utilisateur
+                  SET email        = %s,
+                      prenom       = %s,
+                      nom          = %s,
+                      pseudo       = %s,
+                      photo_profil = %s,
+                      fast_save    = %s,
+                      pays         = %s
+                  WHERE utilisateur_id = %s \
                   """
 
             values = (
+                user.email,
                 user.first_name,
                 user.last_name,
                 user.pseudo,
@@ -183,10 +185,37 @@ class UserRepository:
 
             cursor.execute(sql, values)
             connection.commit()
+            return True, None
+
+        except Exception as e:
+            print(f"❌ Error while updating user profile: {e}")
+            connection.rollback()
+            return False, str(e)  # On renvoie l'erreur exacte en texte !
+
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+    @staticmethod
+    def update_password(user_id: int, new_password: str) -> bool:
+        """
+        Updates only the user's password in the database.
+        """
+        connection = DatabaseConnection.get_connection()
+        if not connection:
+            return False
+
+        try:
+            cursor = connection.cursor()
+            sql = "UPDATE utilisateur SET password = %s WHERE utilisateur_id = %s"
+
+            # NOTE: new_password should ideally be hashed here if not done in the route!
+            cursor.execute(sql, (new_password, user_id))
+            connection.commit()
             return True
 
         except Error as e:
-            print(f"❌ Error while updating user profile: {e}")
+            print(f"❌ Error while updating password: {e}")
             connection.rollback()
             return False
 
@@ -194,7 +223,6 @@ class UserRepository:
             if connection.is_connected():
                 cursor.close()
                 connection.close()
-
     @staticmethod
     def delete(user_id: int) -> bool:
         """

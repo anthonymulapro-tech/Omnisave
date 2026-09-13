@@ -18,6 +18,9 @@ from models.link import Link
 from repositories.category_repository import CategoryRepository
 from repositories.link_repository import LinkRepository
 
+# --- Import hash ---
+from werkzeug.security import check_password_hash, generate_password_hash
+
 app = Flask(__name__)
 CORS(app)
 
@@ -203,7 +206,7 @@ def get_profile(current_user_id):
 @token_required
 def update_profile(current_user_id):
     """
-    Protected route to update the current user's profile data.
+    Protected route to update the current user's profile data, including email.
     """
     logging.info(f"User ID {current_user_id} is updating their profile.")
 
@@ -215,29 +218,72 @@ def update_profile(current_user_id):
     if not user:
         return jsonify({"error": "User not found."}), 404
 
-    # Update the user object with new data (or keep existing if not provided)
+    # --- EMAIL SECURITY CHECK ---
+    new_email = data.get('email')
+    if new_email and new_email != user.email:
+        # Check if the new email is already used by someone else
+        existing_user = UserRepository.get_by_email(new_email)
+        if existing_user:
+            return jsonify({"error": "This email address is already in use by another account."}), 409
+        user.email = new_email
+
+    # Update other fields
     user.first_name = data.get('first_name', user.first_name)
     user.last_name = data.get('last_name', user.last_name)
     user.pseudo = data.get('pseudo', user.pseudo)
     user.profile_picture = data.get('profile_picture', user.profile_picture)
 
-    # Handle boolean conversion safely for fast_save
     if 'fast_save' in data:
         user.fast_save = bool(data['fast_save'])
 
     user.country = data.get('country', user.country)
 
-    # Save the updated user to the database
-    success = UserRepository.update(user)
+    success, error_msg = UserRepository.update(user)
 
     if success:
-        logging.info(f"User ID {current_user_id} successfully updated their profile.")
         return jsonify({
             "message": "Profile successfully updated!",
             "user": user.to_dict()
         }), 200
     else:
-        return jsonify({"error": "An error occurred while updating the profile."}), 500
+        return jsonify({"error": f"Database error: {error_msg}"}), 500
+
+
+@app.route('/api/profile/password', methods=['PUT'])
+@token_required
+def update_password(current_user_id):
+    """
+    Protected route to update the user's password.
+    Requires the old password for verification.
+    """
+    logging.info(f"User ID {current_user_id} requested a password change.")
+
+    data = request.get_json()
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+
+    if not old_password or not new_password:
+        return jsonify({"error": "Both old and new passwords are required."}), 400
+
+    user = UserRepository.get_by_id(current_user_id)
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+
+    # Verify that the old password matches the one in the database
+    # NOTE: If you start hashing passwords later, use check_password_hash() here instead of ==
+    if not check_password_hash(user.password, old_password):
+        return jsonify({"error": "Incorrect current password."}), 401
+
+    hashed_new_password = generate_password_hash(new_password)
+
+    # Update with the new password
+    success = UserRepository.update_password(current_user_id, hashed_new_password)
+
+    if success:
+        logging.info(f"User ID {current_user_id} successfully changed their password.")
+        return jsonify({"message": "Password successfully updated!"}), 200
+    else:
+        return jsonify({"error": "An error occurred while updating the password."}), 500
 
 @app.route('/api/profile', methods=['DELETE'])
 @token_required
