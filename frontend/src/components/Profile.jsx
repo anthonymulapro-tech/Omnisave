@@ -1,22 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Profile.css'; // <-- CSS imported here!
+import './Profile.css';
 
 const Profile = () => {
     const navigate = useNavigate();
 
-    // State to hold form data
+    // --- STATE: PROFILE INFO ---
     const [formData, setFormData] = useState({
+        email: '',
         first_name: '',
         last_name: '',
         pseudo: '',
         country: '',
         fast_save: false
     });
+    const [profileMessage, setProfileMessage] = useState(null);
+    const [profileMessageType, setProfileMessageType] = useState('');
 
-    // State for UI feedback (success/error messages)
-    const [message, setMessage] = useState(null);
-    const [messageType, setMessageType] = useState(''); // 'success' or 'danger'
+    // Stores specific errors for fields (to display red borders)
+    const [fieldErrors, setFieldErrors] = useState({});
+
+    // --- STATE: PASSWORD UPDATE ---
+    const [pwdData, setPwdData] = useState({
+        old_password: '',
+        new_password: '',
+        confirm_password: ''
+    });
+    const [pwdMessage, setPwdMessage] = useState(null);
+    const [pwdMessageType, setPwdMessageType] = useState('');
+
+    // Toggles for password visibility
+    const [showOldPwd, setShowOldPwd] = useState(false);
+    const [showNewPwd, setShowNewPwd] = useState(false);
+    const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
     // Fetch user profile on component mount
     useEffect(() => {
@@ -36,8 +52,8 @@ const Profile = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Pre-fill the form, falling back to empty strings if null
                 setFormData({
+                    email: data.email || '',
                     first_name: data.first_name || '',
                     last_name: data.last_name || '',
                     pseudo: data.pseudo || '',
@@ -50,19 +66,24 @@ const Profile = () => {
         }
     };
 
-    // Handle input changes
-    const handleChange = (e) => {
+    // --- HANDLERS: PROFILE FORM ---
+    const handleProfileChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
             ...formData,
             [name]: type === 'checkbox' ? checked : value
         });
+
+        // Remove the red border as soon as the user starts typing again
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: null });
+        }
     };
 
-    // Handle profile update
-    const handleSubmit = async (e) => {
+    const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        setMessage(null);
+        setProfileMessage(null);
+        setFieldErrors({}); // Reset previous errors
 
         const token = localStorage.getItem('token');
         try {
@@ -78,43 +99,105 @@ const Profile = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setMessageType('success');
-                setMessage('Profile successfully updated!');
+                setProfileMessageType('success');
+                setProfileMessage('Profile mis à jour !');
             } else {
-                setMessageType('danger');
-                setMessage(data.error || 'An error occurred while updating.');
+                // Analyze the error string to map it to specific fields
+                const errorStr = (data.error || '').toLowerCase();
+                const newFieldErrors = {};
+                let hasSpecificError = false;
+
+                if (errorStr.includes('email')) {
+                    newFieldErrors.email = "Cet email est déjà utilisé.";
+                    hasSpecificError = true;
+                }
+                if (errorStr.includes('pseudo') || errorStr.includes('duplicate') || errorStr.includes('1062')) {
+                    newFieldErrors.pseudo = "Ce pseudo est déjà pris, veuillez en choisir un autre.";
+                    hasSpecificError = true;
+                }
+
+                setFieldErrors(newFieldErrors);
+
+                // If a specific field error was found, hide the ugly raw database error at the top
+                if (hasSpecificError) {
+                    setProfileMessage(null);
+                } else {
+                    // Only show the top alert if it's an unknown server error
+                    setProfileMessageType('danger');
+                    setProfileMessage(data.error || 'An error occurred while updating.');
+                }
             }
         } catch (error) {
-            setMessageType('danger');
-            setMessage('Server connection error.');
+            setProfileMessageType('danger');
+            setProfileMessage('Server connection error.');
         }
     };
 
-    // Handle account deletion
-    const handleDeleteAccount = async () => {
-        // Native browser confirmation popup
-        const isConfirmed = window.confirm(
-            "Are you sure you want to delete your account? This action is irreversible and will delete all your saved links."
-        );
+    // --- HANDLERS: PASSWORD FORM ---
+    const handlePwdChange = (e) => {
+        const { name, value } = e.target;
+        setPwdData({ ...pwdData, [name]: value });
+    };
 
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        setPwdMessage(null);
+
+        // Client-side validation for matching passwords
+        if (pwdData.new_password !== pwdData.confirm_password) {
+            setPwdMessageType('danger');
+            setPwdMessage("Les nouveaux mots de passe ne correspondent pas.");
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch('http://localhost:5000/api/profile/password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    old_password: pwdData.old_password,
+                    new_password: pwdData.new_password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setPwdMessageType('success');
+                setPwdMessage('Mot de passe mis à jour avec succès !');
+                // Reset password form fields
+                setPwdData({ old_password: '', new_password: '', confirm_password: '' });
+            } else {
+                setPwdMessageType('danger');
+                setPwdMessage(data.error || 'Erreur lors du changement de mot de passe.');
+            }
+        } catch (error) {
+            setPwdMessageType('danger');
+            setPwdMessage('Server connection error.');
+        }
+    };
+
+    // --- HANDLER: DELETE ACCOUNT ---
+    const handleDeleteAccount = async () => {
+        const isConfirmed = window.confirm(
+            "Are you sure you want to delete your account? This action is irreversible."
+        );
         if (!isConfirmed) return;
 
         const token = localStorage.getItem('token');
         try {
             const response = await fetch('http://localhost:5000/api/profile', {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
-                // Clear local storage and redirect to login
                 localStorage.removeItem('token');
                 navigate('/login');
-            } else {
-                setMessageType('danger');
-                setMessage('Failed to delete account.');
             }
         } catch (error) {
             console.error("Error deleting account:", error);
@@ -123,19 +206,35 @@ const Profile = () => {
 
     return (
         <div className="container mt-5 profile-container">
-            <div className="card shadow-sm">
+            {/* --- SECTION 1: PROFILE INFORMATION --- */}
+            <div className="card shadow-sm mb-4">
                 <div className="card-header bg-white pb-0 border-bottom-0 pt-4 px-4">
-                    <h3 className="mb-0">Mon Profil</h3>
+                    <h4 className="mb-0">Informations Générales</h4>
                 </div>
 
                 <div className="card-body p-4">
-                    {message && (
-                        <div className={`alert alert-${messageType}`} role="alert">
-                            {message}
+                    {profileMessage && (
+                        <div className={`alert alert-${profileMessageType}`} role="alert">
+                            {profileMessage}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleProfileSubmit}>
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">Adresse Email</label>
+                            <input
+                                type="email"
+                                // Adds a red border if fieldErrors.email exists
+                                className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
+                                name="email"
+                                value={formData.email}
+                                onChange={handleProfileChange}
+                            />
+                            {fieldErrors.email && (
+                                <div className="invalid-feedback">{fieldErrors.email}</div>
+                            )}
+                        </div>
+
                         <div className="row mb-3">
                             <div className="col-md-6">
                                 <label className="form-label fw-bold">Prénom</label>
@@ -144,7 +243,7 @@ const Profile = () => {
                                     className="form-control"
                                     name="first_name"
                                     value={formData.first_name}
-                                    onChange={handleChange}
+                                    onChange={handleProfileChange}
                                 />
                             </div>
                             <div className="col-md-6">
@@ -154,7 +253,7 @@ const Profile = () => {
                                     className="form-control"
                                     name="last_name"
                                     value={formData.last_name}
-                                    onChange={handleChange}
+                                    onChange={handleProfileChange}
                                 />
                             </div>
                         </div>
@@ -163,11 +262,14 @@ const Profile = () => {
                             <label className="form-label fw-bold">Pseudo</label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className={`form-control ${fieldErrors.pseudo ? 'is-invalid' : ''}`}
                                 name="pseudo"
                                 value={formData.pseudo}
-                                onChange={handleChange}
+                                onChange={handleProfileChange}
                             />
+                            {fieldErrors.pseudo && (
+                                <div className="invalid-feedback">{fieldErrors.pseudo}</div>
+                            )}
                         </div>
 
                         <div className="mb-4">
@@ -177,7 +279,7 @@ const Profile = () => {
                                 className="form-control"
                                 name="country"
                                 value={formData.country}
-                                onChange={handleChange}
+                                onChange={handleProfileChange}
                             />
                         </div>
 
@@ -190,7 +292,7 @@ const Profile = () => {
                                     id="fastSaveSwitch"
                                     name="fast_save"
                                     checked={formData.fast_save}
-                                    onChange={handleChange}
+                                    onChange={handleProfileChange}
                                 />
                                 <label className="form-check-label fw-bold" htmlFor="fastSaveSwitch">
                                     Activer le Fast-Save
@@ -201,8 +303,92 @@ const Profile = () => {
                             </small>
                         </div>
 
-                        <button type="submit" className="btn btn-primary w-100 fw-bold mb-4">
+                        <button type="submit" className="btn btn-primary w-100 fw-bold">
                             Sauvegarder les modifications
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* --- SECTION 2: SECURITY & PASSWORD --- */}
+            <div className="card shadow-sm border-danger border-opacity-25 mb-5">
+                <div className="card-header bg-white pb-0 border-bottom-0 pt-4 px-4">
+                    <h4 className="mb-0 text-danger">Sécurité</h4>
+                </div>
+
+                <div className="card-body p-4">
+                    {pwdMessage && (
+                        <div className={`alert alert-${pwdMessageType}`} role="alert">
+                            {pwdMessage}
+                        </div>
+                    )}
+
+                    <form onSubmit={handlePasswordSubmit}>
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">Ancien mot de passe</label>
+                            <div className="input-group">
+                                <input
+                                    type={showOldPwd ? "text" : "password"}
+                                    className="form-control"
+                                    name="old_password"
+                                    value={pwdData.old_password}
+                                    onChange={handlePwdChange}
+                                    required
+                                />
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    type="button"
+                                    onClick={() => setShowOldPwd(!showOldPwd)}
+                                >
+                                    {showOldPwd ? '🙈' : '👁️'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">Nouveau mot de passe</label>
+                            <div className="input-group">
+                                <input
+                                    type={showNewPwd ? "text" : "password"}
+                                    className="form-control"
+                                    name="new_password"
+                                    value={pwdData.new_password}
+                                    onChange={handlePwdChange}
+                                    required
+                                />
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    type="button"
+                                    onClick={() => setShowNewPwd(!showNewPwd)}
+                                >
+                                    {showNewPwd ? '🙈' : '👁️'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="form-label fw-bold">Confirmer le nouveau mot de passe</label>
+                            <div className="input-group">
+                                <input
+                                    type={showConfirmPwd ? "text" : "password"}
+                                    className="form-control"
+                                    name="confirm_password"
+                                    value={pwdData.confirm_password}
+                                    onChange={handlePwdChange}
+                                    required
+                                />
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    type="button"
+                                    onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                                >
+                                    {showConfirmPwd ? '🙈' : '👁️'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" className="btn btn-outline-danger w-100 fw-bold mb-4">
+                            Changer le mot de passe
                         </button>
 
                         <hr />
