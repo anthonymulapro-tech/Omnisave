@@ -9,9 +9,13 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // --- State for User Preferences ---
+    const [fastSaveEnabled, setFastSaveEnabled] = useState(false);
+
     // --- States for the input form ---
     const [newUrl, setNewUrl] = useState('');
     const [addMessage, setAddMessage] = useState(null);
+    const [isFastSaving, setIsFastSaving] = useState(false); // To disable button during background save
 
     // --- States for the Supervision Sidebar ---
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,13 +28,27 @@ const Dashboard = () => {
     const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
     const [editError, setEditError] = useState(null);
 
+    // Fetch User Profile to get Fast-Save preference
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFastSaveEnabled(data.fast_save || false);
+            }
+        } catch (err) {
+            console.error("Erreur lors de la récupération du profil:", err);
+        }
+    };
+
     const fetchLinks = async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/links', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Impossible de récupérer les liens');
             const data = await response.json();
@@ -42,7 +60,9 @@ const Dashboard = () => {
         }
     };
 
+    // Load both links and user preferences on mount
     useEffect(() => {
+        fetchUserProfile();
         fetchLinks();
     }, []);
 
@@ -55,11 +75,17 @@ const Dashboard = () => {
         e.preventDefault();
         if (!newUrl.trim()) return;
 
-        // Prepare and open the sidebar in loading state
         setAddMessage(null);
-        setIsSidebarOpen(true);
-        setIsSidebarLoading(true);
-        setPreviewData(null);
+
+        // UI Feedback based on user preference
+        if (fastSaveEnabled) {
+            setIsFastSaving(true);
+            setAddMessage({ type: 'info', text: 'Analyse et sauvegarde rapide en cours...' });
+        } else {
+            setIsSidebarOpen(true);
+            setIsSidebarLoading(true);
+            setPreviewData(null);
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -75,57 +101,91 @@ const Dashboard = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Pass the data to the sidebar, which will stop its loader
-                setPreviewData(data);
+                if (fastSaveEnabled) {
+                    // FAST-SAVE: Directly save the preview data without sidebar
+                    await performFastSave(data);
+                } else {
+                    // NORMAL: Pass the data to the sidebar
+                    setPreviewData(data);
+                }
             } else {
                 setAddMessage({ type: 'danger', text: data.error || "Échec de l'analyse du lien." });
-                setIsSidebarOpen(false); // Close if error
+                setIsSidebarOpen(false);
             }
         } catch (err) {
             setAddMessage({ type: 'danger', text: 'Erreur de connexion au serveur.' });
             setIsSidebarOpen(false);
         } finally {
-            setIsSidebarLoading(false);
+            if (!fastSaveEnabled) {
+                setIsSidebarLoading(false);
+            }
+            setIsFastSaving(false);
         }
     };
 
-    // --- STEP 2: HANDLE FINAL SAVE FROM SIDEBAR ---
-    const handleSaveLink = async (finalizedData) => {
-    setIsSidebarLoading(true);
-    setSidebarError(null); // On nettoie les anciennes erreurs
+    // --- STEP 1.5: BACKGROUND FAST-SAVE ---
+    const performFastSave = async (analyzedData) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(analyzedData)
+            });
 
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/links', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(finalizedData)
-        });
+            const data = await response.json();
 
-        const data = await response.json();
-
-        if (response.ok) {
-            setAddMessage({ type: 'success', text: 'Lien sauvegardé avec succès !' });
-            setNewUrl('');
-            setIsSidebarOpen(false);
-            fetchLinks();
-        } else {
-            // L'API Python renvoie "Category '...' is not configured."
-            if (data.error && data.error.includes("not configured")) {
-                setSidebarError("Nous ne connaissons pas cette catégorie");
+            if (response.ok) {
+                setAddMessage({ type: 'success', text: 'Lien sauvegardé automatiquement avec succès ! ⚡' });
+                setNewUrl(''); // Clear input
+                fetchLinks();  // Refresh the list
             } else {
-                setSidebarError(data.error || 'Échec de la sauvegarde du lien.');
+                setAddMessage({ type: 'danger', text: data.error || 'Échec de la sauvegarde rapide.' });
             }
+        } catch (err) {
+            setAddMessage({ type: 'danger', text: 'Erreur de connexion lors de la sauvegarde.' });
         }
-    } catch (err) {
-        setSidebarError('Erreur de connexion au serveur lors de la sauvegarde.');
-    } finally {
-        setIsSidebarLoading(false);
-    }
-};
+    };
+
+    // --- STEP 2: HANDLE FINAL SAVE FROM SIDEBAR (Normal Mode) ---
+    const handleSaveLink = async (finalizedData) => {
+        setIsSidebarLoading(true);
+        setSidebarError(null);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(finalizedData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setAddMessage({ type: 'success', text: 'Lien sauvegardé avec succès !' });
+                setNewUrl('');
+                setIsSidebarOpen(false);
+                fetchLinks();
+            } else {
+                if (data.error && data.error.includes("not configured")) {
+                    setSidebarError("Nous ne connaissons pas cette catégorie");
+                } else {
+                    setSidebarError(data.error || 'Échec de la sauvegarde du lien.');
+                }
+            }
+        } catch (err) {
+            setSidebarError('Erreur de connexion au serveur lors de la sauvegarde.');
+        } finally {
+            setIsSidebarLoading(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -137,21 +197,18 @@ const Dashboard = () => {
         );
     }
 
-    // Ouvre le tiroir et injecte les données du lien cliqué
     const handleEditClick = (link) => {
         setSelectedLinkForEdit(link);
         setEditError(null);
         setIsEditSidebarOpen(true);
     };
 
-    // Ferme le tiroir
     const handleCloseEdit = () => {
         setIsEditSidebarOpen(false);
         setSelectedLinkForEdit(null);
         setEditError(null);
     };
 
-    // Envoie la modification au serveur
     const handleSaveEdit = async (updatedData) => {
         setEditError(null);
         try {
@@ -164,7 +221,7 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify({
                     title: updatedData.title,
-                    category: updatedData.category, // C'est bien le texte que l'on envoie
+                    category: updatedData.category,
                     tags: updatedData.tags
                 })
             });
@@ -172,18 +229,16 @@ const Dashboard = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                // Gestion de l'erreur rouge pour la catégorie
                 if (data.error && data.error.includes("is not configured")) {
                     setEditError("Nous ne connaissons pas cette catégorie");
                 } else {
                     setEditError(data.error || "Une erreur est survenue");
                 }
-                return; // On arrête là si erreur
+                return;
             }
 
-            // SUCCÈS ! On ferme le tiroir et on rafraîchit la liste
             handleCloseEdit();
-            fetchLinks(); // ⚠️ Assure-toi que c'est bien le nom de ta fonction qui recharge les liens !
+            fetchLinks();
 
         } catch (error) {
             console.error("Erreur lors de la modification:", error);
@@ -206,15 +261,16 @@ const Dashboard = () => {
                                 placeholder="Collez votre lien Instagram, TikTok, ou Youtube ici..."
                                 value={newUrl}
                                 onChange={(e) => setNewUrl(e.target.value)}
-                                disabled={isSidebarOpen} // Disable input if sidebar is busy
+                                disabled={isSidebarOpen || isFastSaving}
                                 required
                             />
+                            {/* Dynamic button text based on Fast-Save status */}
                             <button
                                 className="btn btn-primary px-4"
                                 type="submit"
-                                disabled={isSidebarOpen}
+                                disabled={isSidebarOpen || isFastSaving}
                             >
-                                Analysez votre lien
+                                {fastSaveEnabled ? 'Sauvegarde rapide ⚡' : 'Analysez votre lien'}
                             </button>
                         </div>
                     </form>
