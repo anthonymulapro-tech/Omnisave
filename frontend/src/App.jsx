@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
+import Profile from './components/Profile';
 import React from 'react';
 // Adjust the path depending on where you saved LinkCard.jsx
 import LinkCard from './components/LinkCard';
@@ -26,6 +27,9 @@ function App() {
 
           {/* Dashboard (Placeholder for now) */}
           <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* User Profile */}
+          <Route path="/profile" element={<Profile />} />
 
           {/* Fallback route: Return to Homepage if URL is unknown */}
           <Route path="*" element={<Navigate to="/" />} />

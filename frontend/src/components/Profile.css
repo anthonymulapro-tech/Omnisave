@@ -1,0 +1,34 @@
+/* Profile.css */
+
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Styling for the Fast-Save settings box */
+.fast-save-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.fast-save-box:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #ced4da;
+}
+
+/* Custom styling for the delete button */
+.btn-delete-account {
+    color: #dc3545;
+    border: 1px solid transparent;
+    background: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-delete-account:hover {
+    color: white;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
