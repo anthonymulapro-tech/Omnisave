@@ -44,7 +44,8 @@ function Navbar() {
 
                 {/* Navigation Links */}
                 <div className="collapse navbar-collapse" id="navbarNav">
-                    <ul className="navbar-nav ms-auto">
+                    {/* Added align-items-center to keep buttons and text vertically aligned */}
+                    <ul className="navbar-nav ms-auto align-items-center">
                         {isAuthenticated ? (
                             // Links visible ONLY to logged-in users
                             <>
@@ -52,7 +53,14 @@ function Navbar() {
                                     <Link className="nav-link" to="/dashboard">Accueil</Link>
                                 </li>
 
+                                {/* Link to navigate to the user profile settings */}
                                 <li className="nav-item ms-lg-3">
+                                    <Link className="btn btn-outline-light btn-sm mt-1" to="/profile">
+                                        Profil
+                                    </Link>
+                                </li>
+
+                                <li className="nav-item ms-lg-2">
                                     <button onClick={handleLogout} className="btn btn-outline-danger btn-sm mt-1">
                                         Se déconnecter
                                     </button>
