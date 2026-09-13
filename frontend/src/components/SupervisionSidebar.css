@@ -1,0 +1,32 @@
+/* SupervisionSidebar.css */
+
+.supervision-sidebar {
+    position: fixed;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out, border-left-color 0.3s ease-in-out;
+    z-index: 1050;
+    overflow-y: auto;
+    border-left: 5px solid transparent;
+}
+
+/* State: Open or Closed */
+.supervision-sidebar.is-open {
+    right: 0;
+}
+
+.supervision-sidebar.is-closed {
+    right: -450px; /* Hides the drawer off-screen */
+}
+
+/* State: Loading or Ready (Border Colors) */
+.supervision-sidebar.is-loading {
+    border-left-color: #0d6efd; /* Bootstrap Primary Blue */
+}
+
+.supervision-sidebar.is-ready {
+    border-left-color: #198754; /* Bootstrap Success Green */
+}
