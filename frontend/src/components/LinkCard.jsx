@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
-const LinkCard = ({ link,onDelete }) => {
+const LinkCard = ({ link,onDelete, onEdit }) => {
     const [imageError, setImageError] = useState(false);
 
     const displayCategory = CATEGORY_TRANSLATIONS[link.category_name] || link.category_name || "Autre";

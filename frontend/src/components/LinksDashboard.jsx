@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import LinkCard from './LinkCard';
 
-const LinksDashboard = ({ initialLinks, onDelete }) => {
+const LinksDashboard = ({ initialLinks, onDelete, onEdit }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('ALL');
@@ -71,7 +71,11 @@ const LinksDashboard = ({ initialLinks, onDelete }) => {
                     filteredLinks.map(link => (
                         <div className="col-md-4" key={link.link_id}>
                             {/* 2. PASS THE PROP: Give onDelete to the LinkCard */}
-                            <LinkCard link={link} onDelete={onDelete} />
+                            <LinkCard
+                                link={link}
+                                onDelete={onDelete}
+                                onEdit={onEdit}
+                            />
                         </div>
                     ))
                 ) : (

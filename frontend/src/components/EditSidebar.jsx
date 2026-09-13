@@ -76,7 +76,7 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                 onChange={(e) => setCategory(e.target.value)}
                             />
                             {isCategoryError ? (
-                                <div className="invalid-feedback">Cette catégorie n'existe pas encore dans la base de données.</div>
+                                <div className="invalid-feedback">Cette catégorie n'existe pas encore. Veuillez ajouter une catégorie existante.</div>
                             ) : (
                                 <div className="form-text">Assurez-vous que cela correspond à une catégorie existante.</div>
                             )}

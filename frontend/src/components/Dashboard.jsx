@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LinksDashboard from './LinksDashboard';
 import SupervisionSidebar from './SupervisionSidebar';
+import EditSidebar from '../components/EditSidebar';
 
 const Dashboard = () => {
     // --- States for displaying links ---
@@ -17,6 +18,11 @@ const Dashboard = () => {
     const [isSidebarLoading, setIsSidebarLoading] = useState(false);
     const [previewData, setPreviewData] = useState(null);
     const [sidebarError, setSidebarError] = useState(null);
+
+    // --- States for the Edit Sidebar ---
+    const [isEditSidebarOpen, setIsEditSidebarOpen] = useState(false);
+    const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
+    const [editError, setEditError] = useState(null);
 
     const fetchLinks = async () => {
         try {
@@ -131,6 +137,60 @@ const Dashboard = () => {
         );
     }
 
+    // Ouvre le tiroir et injecte les données du lien cliqué
+    const handleEditClick = (link) => {
+        setSelectedLinkForEdit(link);
+        setEditError(null);
+        setIsEditSidebarOpen(true);
+    };
+
+    // Ferme le tiroir
+    const handleCloseEdit = () => {
+        setIsEditSidebarOpen(false);
+        setSelectedLinkForEdit(null);
+        setEditError(null);
+    };
+
+    // Envoie la modification au serveur
+    const handleSaveEdit = async (updatedData) => {
+        setEditError(null);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/links/${updatedData.link_id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: updatedData.title,
+                    category: updatedData.category, // C'est bien le texte que l'on envoie
+                    tags: updatedData.tags
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Gestion de l'erreur rouge pour la catégorie
+                if (data.error && data.error.includes("is not configured")) {
+                    setEditError("Nous ne connaissons pas cette catégorie");
+                } else {
+                    setEditError(data.error || "Une erreur est survenue");
+                }
+                return; // On arrête là si erreur
+            }
+
+            // SUCCÈS ! On ferme le tiroir et on rafraîchit la liste
+            handleCloseEdit();
+            fetchLinks(); // ⚠️ Assure-toi que c'est bien le nom de ta fonction qui recharge les liens !
+
+        } catch (error) {
+            console.error("Erreur lors de la modification:", error);
+            setEditError("Erreur de connexion au serveur");
+        }
+    };
+
     return (
         <div className="container mt-4">
 
@@ -177,7 +237,11 @@ const Dashboard = () => {
                     Vous n'avez pas encore sauvegardés de lien. Collez une URL ci-dessus pour commencer votre collection !
                 </div>
             ) : (
-                <LinksDashboard initialLinks={links} onDelete={handleDeleteLink} />
+                <LinksDashboard
+                    initialLinks={links}
+                    onDelete={handleDeleteLink}
+                    onEdit={handleEditClick}
+                />
             )}
 
             {/* --- SUPERVISION SIDEBAR COMPONENT --- */}
@@ -190,6 +254,13 @@ const Dashboard = () => {
                 onSave={handleSaveLink}
             />
 
+            <EditSidebar
+                isOpen={isEditSidebarOpen}
+                linkData={selectedLinkForEdit}
+                error={editError}
+                onClose={handleCloseEdit}
+                onSave={handleSaveEdit}
+            />
         </div>
     );
 };
