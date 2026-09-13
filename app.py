@@ -313,6 +313,61 @@ def save_link(current_user_id):
         return jsonify({"error": "An internal server error occurred while saving."}), 500
 
 
+@app.route('/api/links/<int:link_id>', methods=['PUT'])
+@token_required
+def update_link(current_user_id, link_id):
+    """
+    Update Endpoint.
+    Allows users to modify the title, category, and tags of an existing saved link.
+    """
+    data = request.get_json()
+
+    # We expect title, category, and tags for an update
+    required_fields = ['title', 'category', 'tags']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields for updating"}), 400
+
+    logging.info(f"User ID {current_user_id} requested UPDATE for link ID: {link_id}")
+
+    try:
+        # --- 1. VERIFY CATEGORY ---
+        category_title = data['category']
+        category = CategoryRepository.get_by_title(category_title)
+
+        if not category:
+            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
+
+        # --- 2. FETCH EXISTING LINK & SECURITY CHECK ---
+        # Assuming you have a method like get_by_id in your LinkRepository
+        existing_link = LinkRepository.get_by_id(link_id)
+
+        if not existing_link:
+            return jsonify({"error": "Link not found."}), 404
+
+        if existing_link.user_id != current_user_id:
+            logging.warning(
+                f"User {current_user_id} attempted to edit link {link_id} belonging to User {existing_link.user_id}")
+            return jsonify({"error": "Unauthorized to edit this link."}), 403
+
+        # --- 3. UPDATE THE LINK OBJECT ---
+        existing_link.title = data['title']
+        existing_link.category_id = category.category_id
+
+        # We don't update the URL or Thumbnail here, as they are fixed from the original extraction
+
+        # --- 4. SAVE CHANGES TO DB ---
+        # Assuming you will create an update_with_tags method in your LinkRepository
+        success = LinkRepository.update_with_tags(existing_link, data['tags'])
+
+        if success:
+            logging.info(f"Successfully updated link {link_id} with new tags")
+            return jsonify({"message": "Link successfully updated!"}), 200
+        else:
+            return jsonify({"error": "Error updating the link in the database."}), 500
+
+    except Exception as e:
+        logging.error(f"Critical error during link update flow: {e}")
+        return jsonify({"error": "An internal server error occurred while updating."}), 500
 @app.route('/api/links', methods=['GET'])
 @token_required
 def get_links(current_user_id):

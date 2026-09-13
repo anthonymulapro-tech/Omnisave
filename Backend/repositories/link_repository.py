@@ -170,6 +170,72 @@ class LinkRepository:
         return None
 
     @staticmethod
+    def update_with_tags(link, tags: list[str]) -> bool:
+        """
+        Updates an existing link's title and category, and replaces its associated tags.
+        Flushes old tag relationships and inserts the new ones cleanly.
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+
+                # --- 1. UPDATE THE LINK (Title & Category) ---
+                sql_update_link = """
+                                  UPDATE lien
+                                  SET titre_url    = %s, \
+                                      categorie_id = %s
+                                  WHERE url_id = %s \
+                                  """
+                cursor.execute(sql_update_link, (link.title, link.category_id, link.link_id))
+
+                # --- 2. FLUSH EXISTING TAG RELATIONSHIPS ---
+                # We delete all existing associations for this specific link in the pivot table
+                sql_delete_tags = "DELETE FROM lien_tag WHERE url_id = %s"
+                cursor.execute(sql_delete_tags, (link.link_id,))
+
+                # --- 3. RE-INSERT NEW TAGS INTELLIGENTLY ---
+                if tags:
+                    linked_tag_ids = set()
+
+                    for tag_name in tags:
+                        # a) Check if the tag already exists in the 'tag' table
+                        sql_check_tag = "SELECT tag_id FROM tag WHERE tag_libelle = %s"
+                        cursor.execute(sql_check_tag, (tag_name,))
+                        existing_tag = cursor.fetchone()
+
+                        if existing_tag:
+                            tag_id = existing_tag[0]
+                        else:
+                            # Tag doesn't exist: insert it and get the new ID
+                            sql_insert_tag = "INSERT INTO tag (tag_libelle) VALUES (%s)"
+                            cursor.execute(sql_insert_tag, (tag_name,))
+                            tag_id = cursor.lastrowid
+
+                        # b) Link the tag ONLY if it hasn't been linked yet for this video
+                        if tag_id not in linked_tag_ids:
+                            sql_link_tag = "INSERT INTO lien_tag (url_id, tag_id) VALUES (%s, %s)"
+                            cursor.execute(sql_link_tag, (link.link_id, tag_id))
+                            linked_tag_ids.add(tag_id)
+
+                # --- 4. COMMIT EVERYTHING ---
+                connection.commit()
+                return True
+
+            except Exception as e:
+                # SECURITY: Undo everything if something fails
+                connection.rollback()
+                print(f"❌ Error updating link with tags: {e}")
+                return False
+
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+
+        return False
+
+    @staticmethod
     def delete(link_id: int) -> bool:
         """
         Delete the link from the database, if it exists.
