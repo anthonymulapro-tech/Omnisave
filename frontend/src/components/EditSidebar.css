@@ -1,0 +1,23 @@
+/* EditSidebar.css */
+.edit-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0; /* Slide from the left side */
+    width: 400px;
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1); /* Shadow cast to the right */
+    z-index: 1050;
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto;
+}
+
+/* When closed, the sidebar is completely off-screen to the left */
+.edit-sidebar.is-closed {
+    transform: translateX(-100%);
+}
+
+/* When open, it slides into its normal position */
+.edit-sidebar.is-open {
+    transform: translateX(0);
+}

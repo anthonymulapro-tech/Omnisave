@@ -8,6 +8,7 @@ Content-Type: application/json
 }
 
 ### 2. Connexion (Pour récupérer le JWT Token)
+# ⚠️ COPIE LE TOKEN REÇU DANS LA RÉPONSE
 POST http://localhost:5000/api/auth/login
 Content-Type: application/json
 
@@ -16,16 +17,46 @@ Content-Type: application/json
   "password": "Password123!"
 }
 
-### 3. Création d'un lien (L'IA trouve la catégorie toute seule !)
-POST http://localhost:5000/api/links
+
+### --- NOUVEAU FLUX DE CRÉATION ---
+
+### 3a. Prévisualisation d'un lien (L'IA analyse mais ne sauvegarde pas)
+POST http://localhost:5000/api/links/preview
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkyMjUyNTUsImlhdCI6MTc4OTEzODg1NX0.RlKIidtRSKbZf4wBCod5mv60mR3CQKmnbGup8LL9Pf4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
 
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/"
 }
 
-### 4. Récupérer tous les liens de l'utilisateur
-GET http://127.0.0.1:5000/api/links
+### 3b. Sauvegarde finale d'un lien (Après validation du tiroir)
+POST http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODkyMjY3OTUsImlhdCI6MTc4OTE0MDM5NX0.auAnYJcLxk_fNfYGPxX3MrHHXCID-O7dYljtvQx--Sg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+
+{
+  "url": "https://www.instagram.com/reels/DdHV-EeodO7/",
+  "title": "Vidéo Instagram incroyable",
+  "category": "Sport",
+  "tags": ["sport", "instagram", "test"]
+}
+
+
+### --- RÉCUPÉRATION ET MODIFICATION ---
+
+### 4. Récupérer tous les liens de l'utilisateur
+GET http://localhost:5000/api/links
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+
+
+### 5. 🆕 MODIFIER UN LIEN (Remplace le "1" à la fin par un vrai ID de ta base)
+PUT http://localhost:5000/api/links/35
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+
+{
+  "title": "Titre super modifié depuis le test HTTP !",
+  "category": "Cooking",
+  "tags": ["tag-modifié", "mise-a-jour", "succes"]
+}
