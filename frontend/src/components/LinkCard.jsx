@@ -109,12 +109,16 @@ const LinkCard = ({ link,onDelete }) => {
                 )}
             </div>
 
-            {/* Footer: Date and Analysis Status */}
-            <div className="card-footer bg-white text-muted small d-flex justify-content-between border-top-0">
+            {/* Footer: Date and Actions */}
+            <div className="card-footer bg-white text-muted small d-flex justify-content-between align-items-center border-top-0 py-3">
                 <span>Ajouté le {formattedDate}</span>
-                <span>
-                    {link.analysis_status === 'COMPLETED' ? '✅ Analysé' : '⏳ En cours'}
-                </span>
+                <button
+                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"
+                    onClick={() => onEdit(link)}
+                    title="Modifier les éléments"
+                >
+                    ✏️ Modifier
+                </button>
             </div>
         </div>
     );
