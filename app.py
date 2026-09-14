@@ -17,6 +17,7 @@ from backend.services.auth_service import AuthService, token_required
 from models.link import Link
 from repositories.category_repository import CategoryRepository
 from repositories.link_repository import LinkRepository
+from repositories.lexicon_repository import LexiconRepository
 
 # --- Import hash ---
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -517,6 +518,40 @@ def delete_link(current_user_id, link_id):
     else:
         logging.error(f"Failed to delete link {link_id} from database.")
         return jsonify({"error": "Une erreur est survenue lors de la suppression."}), 500
+
+# ==========================================
+#               LEXICON
+# ==========================================
+
+@app.route('/api/lexicon/suggest', methods=['POST'])
+# @token_required  # Uncomment this line if only logged-in users can suggest words
+def suggest_lexicon_word():
+    """
+    Endpoint to receive community suggestions for new words and categories.
+    """
+    try:
+        data = request.get_json()
+
+        # 1. Extract data sent by React
+        word = data.get('word')
+        category = data.get('category')
+
+        # 2. Basic validation: ensure both fields are present
+        if not word or not category:
+            return jsonify({"error": "Both 'word' and 'category' are required."}), 400
+
+        # 3. Call the repository to save or update the suggestion
+        success, error_msg = LexiconRepository.add_suggestion(word, category)
+
+        # 4. Return the appropriate response to the frontend
+        if success:
+            return jsonify({"message": "Suggestion successfully recorded!"}), 201
+        else:
+            return jsonify({"error": f"Database error: {error_msg}"}), 500
+
+    except Exception as e:
+        print(f"❌ Server error during lexicon suggestion: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
