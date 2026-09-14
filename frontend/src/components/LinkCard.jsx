@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
-const LinkCard = ({ link,onDelete, onEdit }) => {
+const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
     const [imageError, setImageError] = useState(false);
+
+    const [isFavorite, setIsFavorite] = useState(link.is_favorite || false);
 
     const displayCategory = CATEGORY_TRANSLATIONS[link.category_name] || link.category_name || "Autre";
 
@@ -11,10 +13,38 @@ const LinkCard = ({ link,onDelete, onEdit }) => {
         month: 'short',
         year: 'numeric'
     });
+    // Favorite
+    const handleToggleFavorite = async () => {
+        const newStatus = !isFavorite;
+        setIsFavorite(newStatus);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://127.0.0.1:5000/api/links/${link.link_id}/favorite`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ is_favorite: newStatus })
+            });
+
+            if (response.ok) {
+                if (onToggleFavorite) onToggleFavorite(link.link_id, newStatus);
+            } else {
+                setIsFavorite(!newStatus);
+                alert("Erreur lors de la mise à jour du favori.");
+            }
+        } catch (error) {
+            console.error("Error toggling favorite:", error);
+            setIsFavorite(!newStatus);
+            alert("Une erreur est survenue.");
+        }
+    };
 
     const handleDelete = async () => {
         // Native browser confirmation
-        const isConfirmed = window.confirm("Are you sure you want to delete this link?");
+        const isConfirmed = window.confirm('Êtes-vous sûr de vouloir supprimer ce lien ?');
         if (!isConfirmed) return;
 
         try {
@@ -30,16 +60,26 @@ const LinkCard = ({ link,onDelete, onEdit }) => {
                 // If successful, tell the parent component to remove it from the UI
                 if (onDelete) onDelete(link.link_id);
             } else {
-                alert("Failed to delete the link. Please try again.");
+                alert("Le lien n'a pas pu être supprimé. Merci d'essayer à nouveau.");
             }
         } catch (error) {
             console.error("Error deleting link:", error);
-            alert("An error occurred while deleting the link.");
+            alert("Une erreur s'est produite lors de la suppression du lien.");
         }
     };
 
     return (
         <div className="card mb-3 shadow-sm border-0 overflow-hidden position-relative">
+            {/* Favorite button */}
+            <button
+                onClick={handleToggleFavorite}
+                className="btn position-absolute top-0 start-0 m-2 bg-light p-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center"
+                aria-label="Toggle favorite"
+                style={{ zIndex: 10, cursor: 'pointer', width: '36px', height: '36px', border: 'none' }}
+                title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+            >
+                {isFavorite ? '❤️' : '🤍'}
+            </button>
 
             <button
                 onClick={handleDelete}
