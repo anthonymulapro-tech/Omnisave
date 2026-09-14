@@ -85,6 +85,21 @@ CREATE TABLE lien_tag (
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
+-- Table for storing community lexicon suggestions
+-- --------------------------------------------------------
+CREATE TABLE lexicon_suggestion (
+    suggestion_id INT AUTO_INCREMENT PRIMARY KEY,
+    word VARCHAR(100) NOT NULL,
+    proposed_category VARCHAR(50) NOT NULL,
+    occurrences INT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, APPROVED, REJECTED
+    suggestion_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Prevents duplicate words in the same category
+    UNIQUE KEY unq_word_category (word, proposed_category)
+) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
 -- Insertion des données de référence (Seed Data)
 -- --------------------------------------------------------
 INSERT INTO role (role_id, nom_role) VALUES
