@@ -231,7 +231,7 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify({
                     title: updatedData.title,
-                    category: updatedData.category,
+                    categories: updatedData.categories,
                     tags: updatedData.tags
                 })
             });

@@ -4,55 +4,85 @@ import { sendLexiconSuggestions } from '../services/lexiconService';
 
 const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('');
+    // Replaced single string category with an array to support up to 5 categories
+    const [categories, setCategories] = useState(['']);
     const [tagsStr, setTagsStr] = useState('');
 
-    // State to keep track of the original tags when the sidebar opened
     const [originalTags, setOriginalTags] = useState([]);
-    const [originalCategory, setOriginalCategory] = useState('');
+    // Keeping track of original primary category for lexicon delta tracking
+    const [originalPrimaryCategory, setOriginalPrimaryCategory] = useState('');
 
-    // Pre-fill the form when a link is passed to the sidebar
+    // Pre-fill the form when linkData is loaded
     useEffect(() => {
         if (linkData) {
             setTitle(linkData.title || '');
-            setCategory(linkData.category_name || '');
+
+            // Populate the categories array dynamically
+            if (linkData.categories && linkData.categories.length > 0) {
+                setCategories(linkData.categories);
+                setOriginalPrimaryCategory(linkData.categories[0]);
+            } else {
+                setCategories(['']);
+                setOriginalPrimaryCategory('');
+            }
 
             const initialTags = linkData.tags ? linkData.tags : [];
             setTagsStr(initialTags.join(', '));
-
-            // Store original tags for delta comparison later
             setOriginalTags(initialTags);
-            setOriginalCategory(linkData.category_name || '');
         }
     }, [linkData]);
 
+    // --- CATEGORY MANAGEMENT FUNCTIONS ---
+    const handleCategoryChange = (index, value) => {
+        const newCategories = [...categories];
+        newCategories[index] = value;
+        setCategories(newCategories);
+    };
+
+    const addCategory = () => {
+        if (categories.length < 5) {
+            setCategories([...categories, '']);
+        }
+    };
+
+    const removeCategory = (index) => {
+        const newCategories = categories.filter((_, i) => i !== index);
+        setCategories(newCategories.length > 0 ? newCategories : ['']);
+    };
+    // -------------------------------------
+
     const handleConfirm = () => {
-        // 1. Convert the comma-separated string back into a clean array
+        // 1. Format tags into a clean array
         const tagsArray = tagsStr
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag !== '');
 
-        const hasCategoryChanged = category !== originalCategory;
-        const tagsToCompare = hasCategoryChanged ? [] : originalTags;
+        // 2. Format categories into a clean array, removing empty fields
+        const validCategories = categories
+            .map(cat => cat.trim())
+            .filter(cat => cat !== '');
 
-        // 2. SILENT CROWDSOURCING (EDIT MODE) 🚀
-        // Pass category, current tags, isEdit = true, and original tags for delta filtering
-        sendLexiconSuggestions(category, tagsArray, true, tagsToCompare);
+        // 3. SILENT CROWDSOURCING (EDIT MODE)
+        const currentPrimaryCategory = validCategories.length > 0 ? validCategories[0] : '';
+        const hasPrimaryCategoryChanged = currentPrimaryCategory !== originalPrimaryCategory;
+        const tagsToCompare = hasPrimaryCategoryChanged ? [] : originalTags;
 
-        // 3. Prepare the payload for the PUT request
+        if (currentPrimaryCategory) {
+            sendLexiconSuggestions(currentPrimaryCategory, tagsArray, true, tagsToCompare);
+        }
+
+        // 4. Prepare updated data payload
         const updatedData = {
             ...linkData,
             title: title,
-            category: category,
+            categories: validCategories,
             tags: tagsArray
         };
 
-        // 4. Proceed with normal saving/updating
+        // 5. Fire save event
         onSave(updatedData);
     };
-
-    const isCategoryError = error === "Nous ne connaissons pas cette catégorie";
 
     return (
         <div className={`edit-sidebar d-flex flex-column ${isOpen ? 'is-open' : 'is-closed'}`}>
@@ -85,19 +115,43 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                             />
                         </div>
 
+                        {/* DYNAMIC CATEGORIES INPUT SECTION */}
                         <div className="mb-3">
-                            <label className="form-label fw-bold">Catégorie</label>
-                            <input
-                                type="text"
-                                className={`form-control ${isCategoryError ? 'is-invalid' : ''}`}
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                            />
-                            {isCategoryError ? (
-                                <div className="invalid-feedback">Cette catégorie n'existe pas encore. Veuillez ajouter une catégorie existante.</div>
-                            ) : (
-                                <div className="form-text">Assurez-vous que cela correspond à une catégorie existante.</div>
+                            <label className="form-label fw-bold">Catégories (Max 5)</label>
+
+                            {categories.map((cat, index) => (
+                                <div key={index} className="d-flex mb-2">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={cat}
+                                        onChange={(e) => handleCategoryChange(index, e.target.value)}
+                                        placeholder={index === 0 ? "Catégorie principale" : `Catégorie ${index + 1}`}
+                                    />
+                                    {categories.length > 1 && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-danger ms-2"
+                                            onClick={() => removeCategory(index)}
+                                            title="Supprimer cette catégorie"
+                                        >
+                                            &times;
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            {categories.length < 5 && (
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-secondary mt-1"
+                                    onClick={addCategory}
+                                >
+                                    + Ajouter une catégorie
+                                </button>
                             )}
+
+                            <div className="form-text mt-1">Vous pouvez ajouter des catégories existantes ou en créer de nouvelles.</div>
                         </div>
 
                         <div className="mb-4">
@@ -110,6 +164,8 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                             ></textarea>
                             <div className="form-text">Séparez les tags par des virgules (ex: recette, sport, actualité).</div>
                         </div>
+
+                        {error && <div className="alert alert-danger py-2">{error}</div>}
 
                         <button className="btn btn-primary w-100 py-2 fw-bold" onClick={handleConfirm}>
                             Mettre à jour le lien
