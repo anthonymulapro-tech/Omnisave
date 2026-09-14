@@ -379,7 +379,7 @@ def save_link(current_user_id):
     """
     data = request.get_json()
 
-    # We expect all these fields to be provided by the frontend after the preview
+    # Expect all these fields to be provided by the frontend after the preview
     required_fields = ['url', 'title', 'category', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for saving"}), 400
@@ -387,12 +387,15 @@ def save_link(current_user_id):
     logging.info(f"User ID {current_user_id} requested SAVE for: {data['url']}")
 
     try:
-        # --- 1. DATABASE MAPPING ---
+        # --- 1. DATABASE MAPPING (UPDATED FOR SILENT CREATION) ---
         category_title = data['category']
-        category = CategoryRepository.get_by_title(category_title)
 
-        if not category:
-            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
+        # fetch the ID or create the category instantly!
+        category_id = CategoryRepository.get_or_create_by_title(category_title)
+
+        if not category_id:
+            # If we enter here, it means the database actually crashed, not that the category was missing
+            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
 
         # --- 2. PREPARE THE LINK OBJECT ---
         new_link = Link(
@@ -401,12 +404,12 @@ def save_link(current_user_id):
             thumbnail_url=data.get('thumbnail_url', ''),  # Default to empty if missing
             platform=data.get('platform', 'Web'),
             analysis_status='COMPLETED',
-            category_id=category.category_id,
+            category_id=category_id,  # use the integer directly now
             user_id=current_user_id
         )
 
         # --- 3. SAVE TO DB ---
-        # We pass the tags list (which may have been modified by the user)
+        # Pass the tags list (which may have been modified by the user)
         success = LinkRepository.create_with_tags(new_link, data['tags'])
 
         if success:
@@ -429,7 +432,7 @@ def update_link(current_user_id, link_id):
     """
     data = request.get_json()
 
-    # We expect title, category, and tags for an update
+    # title, category, and tags for an update
     required_fields = ['title', 'category', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for updating"}), 400
@@ -437,15 +440,16 @@ def update_link(current_user_id, link_id):
     logging.info(f"User ID {current_user_id} requested UPDATE for link ID: {link_id}")
 
     try:
-        # --- 1. VERIFY CATEGORY ---
+        # --- 1. VERIFY OR CREATE CATEGORY (UPDATED) ---
         category_title = data['category']
-        category = CategoryRepository.get_by_title(category_title)
 
-        if not category:
-            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
+        # SILENT CREATION
+        category_id = CategoryRepository.get_or_create_by_title(category_title)
+
+        if not category_id:
+            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
 
         # --- 2. FETCH EXISTING LINK & SECURITY CHECK ---
-        # Assuming you have a method like get_by_id in your LinkRepository
         existing_link = LinkRepository.get_by_id(link_id)
 
         if not existing_link:
@@ -458,12 +462,9 @@ def update_link(current_user_id, link_id):
 
         # --- 3. UPDATE THE LINK OBJECT ---
         existing_link.title = data['title']
-        existing_link.category_id = category.category_id
-
-        # We don't update the URL or Thumbnail here, as they are fixed from the original extraction
+        existing_link.category_id = category_id  # use the integer directly now
 
         # --- 4. SAVE CHANGES TO DB ---
-        # Assuming you will create an update_with_tags method in your LinkRepository
         success = LinkRepository.update_with_tags(existing_link, data['tags'])
 
         if success:
