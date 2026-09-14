@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
-const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
+const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
     const [imageError, setImageError] = useState(false);
-
     const [isFavorite, setIsFavorite] = useState(link.is_favorite || false);
 
-    const displayCategory = CATEGORY_TRANSLATIONS[link.category_name] || link.category_name || "Autre";
-
+    // Format the date for display
     const formattedDate = new Date(link.saved_at).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
     });
-    // Favorite
+
+    // Handle favorite toggle API call
     const handleToggleFavorite = async () => {
         const newStatus = !isFavorite;
         setIsFavorite(newStatus);
@@ -42,8 +41,8 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
         }
     };
 
+    // Handle link deletion API call
     const handleDelete = async () => {
-        // Native browser confirmation
         const isConfirmed = window.confirm('Êtes-vous sûr de vouloir supprimer ce lien ?');
         if (!isConfirmed) return;
 
@@ -57,7 +56,6 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
             });
 
             if (response.ok) {
-                // If successful, tell the parent component to remove it from the UI
                 if (onDelete) onDelete(link.link_id);
             } else {
                 alert("Le lien n'a pas pu être supprimé. Merci d'essayer à nouveau.");
@@ -67,6 +65,11 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
             alert("Une erreur s'est produite lors de la suppression du lien.");
         }
     };
+
+    // Determine the categories to display (fallback to 'Autres' if empty)
+    const displayCategories = link.categories && link.categories.length > 0
+        ? link.categories
+        : ["Autres"];
 
     return (
         <div className="card mb-3 shadow-sm border-0 overflow-hidden position-relative">
@@ -81,6 +84,7 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
                 {isFavorite ? '❤️' : '🤍'}
             </button>
 
+            {/* Delete button */}
             <button
                 onClick={handleDelete}
                 className="btn-close position-absolute top-0 end-0 m-2 bg-light p-2 shadow-sm rounded-circle"
@@ -89,6 +93,7 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
                 title="Delete this link"
             ></button>
 
+            {/* Thumbnail */}
             {link.thumbnail_url && !imageError ? (
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
                     <img
@@ -112,17 +117,22 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
             )}
 
             <div className="card-body">
-                {/* Header: Platform and Category translation */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span className="text-muted small fw-bold text-uppercase">
+                {/* Header: Platform and Categories */}
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                    <span className="text-muted small fw-bold text-uppercase mt-1">
                         {link.platform}
                     </span>
-                    <span className="badge bg-secondary">
-                        {displayCategory}
-                    </span>
+                    <div className="d-flex flex-wrap gap-1 justify-content-end">
+                        {/* Map over the categories array to display multiple badges */}
+                        {displayCategories.map((cat, index) => (
+                            <span key={index} className="badge bg-secondary">
+                                {CATEGORY_TRANSLATIONS[cat] || cat}
+                            </span>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Title and clickable URL */}
+                {/* Title */}
                 <h5 className="card-title mb-2">
                     <a
                         href={link.url}
@@ -134,7 +144,7 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
                     </a>
                 </h5>
 
-                {/* Tags Section: Maps through the array returned by the API */}
+                {/* Tags Section */}
                 {link.tags && link.tags.length > 0 && (
                     <div className="mt-3">
                         {link.tags.map((tag, index) => (
@@ -149,7 +159,7 @@ const LinkCard = ({ link,onDelete, onEdit, onToggleFavorite }) => {
                 )}
             </div>
 
-            {/* Footer: Date and Actions */}
+            {/* Footer */}
             <div className="card-footer bg-white text-muted small d-flex justify-content-between align-items-center border-top-0 py-3">
                 <span>Ajouté le {formattedDate}</span>
                 <button

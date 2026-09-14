@@ -5,6 +5,7 @@ class Link:
     """
     Model representing a saved link in the Omnisave application.
     Acts as a bridge between the MySQL 'lien' table and the Python logic.
+    Now supports multiple categories (up to 5 enforced by business logic).
     """
 
     def __init__(
@@ -17,11 +18,10 @@ class Link:
         saved_at: Optional[datetime] = None,
         analysis_status: str = "PENDING",
         is_favorite: bool = False,
-        category_id: Optional[int] = None,
         user_id: Optional[int] = None,
-        category_name: Optional[str] = None,
+        categories: Optional[list[str]] = None,
         tags: Optional[list[str]] = None
-):
+    ):
         self.link_id = link_id
         self.url = url
         self.title = title
@@ -30,11 +30,10 @@ class Link:
         self.saved_at = saved_at
         self.analysis_status = analysis_status
         self.is_favorite = is_favorite
-        self.category_id = category_id
         self.user_id = user_id
 
-        self.category_name = category_name
-        # Default to an empty list to prevent NoneType iteration errors in the frontend
+        # Default to empty lists to prevent NoneType iteration errors in the frontend
+        self.categories = categories if categories is not None else []
         self.tags = tags if tags is not None else []
 
     def to_dict(self) -> Dict[str, Any]:
@@ -50,11 +49,10 @@ class Link:
             "platform": self.platform,
             "saved_at": self.saved_at.isoformat() if self.saved_at else None,
             "analysis_status": self.analysis_status,
-            "category_id": self.category_id,
+            "is_favorite": self.is_favorite,
             "user_id": self.user_id,
-            "category_name": self.category_name,
-            "tags": self.tags,
-            "is_favorite": self.is_favorite
+            "categories": self.categories, # Now returns a list of strings
+            "tags": self.tags
         }
 
     def __repr__(self) -> str:

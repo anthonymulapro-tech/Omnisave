@@ -1,50 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import './SupervisionSidebar.css'; // Import the external CSS file
+import './SupervisionSidebar.css';
 import { sendLexiconSuggestions } from '../services/lexiconService';
 
 const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, onSave }) => {
     const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('');
+    const [categories, setCategories] = useState(['']);
     const [tagsStr, setTagsStr] = useState('');
 
     useEffect(() => {
         if (previewData) {
             setTitle(previewData.title || '');
-            setCategory(previewData.category || '');
+
+            if (previewData.categories && previewData.categories.length > 0) {
+                setCategories(previewData.categories);
+            } else if (previewData.category) {
+                setCategories([previewData.category]);
+            } else {
+                setCategories(['']);
+            }
+
             setTagsStr(previewData.tags ? previewData.tags.join(', ') : '');
         }
     }, [previewData]);
 
+    const handleCategoryChange = (index, value) => {
+        const newCategories = [...categories];
+        newCategories[index] = value;
+        setCategories(newCategories);
+    };
+
+    const addCategory = () => {
+        if (categories.length < 5) {
+            setCategories([...categories, '']);
+        }
+    };
+
+    const removeCategory = (index) => {
+        const newCategories = categories.filter((_, i) => i !== index);
+        setCategories(newCategories.length > 0 ? newCategories : ['']);
+    };
+
     const handleConfirm = () => {
-        // 1. Format the tags into a clean array
         const tagsArray = tagsStr
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag !== '');
 
-        // 2. SILENT CROWDSOURCING
-        sendLexiconSuggestions(category, tagsArray);
+        const validCategories = categories
+            .map(cat => cat.trim())
+            .filter(cat => cat !== '');
 
-        // 3. Prepare the final data object
+        const primaryCategory = validCategories.length > 0 ? validCategories[0] : '';
+        if (primaryCategory) {
+            sendLexiconSuggestions(primaryCategory, tagsArray);
+        }
+
         const finalizedData = {
             ...previewData,
             title: title,
-            category: category,
+            categories: validCategories,
             tags: tagsArray
         };
 
-        // 4. Proceed with normal saving
         onSave(finalizedData);
     };
 
-    // Determine dynamic classes based on the component's state
     const sidebarClasses = `supervision-sidebar d-flex flex-column ${
         isOpen ? 'is-open' : 'is-closed'
     } ${
         isLoading ? 'is-loading' : 'is-ready'
     }`;
-
-    const isCategoryError = error === "Nous ne connaissons pas cette catégorie";
 
     return (
         <div className={sidebarClasses}>
@@ -81,20 +106,43 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
                             <input type="text" className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} />
                         </div>
 
-                        {/* --- CASE CATÉGORIE AVEC CONTOUR ROUGE ET TEXTE EN DESSOUS --- */}
                         <div className="mb-3">
-                            <label className="form-label fw-bold">Catégorie</label>
-                            <input
-                                type="text"
-                                className={`form-control ${isCategoryError ? 'is-invalid' : ''}`}
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                            />
-                            {isCategoryError ? (
-                                <div className="invalid-feedback">Cette catégorie n'existe pas encore. Veuillez ajouter une catégorie existante.</div>
-                            ) : (
-                                <div className="form-text">Assurez-vous que cela correspond à une catégorie existante.</div>
+                            <label className="form-label fw-bold">Catégories (Max 5)</label>
+
+                            {categories.map((cat, index) => (
+                                <div key={index} className="d-flex mb-2">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={cat}
+                                        onChange={(e) => handleCategoryChange(index, e.target.value)}
+                                        placeholder={index === 0 ? "Catégorie principale" : `Catégorie ${index + 1}`}
+                                    />
+                                    {categories.length > 1 && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-danger ms-2"
+                                            onClick={() => removeCategory(index)}
+                                            title="Supprimer cette catégorie"
+                                        >
+                                            &times;
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            {categories.length < 5 && (
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-secondary mt-1"
+                                    onClick={addCategory}
+                                >
+                                    + Ajouter une catégorie
+                                </button>
                             )}
+
+                            {/* TEXTE DE REMPLACEMENT PLUS PERTINENT */}
+                            <div className="form-text mt-1">Vous pouvez ajouter des catégories existantes ou en créer de nouvelles.</div>
                         </div>
 
                         <div className="mb-4">
@@ -103,7 +151,9 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
                             <div className="form-text">Séparez les tags par des virgules (ex: recette, sport, actualité).</div>
                         </div>
 
-                        {/* --- BOUTON DE VALIDATION SANS TEXTE EN DESSOUS --- */}
+                        {/* Affichage d'une erreur serveur générale s'il y en a une */}
+                        {error && <div className="alert alert-danger py-2">{error}</div>}
+
                         <button className="btn btn-success w-100 py-2 fw-bold" onClick={handleConfirm} disabled={isLoading}>
                             Confirmer & Sauvegarder le lien
                         </button>

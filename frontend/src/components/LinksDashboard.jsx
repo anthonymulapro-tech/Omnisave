@@ -2,40 +2,42 @@ import React, { useState, useMemo } from 'react';
 import LinkCard from './LinkCard';
 
 const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) => {
-    // --- ORIGINAL STATES ---
+    // --- STATES ---
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('ALL');
-
-    // --- NEW STATES (Favorites & Sort) ---
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [sortOrder, setSortOrder] = useState('DESC'); // DESC = Newest first
 
     /**
-     * Extract unique categories from the user's links to populate the filter dynamically.
-     * Uses Set to remove duplicates and sorts them alphabetically.
+     * Extract unique categories from all the user's links to populate the filter dynamically.
+     * Uses flatMap to merge all category arrays, Set to remove duplicates, and sorts them.
      */
     const uniqueCategories = useMemo(() => {
-        const categories = initialLinks
-            .map(link => link.category_name)
-            // Filter out null, undefined, or empty strings
-            .filter(category => category && category.trim() !== "");
+        // 1. Flatten all categories from all links into a single array
+        const allCategories = initialLinks.flatMap(link => link.categories || []);
 
-        // Return unique categories sorted alphabetically
-        return [...new Set(categories)].sort();
+        // 2. Filter out null, undefined, or empty strings
+        const validCategories = allCategories.filter(category => category && category.trim() !== "");
+
+        // 3. Return unique categories sorted alphabetically
+        return [...new Set(validCategories)].sort();
     }, [initialLinks]);
 
     const processedLinks = useMemo(() => {
-        // 1. FILTERING (Your original logic + Favorites)
+        // 1. FILTERING
         let filtered = initialLinks.filter((link) => {
             const query = searchQuery.toLowerCase();
             const matchesSearch =
                 link.title?.toLowerCase().includes(query) ||
                 link.tags?.some(tag => tag.toLowerCase().includes(query));
 
+            // NEW: Check if the link's categories array includes the selected filter
             const matchesCategory =
                 categoryFilter === 'ALL' ||
-                link.category_name?.toLowerCase().trim() === categoryFilter.toLowerCase().trim();
+                (link.categories && link.categories.some(cat =>
+                    cat.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
+                ));
 
             let matchesDate = true;
             if (dateFilter !== 'ALL') {
@@ -51,7 +53,6 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                 else if (dateFilter === 'OLDER_THAN_1_YEAR') matchesDate = diffDays > 365;
             }
 
-            // NEW: Favorite filter
             const matchesFavorite = showFavoritesOnly ? link.is_favorite === true : true;
 
             return matchesSearch && matchesCategory && matchesDate && matchesFavorite;
@@ -112,7 +113,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                     </select>
                 </div>
 
-                {/* SORTING (NEW) */}
+                {/* SORTING */}
                 <div className="col-md-2">
                     <select className="form-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                         <option value="DESC">Plus récents</option>
