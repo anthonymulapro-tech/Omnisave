@@ -41,31 +41,34 @@ POST http://localhost:5000/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "postman@omnisave.test",
-  "password": "Password123!"
+  "email": "success@omnisave.test",
+  "password": "StrongPassword123!"
 }
 
 
 ### --- NOUVEAU FLUX DE CRÉATION ---
 
+
+
 ### 3a. Prévisualisation d'un lien (L'IA analyse mais ne sauvegarde pas)
 POST http://localhost:5000/api/links/preview
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDExOTMsImlhdCI6MTc4OTQxNDc5M30.7sAOvTvyPVSdiYeQTD42KJue5_BOEwDg6EOWtTm7RIg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDc0MzAsImlhdCI6MTc4OTQyMTAzMCwiaXNzIjoib21uaXNhdmUtYXBpIiwianRpIjoiMmNlYmRhOTUtYTk0OS00NGE2LWI3NWQtYmYzMTdkZjgyNTdhIn0.NMx2KarnngEDxYw625cj9im12F-tEH8x4DKAj6evnQ8
 
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/"
 }
 
+
 ### 3b. Sauvegarde finale d'un lien (Après validation du tiroir)
 POST http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDExOTMsImlhdCI6MTc4OTQxNDc5M30.7sAOvTvyPVSdiYeQTD42KJue5_BOEwDg6EOWtTm7RIg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDc0MzAsImlhdCI6MTc4OTQyMTAzMCwiaXNzIjoib21uaXNhdmUtYXBpIiwianRpIjoiMmNlYmRhOTUtYTk0OS00NGE2LWI3NWQtYmYzMTdkZjgyNTdhIn0.NMx2KarnngEDxYw625cj9im12F-tEH8x4DKAj6evnQ8
 
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/",
   "title": "Vidéo Instagram incroyable",
-  "category": "Sport",
+  "categories": ["Sport", "Nutrition", "Santé"],
   "tags": ["sport", "instagram", "test"]
 }
 
@@ -75,20 +78,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJle
 ### 4. Récupérer tous les liens de l'utilisateur
 GET http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTc4NTAsImlhdCI6MTc4OTMzMTQ1MH0.tcUJRvr5AnAhlyLGVvQLR2pv2gGvHbjaD_m17uyA6Jo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDc0MzAsImlhdCI6MTc4OTQyMTAzMCwiaXNzIjoib21uaXNhdmUtYXBpIiwianRpIjoiMmNlYmRhOTUtYTk0OS00NGE2LWI3NWQtYmYzMTdkZjgyNTdhIn0.NMx2KarnngEDxYw625cj9im12F-tEH8x4DKAj6evnQ8
+
+### . Test : Mettre à jour un lien (Vérifier la limite de 5 catégories)
+# Remplace le '1' dans l'URL par l'ID du lien que tu viens de créer
+PUT http://127.0.0.1:5000/api/links/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDc0MzAsImlhdCI6MTc4OTQyMTAzMCwiaXNzIjoib21uaXNhdmUtYXBpIiwianRpIjoiMmNlYmRhOTUtYTk0OS00NGE2LWI3NWQtYmYzMTdkZjgyNTdhIn0.NMx2KarnngEDxYw625cj9im12F-tEH8x4DKAj6evnQ8
+
+{
+    "title": "Titre mis à jour",
+    "categories": ["Cooking", "React", "Python", "SQL", "Flask"],
+    "tags": ["Fullstack"]
+}
 
 
-### 5. 🆕 MODIFIER UN LIEN (Remplace le "1" à la fin par un vrai ID de ta base)
+### 5. 🆕 MODIFIER UN LIEN (Remplace le "35" à la fin par un vrai ID de ta base)
 PUT http://localhost:5000/api/links/35
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODk0MTc4NTAsImlhdCI6MTc4OTMzMTQ1MH0.tcUJRvr5AnAhlyLGVvQLR2pv2gGvHbjaD_m17uyA6Jo
+Authorization: Bearer TON_TOKEN_ACTUEL_ICI
 
 {
   "title": "Titre super modifié depuis le test HTTP !",
-  "category": "Cooking",
+  "categories": ["Cooking", "Recette", "Test"],
   "tags": ["tag-modifié", "mise-a-jour", "succes"]
 }
-
 ### --- GESTION DU PROFIL ---
 
 ### 6. Récupérer son profil

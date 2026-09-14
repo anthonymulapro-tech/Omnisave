@@ -379,13 +379,13 @@ def preview_link(current_user_id):
         ai_result = analyzer.analyze(extracted_text)
 
         # --- 3. RETURN PREVIEW DATA ---
-        # We send everything back to React so the user can edit it in the Sidebar
+        # NOTE: We wrap the single AI category in a list so the frontend receives the expected format
         return jsonify({
             "url": url,
             "title": dynamic_title,
             "thumbnail_url": dynamic_thumbnail,
             "platform": domain,
-            "category": ai_result["category"],
+            "categories": [ai_result["category"]],  # CHANGED: Now an array
             "tags": ai_result["tags"]
         }), 200
 
@@ -399,46 +399,51 @@ def preview_link(current_user_id):
 def save_link(current_user_id):
     """
     Step 2: Save Endpoint.
-    Receives the finalized (and potentially edited) data from the frontend Sidebar.
-    Saves the link and tags to the database.
+    Receives the finalized data from the frontend Sidebar.
+    Saves the link, tags, and multiple categories (Max 5) to the database.
     """
     data = request.get_json()
 
-    # Expect all these fields to be provided by the frontend after the preview
-    required_fields = ['url', 'title', 'category', 'tags']
+    # Changed 'category' to 'categories'
+    required_fields = ['url', 'title', 'categories', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for saving"}), 400
 
     logging.info(f"User ID {current_user_id} requested SAVE for: {data['url']}")
 
     try:
-        # --- 1. DATABASE MAPPING (UPDATED FOR SILENT CREATION) ---
-        category_title = data['category']
+        # --- 1. VALIDATE CATEGORIES (MAX 5) ---
+        categories_input = data['categories']
 
-        # fetch the ID or create the category instantly!
-        category_id = CategoryRepository.get_or_create_by_title(category_title)
+        if not isinstance(categories_input, list):
+            return jsonify({"error": "Categories must be an array."}), 400
 
-        if not category_id:
-            # If we enter here, it means the database actually crashed, not that the category was missing
-            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
+        if len(categories_input) > 5:
+            return jsonify({"error": "You cannot assign more than 5 categories."}), 400
 
-        # --- 2. PREPARE THE LINK OBJECT ---
+        # Clean the list (remove duplicates and empty strings)
+        cleaned_categories = list(set([cat.strip() for cat in categories_input if cat.strip()]))
+
+        # Must have at least one category
+        if not cleaned_categories:
+            return jsonify({"error": "At least one valid category is required."}), 400
+
+        # --- 2. PREPARE THE LINK OBJECT (Removed category_id) ---
         new_link = Link(
             url=data['url'],
             title=data['title'],
-            thumbnail_url=data.get('thumbnail_url', ''),  # Default to empty if missing
+            thumbnail_url=data.get('thumbnail_url', ''),
             platform=data.get('platform', 'Web'),
             analysis_status='COMPLETED',
-            category_id=category_id,  # use the integer directly now
             user_id=current_user_id
         )
 
-        # --- 3. SAVE TO DB ---
-        # Pass the tags list (which may have been modified by the user)
-        success = LinkRepository.create_with_tags(new_link, data['tags'])
+        # --- 3. SAVE TO DB USING REPOSITORY ---
+        # LinkRepository handles both tags and categories creation/linking seamlessly
+        success = LinkRepository.create_with_details(new_link, data['tags'], cleaned_categories)
 
         if success:
-            logging.info("Successfully saved user-validated link with tags")
+            logging.info("Successfully saved user-validated link with tags and categories")
             return jsonify({"message": "Link successfully saved!"}), 201
         else:
             return jsonify({"error": "Error saving the link to the database."}), 500
@@ -453,26 +458,31 @@ def save_link(current_user_id):
 def update_link(current_user_id, link_id):
     """
     Update Endpoint.
-    Allows users to modify the title, category, and tags of an existing saved link.
+    Allows users to modify the title, tags, and categories (Max 5) of an existing link.
     """
     data = request.get_json()
 
-    # title, category, and tags for an update
-    required_fields = ['title', 'category', 'tags']
+    # Changed 'category' to 'categories'
+    required_fields = ['title', 'categories', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for updating"}), 400
 
     logging.info(f"User ID {current_user_id} requested UPDATE for link ID: {link_id}")
 
     try:
-        # --- 1. VERIFY OR CREATE CATEGORY (UPDATED) ---
-        category_title = data['category']
+        # --- 1. VALIDATE CATEGORIES (MAX 5) ---
+        categories_input = data['categories']
 
-        # SILENT CREATION
-        category_id = CategoryRepository.get_or_create_by_title(category_title)
+        if not isinstance(categories_input, list):
+            return jsonify({"error": "Categories must be an array."}), 400
 
-        if not category_id:
-            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
+        if len(categories_input) > 5:
+            return jsonify({"error": "You cannot assign more than 5 categories."}), 400
+
+        cleaned_categories = list(set([cat.strip() for cat in categories_input if cat.strip()]))
+
+        if not cleaned_categories:
+            return jsonify({"error": "At least one valid category is required."}), 400
 
         # --- 2. FETCH EXISTING LINK & SECURITY CHECK ---
         existing_link = LinkRepository.get_by_id(link_id)
@@ -487,13 +497,13 @@ def update_link(current_user_id, link_id):
 
         # --- 3. UPDATE THE LINK OBJECT ---
         existing_link.title = data['title']
-        existing_link.category_id = category_id  # use the integer directly now
 
-        # --- 4. SAVE CHANGES TO DB ---
-        success = LinkRepository.update_with_tags(existing_link, data['tags'])
+        # --- 4. SAVE CHANGES TO DB USING REPOSITORY ---
+        # update_with_details replaces update_with_tags
+        success = LinkRepository.update_with_details(existing_link, data['tags'], cleaned_categories)
 
         if success:
-            logging.info(f"Successfully updated link {link_id} with new tags")
+            logging.info(f"Successfully updated link {link_id} with new details")
             return jsonify({"message": "Link successfully updated!"}), 200
         else:
             return jsonify({"error": "Error updating the link in the database."}), 500
