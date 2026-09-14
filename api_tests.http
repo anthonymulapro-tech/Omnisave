@@ -1,10 +1,38 @@
-### 1. Inscription d'un nouvel utilisateur de test
+### --- TEST DE SÉCURITÉ DE L'INSCRIPTION ---
+
+### 1. ÉCHEC : Champ confirm_password manquant
+# Doit retourner une erreur 400 "Email, password, and confirmation are required."
 POST http://localhost:5000/api/auth/register
 Content-Type: application/json
 
 {
-  "email": "postman@omnisave.test",
-  "password": "Password123!"
+  "email": "fail1@omnisave.test",
+  "password": "StrongPassword123!"
+}
+
+### 2. ÉCHEC : Les mots de passe ne correspondent pas
+# Doit retourner une erreur 400 "The two passwords do not match."
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "fail2@omnisave.test",
+  "password": "StrongPassword123!",
+  "confirm_password": "DifferentPassword123!"
+}
+
+### 3. SUCCÈS : Les mots de passe correspondent et sont forts
+# Doit retourner un succès 201 "Registration successful!"
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "success@omnisave.test",
+  "first_name": "Anthony",
+  "last_name": "Mula",
+  "password": "StrongPassword123!",
+  "confirm_password": "StrongPassword123!",
+  "country": "France"
 }
 
 ### 2. Connexion (Pour récupérer le JWT Token)

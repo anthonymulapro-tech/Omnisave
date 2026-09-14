@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 
 /**
  * Component rendering the user registration form.
- * Handles user input, form submission, and communicates with the backend API
- * to create a new user account for the Omnisave platform.
+ * Handles user input, form submission, password matching validation,
+ * toggles for password visibility, and communicates with the backend API.
  *
  * @component
  * @returns {JSX.Element} The registration form interface.
@@ -12,15 +12,20 @@ import { useNavigate, Link } from 'react-router-dom';
 function RegisterForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [message, setMessage] = useState(null);
+
+    // NEW: States to handle password visibility
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const navigate = useNavigate();
 
     /**
      * Handles the form submission to register a new user.
-     * Prevents default page reload, validates password strength,
+     * Prevents default page reload, validates password match and strength locally,
      * and sends a POST request to the API.
      *
      * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
@@ -28,7 +33,16 @@ function RegisterForm() {
     const handleRegister = async (e) => {
         e.preventDefault();
 
-        // Regex: Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        // 1. Local Validation: Check if passwords match
+        if (password !== confirmPassword) {
+            setMessage({
+                type: 'warning',
+                text: '⚠️ Les deux mots de passe ne correspondent pas.'
+            });
+            return;
+        }
+
+        // 2. Local Validation: Password strength
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
         if (!passwordRegex.test(password)) {
@@ -36,10 +50,10 @@ function RegisterForm() {
                 type: 'warning',
                 text: '⚠️ Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.'
             });
-            return; // Stop the execution here, do not send the fetch request
+            return;
         }
-        // -----------------------------------------
 
+        // 3. API Request
         try {
             const response = await fetch('http://127.0.0.1:5000/api/auth/register', {
                 method: 'POST',
@@ -47,6 +61,7 @@ function RegisterForm() {
                 body: JSON.stringify({
                     email: email,
                     password: password,
+                    confirm_password: confirmPassword,
                     first_name: firstName,
                     last_name: lastName
                 }),
@@ -88,12 +103,50 @@ function RegisterForm() {
                     <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-3">
                     <label className="form-label">Mot de passe</label>
-                    <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
-
+                    {/* NEW: Input group for password with toggle button */}
+                    <div className="input-group">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            className="form-control"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label="Toggle password visibility"
+                        >
+                            {showPassword ? "🙈" : "👁️"}
+                        </button>
+                    </div>
                     <div className="form-text" style={{ fontSize: '0.8rem' }}>
                         Min. 8 caractères, 1 majuscule, 1 chiffre, 1 caractère spécial.
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <label className="form-label">Confirmer le mot de passe</label>
+                    {/* NEW: Input group for confirm password with toggle button */}
+                    <div className="input-group">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            className="form-control"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            aria-label="Toggle confirm password visibility"
+                        >
+                            {showConfirmPassword ? "🙈" : "👁️"}
+                        </button>
                     </div>
                 </div>
 
