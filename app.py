@@ -508,6 +508,48 @@ def get_links(current_user_id):
 
     return jsonify(user_links), 200
 
+@app.route('/api/links/<int:link_id>/favorite', methods=['PUT'])
+@token_required
+def toggle_favorite_link(current_user_id, link_id):
+    """
+    Update Endpoint for Favorites.
+    Allows users to toggle the is_favorite status without sending the whole link data.
+    """
+    data = request.get_json()
+
+    if data is None or 'is_favorite' not in data:
+        return jsonify({"error": "Missing 'is_favorite' boolean field"}), 400
+
+    new_favorite_status = bool(data['is_favorite'])
+    logging.info(f"User ID {current_user_id} requested FAVORITE toggle ({new_favorite_status}) for link ID: {link_id}")
+
+    try:
+        # --- 1. FETCH EXISTING LINK & SECURITY CHECK ---
+        existing_link = LinkRepository.get_by_id(link_id)
+
+        if not existing_link:
+            return jsonify({"error": "Link not found."}), 404
+
+        if existing_link.user_id != current_user_id:
+            logging.warning(f"Security Alert: User {current_user_id} attempted to favorite link {link_id} belonging to User {existing_link.user_id}")
+            return jsonify({"error": "Unauthorized to edit this link."}), 403
+
+        # --- 2. UPDATE STATUS ---
+        success = LinkRepository.toggle_favorite(link_id, new_favorite_status)
+
+        if success:
+            return jsonify({
+                "message": "Favorite status successfully updated!",
+                "is_favorite": new_favorite_status
+            }), 200
+        else:
+            return jsonify({"error": "Error updating the favorite status in the database."}), 500
+
+    except Exception as e:
+        logging.error(f"Critical error during favorite toggle: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+
+
 @app.route('/api/links/<int:link_id>', methods=['DELETE'])
 @token_required
 def delete_link(current_user_id, link_id):

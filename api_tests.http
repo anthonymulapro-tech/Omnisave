@@ -23,7 +23,7 @@ Content-Type: application/json
 ### 3a. Prévisualisation d'un lien (L'IA analyse mais ne sauvegarde pas)
 POST http://localhost:5000/api/links/preview
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDExOTMsImlhdCI6MTc4OTQxNDc5M30.7sAOvTvyPVSdiYeQTD42KJue5_BOEwDg6EOWtTm7RIg
 
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/"
@@ -32,7 +32,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJle
 ### 3b. Sauvegarde finale d'un lien (Après validation du tiroir)
 POST http://localhost:5000/api/links
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE3ODkzOTk3MTgsImlhdCI6MTc4OTMxMzMxOH0.NlYHvlA7mEGYCCtGwLRSBpwr1m74i5TIbZ92d8I-wE0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDExOTMsImlhdCI6MTc4OTQxNDc5M30.7sAOvTvyPVSdiYeQTD42KJue5_BOEwDg6EOWtTm7RIg
 
 {
   "url": "https://www.instagram.com/reels/DdHV-EeodO7/",
@@ -131,4 +131,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJle
 {
   "old_password": "Password123!",
   "new_password": "SuperNouveauPassword456!"
+}
+
+### 12. Toggle Favorite Status
+PUT http://127.0.0.1:5000/api/links/2/favorite
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE3ODk1MDExOTMsImlhdCI6MTc4OTQxNDc5M30.7sAOvTvyPVSdiYeQTD42KJue5_BOEwDg6EOWtTm7RIg
+
+{
+  "is_favorite": false
 }
