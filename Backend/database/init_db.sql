@@ -70,6 +70,7 @@ CREATE TABLE lien (
     statut_analyse VARCHAR(50) DEFAULT 'PENDING',
     categorie_id INT NOT NULL,
     utilisateur_id INT NOT NULL,
+    is_favorite BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (categorie_id) REFERENCES categorie(categorie_id),
     FOREIGN KEY (utilisateur_id) REFERENCES utilisateur(utilisateur_id)
 ) ENGINE=InnoDB;

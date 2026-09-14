@@ -209,6 +209,16 @@ const Dashboard = () => {
         setEditError(null);
     };
 
+    const handleToggleFavorite = (linkId, newFavoriteStatus) => {
+    setLinks(prevLinks =>
+        prevLinks.map(link =>
+            link.link_id === linkId
+                ? { ...link, is_favorite: newFavoriteStatus }
+                : link
+        )
+    );
+};
+
     const handleSaveEdit = async (updatedData) => {
         setEditError(null);
         try {
@@ -297,6 +307,7 @@ const Dashboard = () => {
                     initialLinks={links}
                     onDelete={handleDeleteLink}
                     onEdit={handleEditClick}
+                    onToggleFavorite={handleToggleFavorite}
                 />
             )}
 
