@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EditSidebar.css';
+import { sendLexiconSuggestions } from '../services/lexiconService';
 
 const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     const [title, setTitle] = useState('');
@@ -17,22 +18,27 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     }, [linkData]);
 
     const handleConfirm = () => {
-        // Convert the comma-separated string back into an array
-        const tagsArray = tagsStr
-            .split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag !== '');
+    // 1. Convert the comma-separated string back into a clean array
+    const tagsArray = tagsStr
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag !== '');
 
-        // Prepare the payload for the PUT request
-        const updatedData = {
-            ...linkData,
-            title: title,
-            category: category, // The backend expects 'category' for the title
-            tags: tagsArray
-        };
+    // 2. SILENT CROWDSOURCING 🚀
+    // Send the updated category and tags to enrich the AI
+    sendLexiconSuggestions(category, tagsArray);
 
-        onSave(updatedData);
+    // 3. Prepare the payload for the PUT request
+    const updatedData = {
+        ...linkData,
+        title: title,
+        category: category, // The backend expects 'category' for the title
+        tags: tagsArray
     };
+
+    // 4. Proceed with normal saving/updating
+    onSave(updatedData);
+};
 
     const isCategoryError = error === "Nous ne connaissons pas cette catégorie";
 
