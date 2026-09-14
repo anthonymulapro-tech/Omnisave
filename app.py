@@ -525,30 +525,40 @@ def delete_link(current_user_id, link_id):
 # ==========================================
 
 @app.route('/api/lexicon/suggest', methods=['POST'])
-# @token_required  # Uncomment this line if only logged-in users can suggest words
-def suggest_lexicon_word():
+@token_required
+def suggest_lexicon_word(current_user_id):
     """
     Endpoint to receive community suggestions for new words and categories.
+    Handles both single word or a list of tags sent by React sidebars.
     """
     try:
         data = request.get_json()
-
-        # 1. Extract data sent by React
-        word = data.get('word')
         category = data.get('category')
 
-        # 2. Basic validation: ensure both fields are present
-        if not word or not category:
-            return jsonify({"error": "Both 'word' and 'category' are required."}), 400
+        # Support both 'word' (single) and 'tags' (list) from frontend
+        words = data.get('tags', [])
+        single_word = data.get('word')
+        if single_word and single_word not in words:
+            words.append(single_word)
 
-        # 3. Call the repository to save or update the suggestion
-        success, error_msg = LexiconRepository.add_suggestion(word, category)
+        if not words or not category:
+            return jsonify({"error": "Category and at least one word/tag are required."}), 400
 
-        # 4. Return the appropriate response to the frontend
-        if success:
-            return jsonify({"message": "Suggestion successfully recorded!"}), 201
+        # Loop through each word and use your repository
+        success_count = 0
+        for word in words:
+            clean_word = word.strip().lower()
+            if len(clean_word) < 2:
+                continue
+
+            success, error_msg = LexiconRepository.add_suggestion(clean_word, category)
+            if success:
+                success_count += 1
+
+        if success_count > 0:
+            return jsonify({"message": f"Successfully recorded {success_count} suggestions!"}), 201
         else:
-            return jsonify({"error": f"Database error: {error_msg}"}), 500
+            return jsonify({"error": "Failed to record suggestions."}), 500
 
     except Exception as e:
         print(f"❌ Server error during lexicon suggestion: {e}")

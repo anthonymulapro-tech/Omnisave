@@ -6,22 +6,31 @@
  * @param {Array<string>} tags - The array of tags validated by the user
  */
 export const sendLexiconSuggestions = (category, tags) => {
-    // We only send if we have valid data
     if (!category || !tags || tags.length === 0) return;
 
+    const BACKEND_URL = 'http://localhost:5000';
+
+    // Check multiple common key names just in case
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token') || localStorage.getItem('jwt');
+
+    // If no token found and your route requires it, you can either return or let it try anyway
+    if (!token) {
+        console.warn("No auth token found for lexicon suggestion.");
+        return;
+    }
+
     tags.forEach(tag => {
-        // Fire and forget: We don't 'await' here because we want this to be invisible and fast
-        fetch('/api/lexicon/suggest', {
+        fetch(`${BACKEND_URL}/api/lexicon/suggest`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 word: tag,
                 category: category
             })
         }).catch(error => {
-            // Silently ignore errors so the user's UI doesn't break
             console.error("Silent suggestion error:", error);
         });
     });
