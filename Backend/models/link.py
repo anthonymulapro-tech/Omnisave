@@ -52,9 +52,9 @@ class Link:
             "analysis_status": self.analysis_status,
             "category_id": self.category_id,
             "user_id": self.user_id,
-            # Appended metadata for the frontend
             "category_name": self.category_name,
-            "tags": self.tags
+            "tags": self.tags,
+            "is_favorite": self.is_favorite
         }
 
     def __repr__(self) -> str:

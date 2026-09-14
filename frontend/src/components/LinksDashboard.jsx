@@ -1,13 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import LinkCard from './LinkCard';
 
-const LinksDashboard = ({ initialLinks, onDelete, onEdit }) => {
+const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) => {
+    // --- ORIGINAL STATES ---
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('ALL');
 
-    const filteredLinks = useMemo(() => {
-        return initialLinks.filter((link) => {
+    // --- NEW STATES (Favorites & Sort) ---
+    const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+    const [sortOrder, setSortOrder] = useState('DESC'); // DESC = Newest first
+
+    const processedLinks = useMemo(() => {
+        // 1. FILTERING (Your original logic + Favorites)
+        let filtered = initialLinks.filter((link) => {
             const query = searchQuery.toLowerCase();
             const matchesSearch =
                 link.title?.toLowerCase().includes(query) ||
@@ -31,14 +37,26 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit }) => {
                 else if (dateFilter === 'OLDER_THAN_1_YEAR') matchesDate = diffDays > 365;
             }
 
-            return matchesSearch && matchesCategory && matchesDate;
+            // NEW: Favorite filter
+            const matchesFavorite = showFavoritesOnly ? link.is_favorite === true : true;
+
+            return matchesSearch && matchesCategory && matchesDate && matchesFavorite;
         });
-    }, [initialLinks, searchQuery, categoryFilter, dateFilter]);
+
+        // 2. SORTING (Newest/Oldest)
+        return filtered.sort((a, b) => {
+            const dateA = new Date(a.saved_at).getTime();
+            const dateB = new Date(b.saved_at).getTime();
+            return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
+        });
+
+    }, [initialLinks, searchQuery, categoryFilter, dateFilter, showFavoritesOnly, sortOrder]);
 
     return (
         <div className="container mt-4">
             <div className="row mb-4 g-3 bg-light p-3 rounded shadow-sm">
-                <div className="col-md-6">
+                {/* SEARCH AND FAVORITES */}
+                <div className="col-md-5 d-flex gap-2">
                     <input
                         type="text"
                         className="form-control"
@@ -46,14 +64,24 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit }) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                    <button
+                        className={`btn d-flex align-items-center gap-2 ${showFavoritesOnly ? 'btn-danger' : 'btn-outline-danger'}`}
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    >
+                        {showFavoritesOnly ? '❤️' : '🤍'}
+                    </button>
                 </div>
-                <div className="col-md-3">
+
+                {/* CATEGORIES */}
+                <div className="col-md-2">
                     <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                         <option value="ALL">Toutes les categories</option>
                         <option value="Cooking">Cuisine</option>
                         <option value="Sports">Sports</option>
                     </select>
                 </div>
+
+                {/* DATES */}
                 <div className="col-md-3">
                     <select className="form-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
                         <option value="ALL">Tout</option>
@@ -64,17 +92,25 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit }) => {
                         <option value="OLDER_THAN_1_YEAR">Il y a plus d'1 an</option>
                     </select>
                 </div>
+
+                {/* SORTING (NEW) */}
+                <div className="col-md-2">
+                    <select className="form-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                        <option value="DESC">Plus récents</option>
+                        <option value="ASC">Plus anciens</option>
+                    </select>
+                </div>
             </div>
 
             <div className="row">
-                {filteredLinks.length > 0 ? (
-                    filteredLinks.map(link => (
+                {processedLinks.length > 0 ? (
+                    processedLinks.map(link => (
                         <div className="col-md-4" key={link.link_id}>
-                            {/* 2. PASS THE PROP: Give onDelete to the LinkCard */}
                             <LinkCard
                                 link={link}
                                 onDelete={onDelete}
                                 onEdit={onEdit}
+                                onToggleFavorite={onToggleFavorite}
                             />
                         </div>
                     ))
