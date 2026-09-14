@@ -13,10 +13,10 @@ COMMUNITY_LEXICON_PATH = os.path.abspath(
 
 # Progression tiers based on your existing scoring system
 TIER_PROGRESSION = [
-    {"min_occ": 50, "group": "core_fr", "points": 300},
-    {"min_occ": 20, "group": "strong_fr", "points": 150},
-    {"min_occ": 10, "group": "medium_fr", "points": 50},
-    {"min_occ": 5, "group": "bonus_fr", "points": 15}
+    {"min_occ": 15, "group": "core_fr", "points": 300},
+    {"min_occ": 10, "group": "strong_fr", "points": 150},
+    {"min_occ": 5, "group": "medium_fr", "points": 50},
+    {"min_occ": 3, "group": "bonus_fr", "points": 15}
 ]
 
 

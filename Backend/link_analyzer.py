@@ -4,53 +4,90 @@ import os
 import re
 from collections import Counter
 
+import json
+import spacy
+import os
+import re
+from collections import Counter
+
 
 class LinkAnalyzer:
     def __init__(self, lexicon_path, blacklist_path, community_lexicon_path=None):
-        """Initializes the analyzer by loading both lexicons, blacklist, and NLP model."""
+        """Initializes the analyzer by loading lexicons, blacklist, and NLP model."""
+        self.lexicon_path = lexicon_path
+        self.blacklist_path = blacklist_path
+        self.community_lexicon_path = community_lexicon_path
 
         self.lexicon = {}
-
-        # 1. Load the BASE scoring lexicon
-        if os.path.exists(lexicon_path):
-            with open(lexicon_path, 'r', encoding='utf-8') as file:
-                self.lexicon = json.load(file)
-        else:
-            print(f"⚠️ Warning: Base lexicon not found at {lexicon_path}")
-
-        # 2. Load and MERGE the COMMUNITY lexicon (if it exists)
-        if community_lexicon_path and os.path.exists(community_lexicon_path):
-            with open(community_lexicon_path, 'r', encoding='utf-8') as file:
-                community_data = json.load(file)
-
-                # Merge the community data into the main lexicon in memory
-                for cat, data in community_data.items():
-                    if cat not in self.lexicon:
-                        # If category is completely new, add it entirely
-                        self.lexicon[cat] = data
-                    else:
-                        # If category exists, merge the groups and words
-                        for group_name, group_data in data.get("groups", {}).items():
-                            if group_name not in self.lexicon[cat]["groups"]:
-                                self.lexicon[cat]["groups"][group_name] = group_data
-                            else:
-                                # Combine words without duplicates
-                                existing_words = set(self.lexicon[cat]["groups"][group_name]["words"])
-                                new_words = set(group_data["words"])
-                                merged_words = list(existing_words.union(new_words))
-                                self.lexicon[cat]["groups"][group_name]["words"] = merged_words
-
-        # 3. Load the custom blacklist JSON
-        with open(blacklist_path, 'r', encoding='utf-8') as file:
-            blacklist_data = json.load(file)
-
-        # Flatten all lists from the JSON into a single fast-lookup Set
         self.noise_words = set()
-        for words_list in blacklist_data.values():
-            self.noise_words.update(words_list)
+
+        # Trackers
+        self.last_lexicon_mtime = 0
+        self.last_community_mtime = 0
+
+        # Loading data
+        self._load_data()
 
         print("Loading spaCy NLP model (fr_core_news_sm)...")
         self.nlp = spacy.load("fr_core_news_sm")
+
+    def _get_mtime(self, filepath):
+        """Returns the last modification time of a file, or 0 if it doesn't exist."""
+        if filepath and os.path.exists(filepath):
+            return os.path.getmtime(filepath)
+        return 0
+
+    def _check_and_reload(self):
+        """Checks if JSON files have changed on disk, and reloads them if necessary."""
+        current_lexicon_mtime = self._get_mtime(self.lexicon_path)
+        current_community_mtime = self._get_mtime(self.community_lexicon_path)
+
+        if (current_lexicon_mtime > self.last_lexicon_mtime or
+                current_community_mtime > self.last_community_mtime):
+            print("🔄 Détection de nouveaux mots communautaires... Mise à jour du cerveau de l'IA en cours !")
+            self._load_data()
+
+    def _load_data(self):
+        """Loads and merges the lexicons and blacklist into memory."""
+        self.lexicon = {}
+
+        # 1. Load the BASE scoring lexicon
+        if os.path.exists(self.lexicon_path):
+            with open(self.lexicon_path, 'r', encoding='utf-8') as file:
+                self.lexicon = json.load(file)
+            self.last_lexicon_mtime = self._get_mtime(self.lexicon_path)
+        else:
+            print(f"⚠️ Warning: Base lexicon not found at {self.lexicon_path}")
+
+        # 2. Load and MERGE the COMMUNITY lexicon (if it exists)
+        if self.community_lexicon_path and os.path.exists(self.community_lexicon_path):
+            with open(self.community_lexicon_path, 'r', encoding='utf-8') as file:
+                community_data = json.load(file)
+
+            self.last_community_mtime = self._get_mtime(self.community_lexicon_path)
+
+            # Merge the community data into the main lexicon in memory
+            for cat, data in community_data.items():
+                if cat not in self.lexicon:
+                    self.lexicon[cat] = data
+                else:
+                    for group_name, group_data in data.get("groups", {}).items():
+                        if group_name not in self.lexicon[cat].get("groups", {}):
+                            self.lexicon[cat]["groups"][group_name] = group_data
+                        else:
+                            # Combine words without duplicates
+                            existing_words = set(self.lexicon[cat]["groups"][group_name]["words"])
+                            new_words = set(group_data["words"])
+                            self.lexicon[cat]["groups"][group_name]["words"] = list(existing_words.union(new_words))
+
+        # 3. Load the custom blacklist JSON
+        if os.path.exists(self.blacklist_path):
+            with open(self.blacklist_path, 'r', encoding='utf-8') as file:
+                blacklist_data = json.load(file)
+
+            self.noise_words = set()
+            for words_list in blacklist_data.values():
+                self.noise_words.update(words_list)
 
     def _log_unknown_words(self, doc):
         """Extracts relevant words from an uncategorized document and saves them for review."""
@@ -66,56 +103,28 @@ class LinkAnalyzer:
                 f.write(", ".join(useful_words) + "\n\n")
 
     def _extract_tags(self, text, doc, limit=5):
-        """
-        Hybrid extraction: Prioritizes explicit hashtags but filters out junk (e.g., adjectives),
-        then completes the list with the most relevant text keywords if needed.
-        """
         final_tags = []
-
-        # --- STEP 1: Hashtag Rescue & Filtering ---
-        # Extract all hashtags present in the original text
         hashtags = re.findall(r'#(\w+)', text)
 
         for tag in hashtags:
             tag_lower = tag.lower()
-
-            # Reject if the tag is in the JSON blacklist or too short
             if tag_lower in self.noise_words or len(tag_lower) < 2:
                 continue
-
-            # Analyze this specific tag using spaCy to determine its part of speech
             tag_doc = self.nlp(tag_lower)
-
-            # Discard descriptive adjectives (e.g., 'bon', 'délicieux'), adverbs, or pronouns
             if tag_doc and tag_doc[0].pos_ in ['ADJ', 'ADV', 'PRON', 'DET']:
                 continue
-
-            # Keep valid words (unknown words like 'mcchicken' default to NOUN/PROPN in spaCy)
-            # Ensure no duplicates are added
             if tag_lower not in final_tags:
                 final_tags.append(tag_lower)
 
-        # --- STEP 2: Fill remaining slots with text keywords ---
-        # If the hashtag count is below the required limit, parse the main text
         if len(final_tags) < limit:
             text_keywords = []
-
             for token in doc:
                 word = token.lemma_.lower()
-
-                # Keep Nouns and Proper Nouns that pass the noise and length filters
-                if (token.pos_ in ['NOUN', 'PROPN']
-                        and not token.is_stop
-                        and len(word) > 2
-                        and word not in self.noise_words
-                        and word not in final_tags):  # Prevent duplicates with extracted hashtags
-
+                if (token.pos_ in ['NOUN', 'PROPN'] and not token.is_stop and len(word) > 2
+                        and word not in self.noise_words and word not in final_tags):
                     text_keywords.append(word)
 
-            # Calculate how many more tags are needed to reach the limit
             needed = limit - len(final_tags)
-
-            # Append the most frequent keywords to fill the remaining slots
             most_common = [word for word, count in Counter(text_keywords).most_common(needed)]
             final_tags.extend(most_common)
 
@@ -123,6 +132,8 @@ class LinkAnalyzer:
 
     def analyze(self, text):
         """Analyzes the text and returns the category and tags."""
+        self._check_and_reload()
+
         scores = {category: 0 for category in self.lexicon.keys()}
         doc = self.nlp(text)
 
@@ -153,12 +164,7 @@ class LinkAnalyzer:
         if best_category == "Non catégorisé":
             self._log_unknown_words(doc)
 
-        # 1. Get the raw tags from the extraction method
         raw_tags = self._extract_tags(text, doc)
-
-        # 2. Sanitize and deduplicate tags.
-        # We use dict.fromkeys() instead of set() here because dict preserves
-        # the order of the tags (keeping the most relevant ones first).
         cleaned_tags = list(dict.fromkeys(tag.strip().lower() for tag in raw_tags))
 
         return {

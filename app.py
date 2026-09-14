@@ -38,8 +38,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 lexicon_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
 blacklist_path = os.path.join(BASE_DIR, 'data', 'blacklist.json')
+community_path = os.path.join(BASE_DIR, 'data', 'community_lexicon.json')
 
-analyzer = LinkAnalyzer(lexicon_path, blacklist_path)
+analyzer = LinkAnalyzer(lexicon_path, blacklist_path, community_path)
 
 # ==========================================
 # BACKGROUND SCHEDULER (Community Lexicon Auto-Merge)

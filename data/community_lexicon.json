@@ -8,19 +8,20 @@
       },
       "strong_fr": {
         "points": 150,
-        "words": []
+        "words": [
+          "console",
+          "eldenring"
+        ]
       },
       "medium_fr": {
         "points": 50,
         "words": [
-          "console"
+          "pixel"
         ]
       },
       "bonus_fr": {
         "points": 15,
-        "words": [
-          "pixel"
-        ]
+        "words": []
       }
     }
   },
@@ -29,13 +30,13 @@
     "groups": {
       "core_fr": {
         "points": 300,
-        "words": []
-      },
-      "strong_fr": {
-        "points": 150,
         "words": [
           "esport"
         ]
+      },
+      "strong_fr": {
+        "points": 150,
+        "words": []
       },
       "medium_fr": {
         "points": 50,
@@ -52,7 +53,9 @@
     "groups": {
       "core_fr": {
         "points": 300,
-        "words": []
+        "words": [
+          "football"
+        ]
       },
       "strong_fr": {
         "points": 150,
@@ -61,16 +64,14 @@
       "medium_fr": {
         "points": 50,
         "words": [
-          "football"
-        ]
-      },
-      "bonus_fr": {
-        "points": 15,
-        "words": [
           "olise",
           "edf",
           "mbappe"
         ]
+      },
+      "bonus_fr": {
+        "points": 15,
+        "words": []
       }
     }
   }
