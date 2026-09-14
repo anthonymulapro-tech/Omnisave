@@ -6,6 +6,7 @@ from flask import request, jsonify
 import os
 from dotenv import load_dotenv
 import re
+import uuid
 
 load_dotenv()
 
@@ -34,12 +35,15 @@ class AuthService:
     @staticmethod
     def generate_token(user_id: int) -> str:
         """
-        Generates a JWT token for a given user ID, valid for 24 hours.
+        Generates a highly secure JWT token for a given user ID, valid for 24 hours.
+        Includes an issuer (iss) and a unique JWT ID (jti) to prevent replay attacks.
         """
         payload = {
             'user_id': user_id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),  # Expiration time
-            'iat': datetime.datetime.utcnow()  # Issued at
+            'iat': datetime.datetime.utcnow(),  # Issued at
+            'iss': 'omnisave-api',              # Issuer: Identifies who emitted the token
+            'jti': str(uuid.uuid4())            # JWT ID: Unique identifier to prevent replay attacks
         }
 
         # Encode the payload into a JWT string using the secret key
@@ -80,7 +84,6 @@ def token_required(f):
 
         # 1. Check if the "Authorization" header is present
         if 'Authorization' in request.headers:
-            # The standard format is "Bearer <token>"
             auth_header = request.headers['Authorization']
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
@@ -91,17 +94,14 @@ def token_required(f):
 
         # 3. Try to decode the token
         try:
-            # Use the secret key from our AuthService class
             data = jwt.decode(token, AuthService.SECRET_KEY, algorithms=["HS256"])
-            # Extract the user ID contained in the token
             current_user_id = data['user_id']
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token has expired. Please log in again."}), 401
         except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token. Please log in again."}), 401
 
-        # 4. If everything is fine, pass the request to the actual Flask route
-        # and pass the user ID so it knows who is performing the action
+        # 4. Pass execution to the protected route along with the current user ID
         return f(current_user_id, *args, **kwargs)
 
     return decorated
