@@ -11,6 +11,20 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [sortOrder, setSortOrder] = useState('DESC'); // DESC = Newest first
 
+    /**
+     * Extract unique categories from the user's links to populate the filter dynamically.
+     * Uses Set to remove duplicates and sorts them alphabetically.
+     */
+    const uniqueCategories = useMemo(() => {
+        const categories = initialLinks
+            .map(link => link.category_name)
+            // Filter out null, undefined, or empty strings
+            .filter(category => category && category.trim() !== "");
+
+        // Return unique categories sorted alphabetically
+        return [...new Set(categories)].sort();
+    }, [initialLinks]);
+
     const processedLinks = useMemo(() => {
         // 1. FILTERING (Your original logic + Favorites)
         let filtered = initialLinks.filter((link) => {
@@ -76,8 +90,13 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                 <div className="col-md-2">
                     <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                         <option value="ALL">Toutes les categories</option>
-                        <option value="Cooking">Cuisine</option>
-                        <option value="Sports">Sports</option>
+
+                        {/* Dynamically render user categories */}
+                        {uniqueCategories.map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
