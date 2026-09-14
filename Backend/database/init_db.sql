@@ -60,6 +60,7 @@ CREATE TABLE message_contact (
     FOREIGN KEY (utilisateur_id) REFERENCES utilisateur(utilisateur_id)
 ) ENGINE=InnoDB;
 
+-- 2. Link table (Removed the 'categorie_id' column)
 CREATE TABLE lien (
     url_id INT AUTO_INCREMENT PRIMARY KEY,
     url VARCHAR(1024) NOT NULL,
@@ -68,11 +69,18 @@ CREATE TABLE lien (
     plateforme VARCHAR(50),
     date_sauvegarde DATETIME DEFAULT CURRENT_TIMESTAMP,
     statut_analyse VARCHAR(50) DEFAULT 'PENDING',
-    categorie_id INT NOT NULL,
     utilisateur_id INT NOT NULL,
     is_favorite BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (categorie_id) REFERENCES categorie(categorie_id),
     FOREIGN KEY (utilisateur_id) REFERENCES utilisateur(utilisateur_id)
+) ENGINE=InnoDB;
+
+-- 3. NEW: Junction table for Many-to-Many relationship (Max 5 categories per link)
+CREATE TABLE lien_categorie (
+    url_id INT NOT NULL,
+    categorie_id INT NOT NULL,
+    PRIMARY KEY (url_id, categorie_id),
+    FOREIGN KEY (url_id) REFERENCES lien(url_id) ON DELETE CASCADE,
+    FOREIGN KEY (categorie_id) REFERENCES categorie(categorie_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 
