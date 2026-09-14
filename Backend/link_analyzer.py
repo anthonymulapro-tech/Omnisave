@@ -6,13 +6,41 @@ from collections import Counter
 
 
 class LinkAnalyzer:
-    def __init__(self, lexicon_path, blacklist_path):
-        """Initializes the analyzer by loading the lexicon, blacklist, and NLP model."""
-        # 1. Load the scoring lexicon
-        with open(lexicon_path, 'r', encoding='utf-8') as file:
-            self.lexicon = json.load(file)
+    def __init__(self, lexicon_path, blacklist_path, community_lexicon_path=None):
+        """Initializes the analyzer by loading both lexicons, blacklist, and NLP model."""
 
-        # 2. Load the custom blacklist JSON
+        self.lexicon = {}
+
+        # 1. Load the BASE scoring lexicon
+        if os.path.exists(lexicon_path):
+            with open(lexicon_path, 'r', encoding='utf-8') as file:
+                self.lexicon = json.load(file)
+        else:
+            print(f"⚠️ Warning: Base lexicon not found at {lexicon_path}")
+
+        # 2. Load and MERGE the COMMUNITY lexicon (if it exists)
+        if community_lexicon_path and os.path.exists(community_lexicon_path):
+            with open(community_lexicon_path, 'r', encoding='utf-8') as file:
+                community_data = json.load(file)
+
+                # Merge the community data into the main lexicon in memory
+                for cat, data in community_data.items():
+                    if cat not in self.lexicon:
+                        # If category is completely new, add it entirely
+                        self.lexicon[cat] = data
+                    else:
+                        # If category exists, merge the groups and words
+                        for group_name, group_data in data.get("groups", {}).items():
+                            if group_name not in self.lexicon[cat]["groups"]:
+                                self.lexicon[cat]["groups"][group_name] = group_data
+                            else:
+                                # Combine words without duplicates
+                                existing_words = set(self.lexicon[cat]["groups"][group_name]["words"])
+                                new_words = set(group_data["words"])
+                                merged_words = list(existing_words.union(new_words))
+                                self.lexicon[cat]["groups"][group_name]["words"] = merged_words
+
+        # 3. Load the custom blacklist JSON
         with open(blacklist_path, 'r', encoding='utf-8') as file:
             blacklist_data = json.load(file)
 
@@ -153,7 +181,11 @@ if __name__ == '__main__':
     lexicon_path = os.path.join(base_dir, 'data', 'lexicon.json')
     blacklist_path = os.path.join(base_dir, 'data', 'blacklist.json')
 
-    analyzer = LinkAnalyzer(lexicon_path, blacklist_path)
+    # Path for the community lexicon
+    community_lexicon_path = os.path.join(base_dir, 'data', 'community_lexicon.json')
+
+    # Initialize with the 3 files
+    analyzer = LinkAnalyzer(lexicon_path, blacklist_path, community_lexicon_path)
 
     instagram_post = """
    Voici quelques exercices à mettre en place pour débloquer tes chevilles !

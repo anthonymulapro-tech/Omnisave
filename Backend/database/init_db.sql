@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS utilisateur;
 DROP TABLE IF EXISTS tag;
 DROP TABLE IF EXISTS categorie;
 DROP TABLE IF EXISTS role;
+DROP TABLE IF EXISTS lexicon_suggestion;
 
 -- 1. Tables indépendantes
 
@@ -119,3 +120,15 @@ INSERT INTO role (nom_role) VALUES ('Membre');
 
 INSERT INTO utilisateur (email, password, role_id)
 VALUES ('anthony@omnisave.test', 'Motdepasse123@', 1);
+
+-- 1. Un mot qui atteint le niveau 1 (5+ occurrences) pour une NOUVELLE catégorie
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('pixel', 'gaming', 6);
+
+-- 2. Un mot qui atteint le niveau 2 (10+ occurrences) pour une NOUVELLE catégorie
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('console', 'gaming', 12);
+
+-- 3. Un mot qui atteint le niveau 3 (20+ occurrences) pour une catégorie EXISTANTE
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('esport', 'sports', 25);
