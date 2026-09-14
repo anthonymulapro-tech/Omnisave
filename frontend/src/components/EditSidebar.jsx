@@ -9,6 +9,7 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
 
     // State to keep track of the original tags when the sidebar opened
     const [originalTags, setOriginalTags] = useState([]);
+    const [originalCategory, setOriginalCategory] = useState('');
 
     // Pre-fill the form when a link is passed to the sidebar
     useEffect(() => {
@@ -21,6 +22,7 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
 
             // Store original tags for delta comparison later
             setOriginalTags(initialTags);
+            setOriginalCategory(linkData.category_name || '');
         }
     }, [linkData]);
 
@@ -31,9 +33,12 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
             .map(tag => tag.trim())
             .filter(tag => tag !== '');
 
+        const hasCategoryChanged = category !== originalCategory;
+        const tagsToCompare = hasCategoryChanged ? [] : originalTags;
+
         // 2. SILENT CROWDSOURCING (EDIT MODE) 🚀
         // Pass category, current tags, isEdit = true, and original tags for delta filtering
-        sendLexiconSuggestions(category, tagsArray, true, originalTags);
+        sendLexiconSuggestions(category, tagsArray, true, tagsToCompare);
 
         // 3. Prepare the payload for the PUT request
         const updatedData = {
