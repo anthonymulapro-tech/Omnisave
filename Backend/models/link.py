@@ -16,6 +16,7 @@ class Link:
         platform: Optional[str] = None,
         saved_at: Optional[datetime] = None,
         analysis_status: str = "PENDING",
+        is_favorite: bool = False,
         category_id: Optional[int] = None,
         user_id: Optional[int] = None,
         category_name: Optional[str] = None,
@@ -28,6 +29,7 @@ class Link:
         self.platform = platform
         self.saved_at = saved_at
         self.analysis_status = analysis_status
+        self.is_favorite = is_favorite
         self.category_id = category_id
         self.user_id = user_id
 

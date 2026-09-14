@@ -121,8 +121,9 @@ class LinkRepository:
                         analysis_status=row['statut_analyse'],
                         category_id=row['categorie_id'],
                         user_id=row['utilisateur_id'],
-                        category_name=row['titre_categorie'],  # Injected category name
-                        tags=tags_list  # Injected tags array
+                        is_favorite=bool(row.get('is_favorite', 0)),
+                        category_name=row['titre_categorie'],
+                        tags=tags_list
                     )
                     links.append(link)
 
@@ -158,8 +159,10 @@ class LinkRepository:
                         platform=row['plateforme'],
                         saved_at=row['date_sauvegarde'],
                         analysis_status=row['statut_analyse'],
+                        is_favorite=bool(row.get('is_favorite', 0)),
                         category_id=row['categorie_id'],
                         user_id=row['utilisateur_id']
+
                     )
             except Exception as e:
                 print(f"❌ Error fetching link by ID: {e}")
@@ -259,6 +262,29 @@ class LinkRepository:
                 print(f"❌ Error deleting link: {e}")
                 return False
 
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        return False
+
+    @staticmethod
+    def toggle_favorite(link_id: int, is_favorite: bool) -> bool:
+        """
+        Met à jour le statut 'favori' d'un lien spécifique.
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                sql = "UPDATE lien SET is_favorite = %s WHERE url_id = %s"
+                cursor.execute(sql, (is_favorite, link_id))
+                connection.commit()
+                return True
+            except Exception as e:
+                connection.rollback()
+                print(f"❌ Error updating favorite status: {e}")
+                return False
             finally:
                 if connection.is_connected():
                     cursor.close()
