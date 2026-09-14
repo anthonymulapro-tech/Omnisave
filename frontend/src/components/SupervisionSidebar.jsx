@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SupervisionSidebar.css'; // Import the external CSS file
+import { sendLexiconSuggestions } from '../services/lexiconService';
 
 const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, onSave }) => {
     const [title, setTitle] = useState('');
@@ -15,11 +16,16 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
     }, [previewData]);
 
     const handleConfirm = () => {
+        // 1. Format the tags into a clean array
         const tagsArray = tagsStr
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag !== '');
 
+        // 2. SILENT CROWDSOURCING
+        sendLexiconSuggestions(category, tagsArray);
+
+        // 3. Prepare the final data object
         const finalizedData = {
             ...previewData,
             title: title,
@@ -27,6 +33,7 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
             tags: tagsArray
         };
 
+        // 4. Proceed with normal saving
         onSave(finalizedData);
     };
 

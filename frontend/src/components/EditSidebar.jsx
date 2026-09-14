@@ -1,36 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import './EditSidebar.css';
+import { sendLexiconSuggestions } from '../services/lexiconService';
 
 const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     const [title, setTitle] = useState('');
     const [category, setCategory] = useState('');
     const [tagsStr, setTagsStr] = useState('');
 
+    // State to keep track of the original tags when the sidebar opened
+    const [originalTags, setOriginalTags] = useState([]);
+    const [originalCategory, setOriginalCategory] = useState('');
+
     // Pre-fill the form when a link is passed to the sidebar
     useEffect(() => {
         if (linkData) {
             setTitle(linkData.title || '');
-            // linkData uses 'category_name' from the backend GET request
             setCategory(linkData.category_name || '');
-            setTagsStr(linkData.tags ? linkData.tags.join(', ') : '');
+
+            const initialTags = linkData.tags ? linkData.tags : [];
+            setTagsStr(initialTags.join(', '));
+
+            // Store original tags for delta comparison later
+            setOriginalTags(initialTags);
+            setOriginalCategory(linkData.category_name || '');
         }
     }, [linkData]);
 
     const handleConfirm = () => {
-        // Convert the comma-separated string back into an array
+        // 1. Convert the comma-separated string back into a clean array
         const tagsArray = tagsStr
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag !== '');
 
-        // Prepare the payload for the PUT request
+        const hasCategoryChanged = category !== originalCategory;
+        const tagsToCompare = hasCategoryChanged ? [] : originalTags;
+
+        // 2. SILENT CROWDSOURCING (EDIT MODE) 🚀
+        // Pass category, current tags, isEdit = true, and original tags for delta filtering
+        sendLexiconSuggestions(category, tagsArray, true, tagsToCompare);
+
+        // 3. Prepare the payload for the PUT request
         const updatedData = {
             ...linkData,
             title: title,
-            category: category, // The backend expects 'category' for the title
+            category: category,
             tags: tagsArray
         };
 
+        // 4. Proceed with normal saving/updating
         onSave(updatedData);
     };
 

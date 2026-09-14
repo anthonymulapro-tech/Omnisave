@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import logging
 
 # --- Imports for AI Link Analysis ---
 from backend.link_analyzer import LinkAnalyzer
@@ -17,9 +18,15 @@ from backend.services.auth_service import AuthService, token_required
 from models.link import Link
 from repositories.category_repository import CategoryRepository
 from repositories.link_repository import LinkRepository
+from repositories.lexicon_repository import LexiconRepository
 
 # --- Import hash ---
 from werkzeug.security import check_password_hash, generate_password_hash
+
+# --- Import auto-run script ---
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+from scripts.lexicon_merger import merge_community_lexicon
 
 app = Flask(__name__)
 CORS(app)
@@ -27,18 +34,30 @@ CORS(app)
 # ==========================================
 # AI INITIALIZATION
 # ==========================================
-# Global initialization of the AI (better for performance)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 lexicon_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
 blacklist_path = os.path.join(BASE_DIR, 'data', 'blacklist.json')
+community_path = os.path.join(BASE_DIR, 'data', 'community_lexicon.json')
 
-analyzer = LinkAnalyzer(lexicon_path, blacklist_path)
+analyzer = LinkAnalyzer(lexicon_path, blacklist_path, community_path)
+
+# ==========================================
+# BACKGROUND SCHEDULER (Community Lexicon Auto-Merge)
+# ==========================================
+# Protection for Flask debug mode to prevent duplicate scheduler instances
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+    scheduler = BackgroundScheduler()
+    # Runs every 10 minutes to process database suggestions into community_lexicon.json
+    scheduler.add_job(func=merge_community_lexicon, trigger="interval", minutes=1)
+    scheduler.start()
+
+    # Ensure proper shutdown when Flask stops
+    atexit.register(lambda: scheduler.shutdown())
+    logging.info("🚀 Community Lexicon background scheduler started (every 10 minutes).")
 # ==========================================
 # API ENDPOINTS (ROUTES)
 # ==========================================
-
-import logging
 
 # Configuration professionnelle des logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
@@ -378,7 +397,7 @@ def save_link(current_user_id):
     """
     data = request.get_json()
 
-    # We expect all these fields to be provided by the frontend after the preview
+    # Expect all these fields to be provided by the frontend after the preview
     required_fields = ['url', 'title', 'category', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for saving"}), 400
@@ -386,12 +405,15 @@ def save_link(current_user_id):
     logging.info(f"User ID {current_user_id} requested SAVE for: {data['url']}")
 
     try:
-        # --- 1. DATABASE MAPPING ---
+        # --- 1. DATABASE MAPPING (UPDATED FOR SILENT CREATION) ---
         category_title = data['category']
-        category = CategoryRepository.get_by_title(category_title)
 
-        if not category:
-            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
+        # fetch the ID or create the category instantly!
+        category_id = CategoryRepository.get_or_create_by_title(category_title)
+
+        if not category_id:
+            # If we enter here, it means the database actually crashed, not that the category was missing
+            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
 
         # --- 2. PREPARE THE LINK OBJECT ---
         new_link = Link(
@@ -400,12 +422,12 @@ def save_link(current_user_id):
             thumbnail_url=data.get('thumbnail_url', ''),  # Default to empty if missing
             platform=data.get('platform', 'Web'),
             analysis_status='COMPLETED',
-            category_id=category.category_id,
+            category_id=category_id,  # use the integer directly now
             user_id=current_user_id
         )
 
         # --- 3. SAVE TO DB ---
-        # We pass the tags list (which may have been modified by the user)
+        # Pass the tags list (which may have been modified by the user)
         success = LinkRepository.create_with_tags(new_link, data['tags'])
 
         if success:
@@ -428,7 +450,7 @@ def update_link(current_user_id, link_id):
     """
     data = request.get_json()
 
-    # We expect title, category, and tags for an update
+    # title, category, and tags for an update
     required_fields = ['title', 'category', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for updating"}), 400
@@ -436,15 +458,16 @@ def update_link(current_user_id, link_id):
     logging.info(f"User ID {current_user_id} requested UPDATE for link ID: {link_id}")
 
     try:
-        # --- 1. VERIFY CATEGORY ---
+        # --- 1. VERIFY OR CREATE CATEGORY (UPDATED) ---
         category_title = data['category']
-        category = CategoryRepository.get_by_title(category_title)
 
-        if not category:
-            return jsonify({"error": f"Category '{category_title}' is not configured."}), 400
+        # SILENT CREATION
+        category_id = CategoryRepository.get_or_create_by_title(category_title)
+
+        if not category_id:
+            return jsonify({"error": f"Database error while processing category '{category_title}'."}), 500
 
         # --- 2. FETCH EXISTING LINK & SECURITY CHECK ---
-        # Assuming you have a method like get_by_id in your LinkRepository
         existing_link = LinkRepository.get_by_id(link_id)
 
         if not existing_link:
@@ -457,12 +480,9 @@ def update_link(current_user_id, link_id):
 
         # --- 3. UPDATE THE LINK OBJECT ---
         existing_link.title = data['title']
-        existing_link.category_id = category.category_id
-
-        # We don't update the URL or Thumbnail here, as they are fixed from the original extraction
+        existing_link.category_id = category_id  # use the integer directly now
 
         # --- 4. SAVE CHANGES TO DB ---
-        # Assuming you will create an update_with_tags method in your LinkRepository
         success = LinkRepository.update_with_tags(existing_link, data['tags'])
 
         if success:
@@ -517,6 +537,50 @@ def delete_link(current_user_id, link_id):
     else:
         logging.error(f"Failed to delete link {link_id} from database.")
         return jsonify({"error": "Une erreur est survenue lors de la suppression."}), 500
+
+# ==========================================
+#               LEXICON
+# ==========================================
+
+@app.route('/api/lexicon/suggest', methods=['POST'])
+@token_required
+def suggest_lexicon_word(current_user_id):
+    """
+    Endpoint to receive community suggestions for new words and categories.
+    Handles both single word or a list of tags sent by React sidebars.
+    """
+    try:
+        data = request.get_json()
+        category = data.get('category')
+
+        # Support both 'word' (single) and 'tags' (list) from frontend
+        words = data.get('tags', [])
+        single_word = data.get('word')
+        if single_word and single_word not in words:
+            words.append(single_word)
+
+        if not words or not category:
+            return jsonify({"error": "Category and at least one word/tag are required."}), 400
+
+        # Loop through each word and use your repository
+        success_count = 0
+        for word in words:
+            clean_word = word.strip().lower()
+            if len(clean_word) < 2:
+                continue
+
+            success, error_msg = LexiconRepository.add_suggestion(clean_word, category)
+            if success:
+                success_count += 1
+
+        if success_count > 0:
+            return jsonify({"message": f"Successfully recorded {success_count} suggestions!"}), 201
+        else:
+            return jsonify({"error": "Failed to record suggestions."}), 500
+
+    except Exception as e:
+        print(f"❌ Server error during lexicon suggestion: {e}")
+        return jsonify({"error": "An unexpected error occurred on the server."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

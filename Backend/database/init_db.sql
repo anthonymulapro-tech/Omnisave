@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS utilisateur;
 DROP TABLE IF EXISTS tag;
 DROP TABLE IF EXISTS categorie;
 DROP TABLE IF EXISTS role;
+DROP TABLE IF EXISTS lexicon_suggestion;
 
 -- 1. Tables indépendantes
 
@@ -85,6 +86,21 @@ CREATE TABLE lien_tag (
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
+-- Table for storing community lexicon suggestions
+-- --------------------------------------------------------
+CREATE TABLE lexicon_suggestion (
+    suggestion_id INT AUTO_INCREMENT PRIMARY KEY,
+    word VARCHAR(100) NOT NULL,
+    proposed_category VARCHAR(50) NOT NULL,
+    occurrences INT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, APPROVED, REJECTED
+    suggestion_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Prevents duplicate words in the same category
+    UNIQUE KEY unq_word_category (word, proposed_category)
+) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
 -- Insertion des données de référence (Seed Data)
 -- --------------------------------------------------------
 INSERT INTO role (role_id, nom_role) VALUES
@@ -104,3 +120,15 @@ INSERT INTO role (nom_role) VALUES ('Membre');
 
 INSERT INTO utilisateur (email, password, role_id)
 VALUES ('anthony@omnisave.test', 'Motdepasse123@', 1);
+
+-- 1. Un mot qui atteint le niveau 1 (5+ occurrences) pour une NOUVELLE catégorie
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('pixel', 'gaming', 6);
+
+-- 2. Un mot qui atteint le niveau 2 (10+ occurrences) pour une NOUVELLE catégorie
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('console', 'gaming', 12);
+
+-- 3. Un mot qui atteint le niveau 3 (20+ occurrences) pour une catégorie EXISTANTE
+INSERT INTO lexicon_suggestion (word, proposed_category, occurrences)
+VALUES ('esport', 'sports', 25);
