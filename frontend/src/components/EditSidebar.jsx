@@ -7,38 +7,45 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     const [category, setCategory] = useState('');
     const [tagsStr, setTagsStr] = useState('');
 
+    // State to keep track of the original tags when the sidebar opened
+    const [originalTags, setOriginalTags] = useState([]);
+
     // Pre-fill the form when a link is passed to the sidebar
     useEffect(() => {
         if (linkData) {
             setTitle(linkData.title || '');
-            // linkData uses 'category_name' from the backend GET request
             setCategory(linkData.category_name || '');
-            setTagsStr(linkData.tags ? linkData.tags.join(', ') : '');
+
+            const initialTags = linkData.tags ? linkData.tags : [];
+            setTagsStr(initialTags.join(', '));
+
+            // Store original tags for delta comparison later
+            setOriginalTags(initialTags);
         }
     }, [linkData]);
 
     const handleConfirm = () => {
-    // 1. Convert the comma-separated string back into a clean array
-    const tagsArray = tagsStr
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag !== '');
+        // 1. Convert the comma-separated string back into a clean array
+        const tagsArray = tagsStr
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag !== '');
 
-    // 2. SILENT CROWDSOURCING 🚀
-    // Send the updated category and tags to enrich the AI
-    sendLexiconSuggestions(category, tagsArray);
+        // 2. SILENT CROWDSOURCING (EDIT MODE) 🚀
+        // Pass category, current tags, isEdit = true, and original tags for delta filtering
+        sendLexiconSuggestions(category, tagsArray, true, originalTags);
 
-    // 3. Prepare the payload for the PUT request
-    const updatedData = {
-        ...linkData,
-        title: title,
-        category: category, // The backend expects 'category' for the title
-        tags: tagsArray
+        // 3. Prepare the payload for the PUT request
+        const updatedData = {
+            ...linkData,
+            title: title,
+            category: category,
+            tags: tagsArray
+        };
+
+        // 4. Proceed with normal saving/updating
+        onSave(updatedData);
     };
-
-    // 4. Proceed with normal saving/updating
-    onSave(updatedData);
-};
 
     const isCategoryError = error === "Nous ne connaissons pas cette catégorie";
 
