@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import logging
 
 # --- Imports for AI Link Analysis ---
 from backend.link_analyzer import LinkAnalyzer
@@ -22,24 +23,40 @@ from repositories.lexicon_repository import LexiconRepository
 # --- Import hash ---
 from werkzeug.security import check_password_hash, generate_password_hash
 
+# --- Import auto-run script ---
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+from scripts.lexicon_merger import merge_community_lexicon
+
 app = Flask(__name__)
 CORS(app)
 
 # ==========================================
 # AI INITIALIZATION
 # ==========================================
-# Global initialization of the AI (better for performance)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 lexicon_path = os.path.join(BASE_DIR, 'data', 'lexicon.json')
 blacklist_path = os.path.join(BASE_DIR, 'data', 'blacklist.json')
 
 analyzer = LinkAnalyzer(lexicon_path, blacklist_path)
+
+# ==========================================
+# BACKGROUND SCHEDULER (Community Lexicon Auto-Merge)
+# ==========================================
+# Protection for Flask debug mode to prevent duplicate scheduler instances
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+    scheduler = BackgroundScheduler()
+    # Runs every 10 minutes to process database suggestions into community_lexicon.json
+    scheduler.add_job(func=merge_community_lexicon, trigger="interval", minutes=1)
+    scheduler.start()
+
+    # Ensure proper shutdown when Flask stops
+    atexit.register(lambda: scheduler.shutdown())
+    logging.info("🚀 Community Lexicon background scheduler started (every 10 minutes).")
 # ==========================================
 # API ENDPOINTS (ROUTES)
 # ==========================================
-
-import logging
 
 # Configuration professionnelle des logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
