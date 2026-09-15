@@ -353,7 +353,8 @@ def preview_link(current_user_id):
     """
     Step 1: Preview Endpoint.
     Extracts web content and analyzes it with AI.
-    Returns the proposed data to the frontend WITHOUT saving it to the database.
+    Includes a fallback mechanism for Single Page Applications (SPA)
+    or platforms with strict anti-bot protections (e.g., X, TikTok).
     """
     data = request.get_json()
 
@@ -364,37 +365,61 @@ def preview_link(current_user_id):
     logging.info(f"User ID {current_user_id} requested PREVIEW for: {url}")
 
     try:
-        # --- 1. EXTRACTION ---
+        # 1. Dynamically extract the domain using the utility function
+        domain = extract_platform(url)
+
+        # 2. START EXTRACTION
         logging.info("Starting web extraction for preview...")
         extractor = ExtractorFactory.get_extractor(url)
         extracted_data = extractor.extract_data(url)
 
+        # --- FALLBACK MECHANISM ---
+        # If the extractor is blocked (e.g., by Cloudflare) and returns no text
         if not extracted_data or not extracted_data.get("text"):
-            return jsonify({"error": "Cannot extract content from this link."}), 400
+            logging.warning(f"Anti-bot blocking or no text detected for {url}. Using fallback.")
+
+            return jsonify({
+                "url": url,
+                "title": f"Post on {domain.capitalize()}",
+                "thumbnail_url": "",  # Empty string prevents Chrome extension image download errors
+                "platform": domain,
+                "categories": ["Divers"],
+                "tags": [domain.split('.')[0]]
+            }), 200
+        # --------------------------
 
         extracted_text = extracted_data["text"]
         dynamic_title = extracted_data["title"]
         dynamic_thumbnail = extracted_data["thumbnail_url"]
-        domain = extract_platform(url)
 
-        # --- 2. AI ANALYSIS ---
+        # 3. AI ANALYSIS (Only runs if text was successfully extracted)
         logging.info("Sending extracted text to AI for categorization and tagging...")
         ai_result = analyzer.analyze(extracted_text)
 
-        # --- 3. RETURN PREVIEW DATA ---
-        # NOTE: We wrap the single AI category in a list so the frontend receives the expected format
+        # 4. RETURN SUCCESSFUL PREVIEW DATA
         return jsonify({
             "url": url,
             "title": dynamic_title,
             "thumbnail_url": dynamic_thumbnail,
             "platform": domain,
-            "categories": [ai_result["category"]],  # CHANGED: Now an array
+            "categories": [ai_result["category"]],
             "tags": ai_result["tags"]
         }), 200
 
     except Exception as e:
-        logging.error(f"Error during link preview flow: {e}")
-        return jsonify({"error": "An internal server error occurred during analysis."}), 500
+        # GLOBAL FALLBACK
+        # Catches severe crashes (e.g., HTTP 500 from scraping libraries)
+        logging.error(f"Error during link preview flow: {e}. Using global fallback.")
+        domain = extract_platform(url)
+
+        return jsonify({
+            "url": url,
+            "title": f"Link from {domain.capitalize()}",
+            "thumbnail_url": "",
+            "platform": domain,
+            "categories": ["Divers"],
+            "tags": []
+        }), 200
 
 
 @app.route('/api/links', methods=['POST'])
