@@ -1,14 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
     // --- STATES ---
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    // Token is initialized to null. It will be fetched via useEffect on mount.
+    const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+    const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // --- INIT: LOAD TOKEN ---
+    useEffect(() => {
+        if (window.chrome && chrome.storage) {
+            // Asynchronous read from the extension's local storage
+            chrome.storage.local.get(['token'], (result) => {
+                if (result.token) {
+                    setToken(result.token);
+                }
+            });
+        } else {
+            // Fallback for testing with npm run dev on a standard browser
+            setToken(localStorage.getItem('token') || null);
+        }
+    }, []);
 
     // --- LOGIN LOGIC ---
     const handleLogin = async (e) => {
@@ -17,7 +33,6 @@ function App() {
         setMessage(null);
 
         try {
-            // Verify this URL matches your actual Flask login endpoint
             const response = await fetch('http://localhost:5000/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -28,7 +43,14 @@ function App() {
 
             if (response.ok) {
                 const receivedToken = data.token || data.access_token;
-                localStorage.setItem('token', receivedToken);
+
+                // SAVE TOKEN
+                if (window.chrome && chrome.storage) {
+                    chrome.storage.local.set({ token: receivedToken });
+                } else {
+                    localStorage.setItem('token', receivedToken);
+                }
+
                 setToken(receivedToken);
                 setMessage(null);
             } else {
@@ -44,7 +66,12 @@ function App() {
 
     // --- LOGOUT LOGIC ---
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        // REMOVE TOKEN
+        if (window.chrome && chrome.storage) {
+            chrome.storage.local.remove(['token']);
+        } else {
+            localStorage.removeItem('token');
+        }
         setToken(null);
         setMessage(null);
     };
@@ -53,6 +80,8 @@ function App() {
     const handleFastSave = () => {
         console.log("Triggering Fast-Save logic...");
         setMessage({ type: 'success', text: 'Connecting to background worker...' });
+
+        // A message will be sent to background.js here later
     };
 
     return (
@@ -63,7 +92,6 @@ function App() {
 
             <main>
                 {!token ? (
-                    /* LOGIN VIEW */
                     <form onSubmit={handleLogin} className="login-form">
                         <input
                             type="email"
@@ -73,7 +101,6 @@ function App() {
                             required
                         />
 
-                        {/* PASSWORD INPUT WITH TOGGLE */}
                         <div className="password-wrapper">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -97,7 +124,6 @@ function App() {
                         </button>
                     </form>
                 ) : (
-                    /* ACTION VIEW */
                     <div className="action-section">
                         <button className="btn-fast-save" onClick={handleFastSave}>
                             ⚡ Fast-Save Link
@@ -108,7 +134,6 @@ function App() {
                     </div>
                 )}
 
-                {/* FEEDBACK MESSAGES */}
                 {message && (
                     <div className={`message ${message.type}`}>
                         {message.text}
