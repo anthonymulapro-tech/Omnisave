@@ -24,7 +24,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
      * Wrapped in useMemo for performance (calculates only when initialLinks change).
      */
     const availablePlatforms = useMemo(() => {
-        // Using initialLinks instead of links
+        // CORRECTION: Reset to 'platform' (JSON key from Flask) instead of 'platforme'
         return [...new Set(initialLinks.map(link => link.platform))].filter(Boolean);
     }, [initialLinks]);
 
@@ -52,6 +52,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                     cat.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
                 ));
 
+            // CORRECTION: Reset to 'platform' here as well
             const matchesPlatform = selectedPlatform === 'all' || link.platform === selectedPlatform;
 
             let matchesDate = true;
@@ -81,7 +82,6 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
             return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
         });
 
-    // selectedPlatform to the dependency array
     }, [initialLinks, searchQuery, categoryFilter, selectedPlatform, dateFilter, showFavoritesOnly, sortOrder]);
 
 
