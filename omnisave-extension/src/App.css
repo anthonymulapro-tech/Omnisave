@@ -1,0 +1,126 @@
+/* src/App.css */
+.extension-container {
+    width: 320px;
+    min-height: 250px;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.extension-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.extension-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #0d6efd;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.btn-fast-save {
+    background-color: #198754;
+    color: white;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.btn-fast-save:hover {
+    background-color: #157347;
+}
+
+.btn-logout {
+    background-color: transparent;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    width: 100%;
+}
+
+.btn-logout:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.message.success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+/* --- PASSWORD TOGGLE STYLES --- */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px; /* Make room for the icon */
+    box-sizing: border-box;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 5px;
+    background: transparent;
+    border: none;
+    padding: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    width: auto;
+}
+
+.btn-toggle-password:hover {
+    background: transparent;
+    opacity: 0.7;
+}
