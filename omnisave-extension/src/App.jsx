@@ -89,9 +89,9 @@ function App() {
                 (response) => {
                     setIsLoading(false);
                     if (response && response.success) {
-                        setMessage({ type: 'success', text: `Link grabbed: ${response.url.substring(0, 30)}...` });
+                        setMessage({ type: 'success', text: response.message }); //
                     } else {
-                        setMessage({ type: 'error', text: 'Failed to grab link.' });
+                        setMessage({ type: 'error', text: response.error || 'Failed to grab link.' });
                     }
                 }
             );
