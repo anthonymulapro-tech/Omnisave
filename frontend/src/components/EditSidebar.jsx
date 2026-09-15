@@ -12,10 +12,13 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
     // Keeping track of original primary category for lexicon delta tracking
     const [originalPrimaryCategory, setOriginalPrimaryCategory] = useState('');
 
+    const [thumbnailUrl, setThumbnailUrl] = useState('');
+
     // Pre-fill the form when linkData is loaded
     useEffect(() => {
         if (linkData) {
             setTitle(linkData.title || '');
+            setThumbnailUrl(linkData.thumbnail_url || '');
 
             // Populate the categories array dynamically
             if (linkData.categories && linkData.categories.length > 0) {
@@ -77,7 +80,8 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
             ...linkData,
             title: title,
             categories: validCategories,
-            tags: tagsArray
+            tags: tagsArray,
+            thumbnail_url: thumbnailUrl
         };
 
         // 5. Fire save event
@@ -94,16 +98,28 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
             <div className="p-4 flex-grow-1">
                 {linkData ? (
                     <div>
-                        {linkData.thumbnail_url && (
+                        {thumbnailUrl && (
                             <div className="mb-4 text-center">
                                 <img
-                                    src={linkData.thumbnail_url}
+                                    src={thumbnailUrl}
                                     alt="Preview"
                                     className="img-fluid rounded shadow-sm"
                                     style={{ maxHeight: '180px', objectFit: 'cover' }}
+                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x180?text=Image+Invalide' }}
                                 />
                             </div>
                         )}
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">URL de l'image</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={thumbnailUrl}
+                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                            />
+                            <div className="form-text mt-1">Modifiez l'image en collant un nouveau lien.</div>
+                        </div>
 
                         <div className="mb-3">
                             <label className="form-label fw-bold">Titre</label>

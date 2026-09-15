@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
 
 const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
     const [imageError, setImageError] = useState(false);
     const [isFavorite, setIsFavorite] = useState(link.is_favorite || false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [link.thumbnail_url]);
 
     // Format the date for display
     const formattedDate = new Date(link.saved_at).toLocaleDateString('fr-FR', {

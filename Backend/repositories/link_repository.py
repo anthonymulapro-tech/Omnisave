@@ -216,10 +216,11 @@ class LinkRepository:
                 # --- 1. UPDATE THE LINK (Removed categorie_id) ---
                 sql_update_link = """
                                   UPDATE lien
-                                  SET titre_url = %s
-                                  WHERE url_id = %s
+                                  SET titre_url     = %s, \
+                                      url_miniature = %s
+                                  WHERE url_id = %s \
                                   """
-                cursor.execute(sql_update_link, (link.title, link.link_id))
+                cursor.execute(sql_update_link, (link.title, link.thumbnail_url, link.link_id))
 
                 # --- 2. FLUSH EXISTING RELATIONSHIPS ---
                 cursor.execute("DELETE FROM lien_categorie WHERE url_id = %s", (link.link_id,))
