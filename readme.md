@@ -1,45 +1,104 @@
-# Projet Omnisave
+# ⚡ Omnisave
 
+> A smart, centralized bookmarking ecosystem powered by Natural Language Processing (NLP) to automatically categorize and manage saved content from across the web.
 
-## Vision du projet :
-Omnisave est une plateforme pour réunir en un seul endroit tout les contenus que nous enregistrons dans nos bibliothèques et collections sur les **différents réseau sociaux**.
-La différence ici c'est qu'en envoyant le lien sur le site, l'algorithme détecte directement des mots clés, attribut un score non visible par l'utilisateur et **classe automatiquement** le contenu dans la bonne catégorie.
-Ici on stock uniquement **l'URL**, on créer une redirection vers le contenu original sur la platefome d'origine.
-Ce choix technique permet d'éviter d'éventuels problèmes liés au **RGPD** et au respect du droit d'auteur, en ne pratiquant aucun stockage ni téléchargement définitif du contenu sur le site.
-En conséquence, si le créateur supprime la source originale sur son réseau social, le lien deviendra également obsolète sur Omnisave, garantissant ainsi le **respect du droit d'auteur**.
+## 📖 Overview
+Omnisave solves the problem of fragmented saved links (Instagram, TikTok, YouTube Shorts, web articles) by centralizing them into a single, intelligent dashboard. Using a custom Chrome Extension, users can "Fast-Save" any webpage in one click. In the background, a Python backend extracts the content and uses a hybrid NLP engine to analyze, tag, and categorize the link before saving it to a MySQL database.
 
+### 📸 Screenshots
 
+![Omnisave Web Dashboard - AI Supervision and Editing](./assets/double-windows.png)
+*The main React dashboard featuring the AI Supervision panel (right) and the manual editing sidebar (left) to refine categorized links.*
 
-## Avancement des versions :
-V0.1.0 : 
-- Architecture de base (Backend/Frontend).
-- Concentration sur Python.
-- Premier prototype de classification par mots-clés.
-- Algorithme de scoring initial en Python.
+![Omnisave Chrome Extension - Fast Save](./assets/extension-save-test.png)
+*The Chrome Extension in action on Instagram, demonstrating 1-click Fast-Save and native OS background notifications.*
 
-VO.2.0 :
-- Implémentation d'un regex simple.
-- Passage du texte à analyser en minuscule.
-- Déplacement de la variable "scores" en global dans la fonction, donc en local pour éviter un cumul de score.
+## ✨ Key Features
 
-V0.3.0 :
-- Refactorisation en POO
-- Création de la classe AnalyseLien (Encapsulation).
-- Gestion des attributs d'instance pour isoler les données.
+### 🧩 Chrome Extension (MVP)
+* **One-Click Fast-Save:** Capture the active tab's URL and title instantly.
+* **Background Processing:** The Service Worker handles API requests and AI analysis silently.
+* **System Notifications:** Get native OS feedback (Badge/Notification) once the link is securely processed and saved, without keeping the popup open.
 
-V0.3.5 :
-- Découpage en plusieurs fonction.
-- Algorithme dynamique pour les boucles.
-- Gestion d'erreur avec l'ajout d'un résultat nul.
+### 🧠 AI Categorization Engine
+* **Hybrid NLP Model:** Built with **SpaCy** for robust text analysis.
+* **Dynamic Lexicons:** Uses a dual-JSON lexicon system:
+  * *Static/Core Lexicon:* Curated baseline keywords.
+  * *Community Lexicon:* Dynamically evolves based on user interactions and manual tag adjustments, allowing the categorization engine to learn and adapt over time.
 
-V0.4.0 :
-- Création d'un fichier JSON pour une gestion indépendante du code source.
-- Gestion d'erreur avec un bloc try/execpt en cas d'échec d'ouverture du fichier.
-- Gestion d'erreur avec méthode .get concernant les KeyError si une clé est manquante dans le dictionnaire.
-- Affichage différent pour l'utilisateur si c'est une erreur système ou mots non trouvés.
+### 💻 Web Dashboard (React)
+* **Advanced Search & Filtering:** Search by Title or Tags. Filter by Categories (and soon by Platform).
+* **Smart Sorting:** Sort links by Oldest/Newest, Favorites, or specific timeframes (Today, This Week, This Month, Last 6 Months, > 1 Year).
+* **Quick Actions:** Favorite, delete, or open links directly from the card.
+* **Detailed Editing:** A dedicated left sidebar allows users to fine-tune AI results (edit title, manage tags, and assign up to 5 categories).
 
-V0.4.5 :
-- Distinction entre les scores bruts (comptage initial) et les scores finaux (après pondération).
-- Introduction d'une pondération par catégorie à l'aide d'un coefficient dans le JSON pour améliorer la précision.
-- Amélioration du choix de la catégorie final à l'aide de max(key=get) ainsi.
-- Priorisation lexicale pour certains mots-clés à forte domination dans un texte (ex: "recette" ou "entreprise").
+## 🛠️ Tech Stack
+
+* **Frontend:** React, Vite, CSS (Custom UI)
+* **Backend:** Python, Flask, RESTful API
+* **AI & NLP:** SpaCy, Custom JSON Lexicon Engine
+* **Database:** MySQL (managed locally via Laragon)
+* **Browser Extension:** Chrome Manifest V3, JavaScript, HTML/CSS
+
+## 🏗️ Architecture Flow
+
+1. **Capture:** The Chrome Extension extracts the active URL and passes a JWT token for authentication.
+2. **Preview (AI):** The Flask backend scrapes the content and feeds it to the SpaCy NLP engine to predict tags and categories.
+3. **Save:** The backend automatically persists the processed data into the MySQL database.
+4. **Manage:** The user accesses the React web dashboard to view, filter, and refine their saved ecosystem.
+
+## 🚀 Installation & Local Development
+
+### 1. Database Setup
+Ensure you have a local MySQL server running (e.g., using [Laragon](https://laragon.org/)).
+Create a database named `omnisave` (or as configured in your backend environment variables).
+
+### 2. Backend (Python/Flask)
+```bash
+# Navigate to the backend directory
+cd backend
+
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the Flask server
+python app.py
+```
+
+### 3. Frontend (React/Vite)
+```bash
+# Navigate to the frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+### 4. Chrome Extension
+```bash
+# Navigate to the extension directory
+cd omnisave-extension
+
+# Build the extension
+npm install
+npm run build
+```
+
+- Open Google Chrome and go to chrome://extensions/.
+
+- Enable Developer mode in the top right.
+
+- Click Load unpacked and select the omnisave-extension/dist folder.
+
+## 🗺️ Roadmap
+- [ ] **Complete UI/UX Overhaul:** The current iteration focuses strictly on delivering a functional V1 (MVP) with robust backend mechanics. The next major phase will introduce a fully polished, modern, and responsive user interface.
+- [ ] **Platform-Specific Filtering:** Add dedicated filters for platforms like Instagram, YouTube, and TikTok in the web dashboard.
+- [ ] **Native Integration:** Develop Content Scripts to inject native "Omnisave" buttons directly into social media sites (next to native share buttons).
+- [ ] **Lexicon Evolution:** Expand the community lexicon logic with automated weighting based on user corrections.
