@@ -78,10 +78,28 @@ function App() {
 
     // --- FAST-SAVE TRIGGER ---
     const handleFastSave = () => {
-        console.log("Triggering Fast-Save logic...");
-        setMessage({ type: 'success', text: 'Connecting to background worker...' });
+        setIsLoading(true);
+        setMessage({ type: 'success', text: 'Analyzing current tab...' });
 
-        // A message will be sent to background.js here later
+        // Ensure Chrome extension API is available
+        if (window.chrome && chrome.runtime) {
+            // Send message to background.js with the JWT token
+            chrome.runtime.sendMessage(
+                { action: 'FAST_SAVE', token: token },
+                (response) => {
+                    setIsLoading(false);
+                    if (response && response.success) {
+                        setMessage({ type: 'success', text: `Link grabbed: ${response.url.substring(0, 30)}...` });
+                    } else {
+                        setMessage({ type: 'error', text: 'Failed to grab link.' });
+                    }
+                }
+            );
+        } else {
+            // Fallback if testing outside of Chrome Extension context
+            setMessage({ type: 'error', text: 'Chrome API not available in local dev mode.' });
+            setIsLoading(false);
+        }
     };
 
     return (
