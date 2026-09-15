@@ -6,10 +6,12 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
     const [title, setTitle] = useState('');
     const [categories, setCategories] = useState(['']);
     const [tagsStr, setTagsStr] = useState('');
+    const [thumbnailUrl, setThumbnailUrl] = useState('');
 
     useEffect(() => {
         if (previewData) {
             setTitle(previewData.title || '');
+            setThumbnailUrl(previewData.thumbnail_url || '');
 
             if (previewData.categories && previewData.categories.length > 0) {
                 setCategories(previewData.categories);
@@ -59,7 +61,8 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
             ...previewData,
             title: title,
             categories: validCategories,
-            tags: tagsArray
+            tags: tagsArray,
+            thumbnail_url: thumbnailUrl
         };
 
         onSave(finalizedData);
@@ -95,11 +98,34 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
                             <strong>Analyse terminée !</strong> Vérifiez et modifiez avant de sauvegarder.
                         </div>
 
-                        {previewData.thumbnail_url && (
+                        {thumbnailUrl && (
                             <div className="mb-4 text-center">
-                                <img src={previewData.thumbnail_url} alt="Aperçu" className="img-fluid rounded shadow-sm" style={{ maxHeight: '180px', objectFit: 'cover' }} />
+                                <img
+                                    src={thumbnailUrl}
+                                    alt="Aperçu"
+                                    className="img-fluid rounded shadow-sm"
+                                    style={{ maxHeight: '180px', objectFit: 'cover' }}
+                                    onError={(e) => {
+                                    if (!e.target.src.includes('placehold.co')) {
+                                        e.target.src = 'https://placehold.co/300x180/eeeeee/999999?text=Image+Invalide';
+                                    }
+                                }}
+                                />
                             </div>
                         )}
+
+                        {/* Edit Thumbnail */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">URL de l'image (Miniature)</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={thumbnailUrl}
+                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                                placeholder="https://..."
+                            />
+                            <div className="form-text mt-1">Collez une URL d'image ou laissez vide.</div>
+                        </div>
 
                         <div className="mb-3">
                             <label className="form-label fw-bold">Titre</label>
