@@ -220,6 +220,7 @@ const Dashboard = () => {
 };
 
     const handleSaveEdit = async (updatedData) => {
+        console.log("2. Dashboard a bien reçu l'ordre ! Données :", updatedData);
         setEditError(null);
         try {
             const token = localStorage.getItem('token');
@@ -232,7 +233,8 @@ const Dashboard = () => {
                 body: JSON.stringify({
                     title: updatedData.title,
                     categories: updatedData.categories,
-                    tags: updatedData.tags
+                    tags: updatedData.tags,
+                    thumbnail_url: updatedData.thumbnail_url
                 })
             });
 
@@ -251,7 +253,6 @@ const Dashboard = () => {
             fetchLinks();
 
         } catch (error) {
-            console.error("Erreur lors de la modification:", error);
             setEditError("Erreur de connexion au serveur");
         }
     };
