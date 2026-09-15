@@ -106,3 +106,6 @@ bleu, an, happy, sélection, défenseur, fête, abi
 --- Words extracted from UNCATEGORIZED post ---
 bleu, an, happy, sélection, défenseur, fête, abi
 
+--- Words extracted from UNCATEGORIZED post ---
+piano, coldplay, trouble
+

@@ -7,23 +7,37 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
     const [categoryFilter, setCategoryFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('ALL');
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-    const [sortOrder, setSortOrder] = useState('DESC'); // DESC = Newest first
+    const [sortOrder, setSortOrder] = useState('DESC');
+    const [selectedPlatform, setSelectedPlatform] = useState('all');
 
     /**
      * Extract unique categories from all the user's links to populate the filter dynamically.
-     * Uses flatMap to merge all category arrays, Set to remove duplicates, and sorts them.
      */
     const uniqueCategories = useMemo(() => {
-        // 1. Flatten all categories from all links into a single array
         const allCategories = initialLinks.flatMap(link => link.categories || []);
-
-        // 2. Filter out null, undefined, or empty strings
         const validCategories = allCategories.filter(category => category && category.trim() !== "");
-
-        // 3. Return unique categories sorted alphabetically
         return [...new Set(validCategories)].sort();
     }, [initialLinks]);
 
+    /**
+     * Extract a unique list of platforms from the user's saved links.
+     * Wrapped in useMemo for performance (calculates only when initialLinks change).
+     */
+    const availablePlatforms = useMemo(() => {
+        // CORRECTION: Reset to 'platform' (JSON key from Flask) instead of 'platforme'
+        return [...new Set(initialLinks.map(link => link.platform))].filter(Boolean);
+    }, [initialLinks]);
+
+    // Utility function to format the platform name for the UI (e.g., "instagram.com" -> "Instagram")
+    const formatPlatformName = (domain) => {
+        if (!domain) return 'Other';
+        const name = domain.split('.')[0];
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    };
+
+    /**
+     * Main filtering and sorting logic
+     */
     const processedLinks = useMemo(() => {
         // 1. FILTERING
         let filtered = initialLinks.filter((link) => {
@@ -32,12 +46,14 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                 link.title?.toLowerCase().includes(query) ||
                 link.tags?.some(tag => tag.toLowerCase().includes(query));
 
-            // NEW: Check if the link's categories array includes the selected filter
             const matchesCategory =
                 categoryFilter === 'ALL' ||
                 (link.categories && link.categories.some(cat =>
                     cat.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
                 ));
+
+            // CORRECTION: Reset to 'platform' here as well
+            const matchesPlatform = selectedPlatform === 'all' || link.platform === selectedPlatform;
 
             let matchesDate = true;
             if (dateFilter !== 'ALL') {
@@ -55,7 +71,8 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
 
             const matchesFavorite = showFavoritesOnly ? link.is_favorite === true : true;
 
-            return matchesSearch && matchesCategory && matchesDate && matchesFavorite;
+            // Combine all filters including the new platform filter
+            return matchesSearch && matchesCategory && matchesPlatform && matchesDate && matchesFavorite;
         });
 
         // 2. SORTING (Newest/Oldest)
@@ -65,17 +82,19 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
             return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
         });
 
-    }, [initialLinks, searchQuery, categoryFilter, dateFilter, showFavoritesOnly, sortOrder]);
+    }, [initialLinks, searchQuery, categoryFilter, selectedPlatform, dateFilter, showFavoritesOnly, sortOrder]);
+
 
     return (
         <div className="container mt-4">
             <div className="row mb-4 g-3 bg-light p-3 rounded shadow-sm">
-                {/* SEARCH AND FAVORITES */}
-                <div className="col-md-5 d-flex gap-2">
+
+                {/* SEARCH AND FAVORITES (Adjusted to col-md-4) */}
+                <div className="col-md-4 d-flex gap-2">
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Rechercher par tag ou titre (e.g., burger, vege)..."
+                        placeholder="Rechercher par tag ou titre..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -91,8 +110,6 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                 <div className="col-md-2">
                     <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                         <option value="ALL">Toutes les categories</option>
-
-                        {/* Dynamically render user categories */}
                         {uniqueCategories.map((category, index) => (
                             <option key={index} value={category}>
                                 {category}
@@ -101,15 +118,27 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                     </select>
                 </div>
 
-                {/* DATES */}
-                <div className="col-md-3">
+                {/* PLATFORM FILTER */}
+                <div className="col-md-2">
+                    <select className="form-select" value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)}>
+                        <option value="all">Plateformes</option>
+                        {availablePlatforms.map((platform, index) => (
+                            <option key={index} value={platform}>
+                                {formatPlatformName(platform)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* DATES (Adjusted to col-md-2) */}
+                <div className="col-md-2">
                     <select className="form-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
-                        <option value="ALL">Tout</option>
+                        <option value="ALL">Dates</option>
                         <option value="TODAY">Aujourd'hui</option>
                         <option value="THIS_WEEK">Cette semaine</option>
                         <option value="LAST_MONTH">Mois dernier</option>
-                        <option value="OLDER_THAN_6_MONTHS">Il y a plus de 6 mois</option>
-                        <option value="OLDER_THAN_1_YEAR">Il y a plus d'1 an</option>
+                        <option value="OLDER_THAN_6_MONTHS">+ 6 mois</option>
+                        <option value="OLDER_THAN_1_YEAR">+ 1 an</option>
                     </select>
                 </div>
 
@@ -122,6 +151,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                 </div>
             </div>
 
+            {/* LINKS GRID */}
             <div className="row">
                 {processedLinks.length > 0 ? (
                     processedLinks.map(link => (

@@ -28,6 +28,9 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 from scripts.lexicon_merger import merge_community_lexicon
 
+# --- Import utils ---
+from utils import extract_platform
+
 app = Flask(__name__)
 CORS(app)
 
@@ -372,7 +375,7 @@ def preview_link(current_user_id):
         extracted_text = extracted_data["text"]
         dynamic_title = extracted_data["title"]
         dynamic_thumbnail = extracted_data["thumbnail_url"]
-        domain = url.split('/')[2].replace('www.', '') if '//' in url else 'Web'
+        domain = extract_platform(url)
 
         # --- 2. AI ANALYSIS ---
         logging.info("Sending extracted text to AI for categorization and tagging...")
