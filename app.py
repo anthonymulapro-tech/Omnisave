@@ -526,6 +526,9 @@ def update_link(current_user_id, link_id):
         # --- 3. UPDATE THE LINK OBJECT ---
         existing_link.title = data['title']
 
+        if 'thumbnail_url' in data:
+            existing_link.thumbnail_url = data['thumbnail_url']
+
         # --- 4. SAVE CHANGES TO DB USING REPOSITORY ---
         # update_with_details replaces update_with_tags
         success = LinkRepository.update_with_details(existing_link, data['tags'], cleaned_categories)
