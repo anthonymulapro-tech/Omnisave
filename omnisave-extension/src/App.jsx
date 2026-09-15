@@ -79,7 +79,7 @@ function App() {
     // --- FAST-SAVE TRIGGER ---
     const handleFastSave = () => {
         setIsLoading(true);
-        setMessage({ type: 'success', text: 'Analyzing current tab...' });
+        setMessage({ type: 'success', text: 'Analyzing... You can close this popup!' });
 
         // Ensure Chrome extension API is available
         if (window.chrome && chrome.runtime) {

@@ -5,7 +5,8 @@
   "description": "Quickly save links to Omnisave with AI auto-categorization.",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "notifications"
   ],
   "host_permissions": [
     "http://127.0.0.1:5000/*"

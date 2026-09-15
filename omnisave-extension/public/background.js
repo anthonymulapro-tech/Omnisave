@@ -53,6 +53,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     console.log("Successfully saved to Omnisave!");
 
+                    // --- TRIGGER SYSTEM NOTIFICATION ---
+                    chrome.notifications.create({
+                        type: "basic",
+                        iconUrl: "test.png",
+                        title: "Omnisave - Fast-Save",
+                        message: `Saved & Categorized: ${previewData.title}`
+                    });
+
                     // --- STEP 3: SUCCESS FEEDBACK ---
                     sendResponse({
                         success: true,
@@ -61,6 +69,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 } catch (error) {
                     console.error("Fast-Save Error:", error);
+
+                    chrome.notifications.create({
+                        type: "basic",
+                        iconUrl: "icons.svg",
+                        title: "Omnisave - Error",
+                        message: "Failed to save the link. Check your connection."
+                    });
+
                     sendResponse({
                         success: false,
                         error: "Error: " + error.message
