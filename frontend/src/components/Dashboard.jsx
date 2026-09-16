@@ -269,14 +269,14 @@ const Dashboard = () => {
                         placeholder="Collez votre lien ici (Instagram, TikTok, Youtube)..."
                         value={newUrl}
                         onChange={(e) => setNewUrl(e.target.value)}
-                        disabled={isSidebarOpen || isFastSaving}
+                        disabled={isFastSaving}
                         required
                     />
                     {/* Uses the global btn-primary from index.css */}
                     <button
                         className="btn-primary"
                         type="submit"
-                        disabled={isSidebarOpen || isFastSaving}
+                        disabled={isFastSaving}
                     >
                         {fastSaveEnabled ? 'Sauvegarde rapide ⚡' : 'Analyser le lien'}
                     </button>
