@@ -87,10 +87,11 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
 
     return (
         <div className="container mt-4">
-            <div className="row mb-4 g-3 bg-light p-3 rounded shadow-sm">
+            {/* HEADER: SEARCH AND FILTERS CONTAINER */}
+            <div className="row mb-4 bg-light p-3 rounded shadow-sm mx-0">
 
-                {/* SEARCH AND FAVORITES (Adjusted to col-md-4) */}
-                <div className="col-md-4 d-flex gap-2">
+                {/* SEARCH, FAVORITES, AND MOBILE FILTER BUTTON */}
+                <div className="col-12 col-md-4 d-flex gap-2 p-0 mb-md-0 mb-2">
                     <input
                         type="text"
                         className="form-control"
@@ -98,64 +99,88 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+
+                    {/* Toggle Favorites Button */}
                     <button
-                        className={`btn d-flex align-items-center gap-2 ${showFavoritesOnly ? 'btn-danger' : 'btn-outline-danger'}`}
+                        className={`btn d-flex align-items-center justify-content-center ${showFavoritesOnly ? 'btn-danger' : 'btn-outline-danger'}`}
+                        style={{ minWidth: '45px' }}
                         onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                     >
                         {showFavoritesOnly ? '❤️' : '🤍'}
                     </button>
+
+                    {/* MOBILE FILTER BUTTON (Visible on small screens only) */}
+                    <button
+                        className="btn btn-secondary d-md-none d-flex align-items-center justify-content-center"
+                        style={{ minWidth: '45px' }}
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mobileFilters"
+                        aria-expanded="false"
+                    >
+                        ⚙️
+                    </button>
                 </div>
 
-                {/* CATEGORIES */}
-                <div className="col-md-2">
-                    <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                        <option value="ALL">Toutes les categories</option>
-                        {uniqueCategories.map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                {/* COLLAPSIBLE FILTERS AREA (Hidden on mobile, inline on desktop) */}
+                <div className="col-12 col-md-8 collapse d-md-block p-0" id="mobileFilters">
+                    <div className="row g-2 ms-md-2 mt-2 mt-md-0">
 
-                {/* PLATFORM FILTER */}
-                <div className="col-md-2">
-                    <select className="form-select" value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)}>
-                        <option value="all">Plateformes</option>
-                        {availablePlatforms.map((platform, index) => (
-                            <option key={index} value={platform}>
-                                {formatPlatformName(platform)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                        {/* CATEGORIES */}
+                        <div className="col-12 col-sm-6 col-md-3">
+                            <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                                <option value="ALL">Toutes les catégories</option>
+                                {uniqueCategories.map((category, index) => (
+                                    <option key={index} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                {/* DATES (Adjusted to col-md-2) */}
-                <div className="col-md-2">
-                    <select className="form-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
-                        <option value="ALL">Dates</option>
-                        <option value="TODAY">Aujourd'hui</option>
-                        <option value="THIS_WEEK">Cette semaine</option>
-                        <option value="LAST_MONTH">Mois dernier</option>
-                        <option value="OLDER_THAN_6_MONTHS">+ 6 mois</option>
-                        <option value="OLDER_THAN_1_YEAR">+ 1 an</option>
-                    </select>
-                </div>
+                        {/* PLATFORM FILTER */}
+                        <div className="col-12 col-sm-6 col-md-3">
+                            <select className="form-select" value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)}>
+                                <option value="all">Plateformes</option>
+                                {availablePlatforms.map((platform, index) => (
+                                    <option key={index} value={platform}>
+                                        {formatPlatformName(platform)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                {/* SORTING */}
-                <div className="col-md-2">
-                    <select className="form-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                        <option value="DESC">Plus récents</option>
-                        <option value="ASC">Plus anciens</option>
-                    </select>
+                        {/* DATES */}
+                        <div className="col-12 col-sm-6 col-md-3">
+                            <select className="form-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+                                <option value="ALL">Dates</option>
+                                <option value="TODAY">Aujourd'hui</option>
+                                <option value="THIS_WEEK">Cette semaine</option>
+                                <option value="LAST_MONTH">Mois dernier</option>
+                                <option value="OLDER_THAN_6_MONTHS">+ 6 mois</option>
+                                <option value="OLDER_THAN_1_YEAR">+ 1 an</option>
+                            </select>
+                        </div>
+
+                        {/* SORTING */}
+                        <div className="col-12 col-sm-6 col-md-3">
+                            <select className="form-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                                <option value="DESC">Plus récents</option>
+                                <option value="ASC">Plus anciens</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* LINKS GRID */}
-            <div className="row">
+            <div className="row g-3">
                 {processedLinks.length > 0 ? (
                     processedLinks.map(link => (
-                        <div className="col-md-4" key={link.link_id}>
+                        // RESPONSIVE GRID:
+                        // col-12 = 1 card per row on mobile
+                        // col-sm-6 = 2 cards per row on tablets
+                        // col-lg-4 = 3 cards per row on large desktop screens
+                        <div className="col-12 col-sm-6 col-lg-4" key={link.link_id}>
                             <LinkCard
                                 link={link}
                                 onDelete={onDelete}
@@ -166,7 +191,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                     ))
                 ) : (
                     <div className="text-center text-muted mt-5">
-                        <h5>No links found for these filters.</h5>
+                        <h5>Aucun lien trouvé pour ces filtres.</h5>
                     </div>
                 )}
             </div>
