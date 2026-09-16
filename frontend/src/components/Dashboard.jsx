@@ -328,6 +328,7 @@ const Dashboard = () => {
                 error={editError}
                 onClose={handleCloseEdit}
                 onSave={handleSaveEdit}
+                onDelete={handleDeleteLink}
             />
         </div>
     );
