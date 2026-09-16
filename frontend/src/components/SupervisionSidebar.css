@@ -3,7 +3,9 @@
 .supervision-sidebar {
     position: fixed;
     top: 0;
-    width: 400px;
+    /* RESPONSIVE MAGIC: 90% of screen on mobile, capped at 400px on desktop */
+    width: 90vw;
+    max-width: 400px;
     height: 100vh;
     background-color: #ffffff;
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
@@ -19,7 +21,8 @@
 }
 
 .supervision-sidebar.is-closed {
-    right: -450px; /* Hides the drawer off-screen */
+    /* Using -100% ensures it's fully pushed off-screen regardless of actual width */
+    right: -100%;
 }
 
 /* State: Loading or Ready (Border Colors) */
@@ -29,4 +32,30 @@
 
 .supervision-sidebar.is-ready {
     border-left-color: #198754; /* Bootstrap Success Green */
+}
+
+/* --- OVERLAY --- */
+.sidebar-overlay {
+    z-index: 1040;
+    opacity: 0.5;
+}
+
+/* Dynamic cursors for the overlay */
+.cursor-wait {
+    cursor: wait;
+}
+
+.cursor-default {
+    cursor: default;
+}
+
+/* --- UI ELEMENTS --- */
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.thumbnail-preview {
+    height: 180px;
+    object-fit: cover;
 }
