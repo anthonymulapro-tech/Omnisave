@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Select from 'react-select';
 import LinkCard from './LinkCard';
 import './LinksDashboard.css';
 
@@ -23,36 +24,88 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
         return [...new Set(initialLinks.map(link => link.platform))].filter(Boolean);
     }, [initialLinks]);
 
-    // Format platform name
     const formatPlatformName = (domain) => {
         if (!domain) return 'Other';
         const name = domain.split('.')[0];
         return name.charAt(0).toUpperCase() + name.slice(1);
     };
 
+    // --- REACT-SELECT OPTIONS ARRAYS ---
+    const categoryOptions = [
+        { value: 'ALL', label: 'Toutes les catégories' },
+        ...uniqueCategories.map(cat => ({ value: cat, label: cat }))
+    ];
+
+    const platformOptions = [
+        { value: 'all', label: 'Toutes les plateformes' },
+        ...availablePlatforms.map(plat => ({ value: plat, label: formatPlatformName(plat) }))
+    ];
+
+    const dateOptions = [
+        { value: 'ALL', label: 'Toutes les dates' },
+        { value: 'TODAY', label: "Aujourd'hui" },
+        { value: 'THIS_WEEK', label: 'Cette semaine' },
+        { value: 'LAST_MONTH', label: 'Mois dernier' },
+        { value: 'OLDER_THAN_6_MONTHS', label: '+ 6 mois' },
+        { value: 'OLDER_THAN_1_YEAR', label: '+ 1 an' }
+    ];
+
+    const sortOptions = [
+        { value: 'DESC', label: 'Plus récents' },
+        { value: 'ASC', label: 'Plus anciens' }
+    ];
+
+    // --- REACT-SELECT CUSTOM STYLES ---
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            borderColor: state.isFocused ? '#6366f1' : 'rgba(255, 255, 255, 0.1)',
+            minWidth: '180px',
+            borderRadius: '8px',
+            boxShadow: state.isFocused ? '0 0 0 3px rgba(99, 102, 241, 0.15)' : 'none',
+            '&:hover': { borderColor: state.isFocused ? '#6366f1' : 'rgba(255, 255, 255, 0.2)' },
+            cursor: 'pointer',
+            padding: '2px'
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: '#1e293b',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+            overflow: 'hidden',
+            zIndex: 50
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#6366f1' : state.isFocused ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+            color: state.isSelected ? '#ffffff' : '#f8fafc',
+            cursor: 'pointer',
+            '&:active': { backgroundColor: '#4f46e5' }
+        }),
+        singleValue: (provided) => ({ ...provided, color: '#f8fafc' }),
+        input: (provided) => ({ ...provided, color: '#f8fafc' }),
+        indicatorSeparator: () => ({ display: 'none' }),
+        dropdownIndicator: (provided, state) => ({
+            ...provided,
+            color: state.isFocused ? '#6366f1' : '#94a3b8',
+            '&:hover': { color: '#6366f1' }
+        })
+    };
+
     // Filtering and sorting logic
     const processedLinks = useMemo(() => {
         let filtered = initialLinks.filter((link) => {
             const query = searchQuery.toLowerCase();
-            const matchesSearch =
-                link.title?.toLowerCase().includes(query) ||
-                link.tags?.some(tag => tag.toLowerCase().includes(query));
-
-            const matchesCategory =
-                categoryFilter === 'ALL' ||
-                (link.categories && link.categories.some(cat =>
-                    cat.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
-                ));
-
+            const matchesSearch = link.title?.toLowerCase().includes(query) || link.tags?.some(tag => tag.toLowerCase().includes(query));
+            const matchesCategory = categoryFilter === 'ALL' || (link.categories && link.categories.some(cat => cat.toLowerCase().trim() === categoryFilter.toLowerCase().trim()));
             const matchesPlatform = selectedPlatform === 'all' || link.platform === selectedPlatform;
 
             let matchesDate = true;
             if (dateFilter !== 'ALL') {
                 const linkDate = new Date(link.saved_at);
-                const today = new Date();
-                const diffTime = Math.abs(today - linkDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+                const diffDays = Math.ceil(Math.abs(new Date() - linkDate) / (1000 * 60 * 60 * 24));
                 if (dateFilter === 'TODAY') matchesDate = diffDays <= 1;
                 else if (dateFilter === 'THIS_WEEK') matchesDate = diffDays <= 7;
                 else if (dateFilter === 'LAST_MONTH') matchesDate = diffDays > 7 && diffDays <= 30;
@@ -61,7 +114,6 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
             }
 
             const matchesFavorite = showFavoritesOnly ? link.is_favorite === true : true;
-
             return matchesSearch && matchesCategory && matchesPlatform && matchesDate && matchesFavorite;
         });
 
@@ -73,22 +125,33 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
 
     }, [initialLinks, searchQuery, categoryFilter, selectedPlatform, dateFilter, showFavoritesOnly, sortOrder]);
 
+    // --- RESET FILTERS FUNCTION ---
+    const handleResetFilters = () => {
+        setSearchQuery('');
+        setCategoryFilter('ALL');
+        setSelectedPlatform('all');
+        setDateFilter('ALL');
+        setSortOrder('DESC');
+        setShowFavoritesOnly(false);
+    };
+
 
     return (
-        <div className="links-dashboard-wrapper">
-
-            {/* HEADER: SEARCH AND FILTERS (Using surface-card for the glassmorphism look) */}
+        <div className="links-dashboard-wrapper">{/* HEADER: SEARCH AND FILTERS */}
             <div className="surface-card filters-container">
 
-                {/* SEARCH & FAVORITES */}
                 <div className="search-group">
                     <input
                         type="text"
-                        className="styled-input search-input" /* Inherits from Dashboard.css */
+                        className="styled-input search-input"
                         placeholder="Rechercher par tag ou titre..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                </div>
+
+                <div className="dropdown-group">
+                    {/* BOUTON FAVORIS */}
                     <button
                         className={`btn-icon ${showFavoritesOnly ? 'active' : ''}`}
                         onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
@@ -96,49 +159,49 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                     >
                         {showFavoritesOnly ? '❤️' : '🤍'}
                     </button>
-                </div>
 
-                {/* DROPDOWNS */}
-                <div className="dropdown-group">
-                    {/* CATEGORIES */}
-                    <select className="styled-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                        <option value="ALL">Toutes les catégories</option>
-                        {uniqueCategories.map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
+                    <Select
+                        options={categoryOptions}
+                        value={categoryOptions.find(opt => opt.value === categoryFilter)}
+                        onChange={(selected) => setCategoryFilter(selected.value)}
+                        styles={customSelectStyles}
+                        isSearchable={false}
+                    />
 
-                    {/* PLATFORM */}
-                    <select className="styled-select" value={selectedPlatform} onChange={(e) => setSelectedPlatform(e.target.value)}>
-                        <option value="all">Plateformes</option>
-                        {availablePlatforms.map((platform, index) => (
-                            <option key={index} value={platform}>
-                                {formatPlatformName(platform)}
-                            </option>
-                        ))}
-                    </select>
+                    <Select
+                        options={platformOptions}
+                        value={platformOptions.find(opt => opt.value === selectedPlatform)}
+                        onChange={(selected) => setSelectedPlatform(selected.value)}
+                        styles={customSelectStyles}
+                        isSearchable={false}
+                    />
 
-                    {/* DATES */}
-                    <select className="styled-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
-                        <option value="ALL">Toutes les dates</option>
-                        <option value="TODAY">Aujourd'hui</option>
-                        <option value="THIS_WEEK">Cette semaine</option>
-                        <option value="LAST_MONTH">Mois dernier</option>
-                        <option value="OLDER_THAN_6_MONTHS">+ 6 mois</option>
-                        <option value="OLDER_THAN_1_YEAR">+ 1 an</option>
-                    </select>
+                    <Select
+                        options={dateOptions}
+                        value={dateOptions.find(opt => opt.value === dateFilter)}
+                        onChange={(selected) => setDateFilter(selected.value)}
+                        styles={customSelectStyles}
+                        isSearchable={false}
+                    />
 
-                    {/* SORTING */}
-                    <select className="styled-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                        <option value="DESC">Plus récents</option>
-                        <option value="ASC">Plus anciens</option>
-                    </select>
+                    <Select
+                        options={sortOptions}
+                        value={sortOptions.find(opt => opt.value === sortOrder)}
+                        onChange={(selected) => setSortOrder(selected.value)}
+                        styles={customSelectStyles}
+                        isSearchable={false}
+                    />
+
+                    <button
+                        className="btn-reset-filters"
+                        onClick={handleResetFilters}
+                        title="Réinitialiser tous les filtres"
+                    >
+                        🔄
+                    </button>
                 </div>
             </div>
 
-            {/* LINKS GRID */}
             <div className="links-grid">
                 {processedLinks.length > 0 ? (
                     processedLinks.map(link => (
