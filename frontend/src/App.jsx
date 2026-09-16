@@ -6,8 +6,8 @@ import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import React from 'react';
-import LinkCard from './components/LinkCard';
 import LegalMentions from './pages/LegalMentions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function App() {
   return (
@@ -33,6 +33,7 @@ function App() {
 
             {/* Legal Pages */}
             <Route path="/legal-mentions" element={<LegalMentions />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
             {/* Fallback route: Return to Homepage if URL is unknown */}
             <Route path="*" element={<Navigate to="/" />} />
