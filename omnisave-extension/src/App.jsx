@@ -65,7 +65,7 @@ function App() {
     };
 
     // --- LOGOUT LOGIC ---
-    const handleLogout = () => {
+    const handleLogout = (customMessage = null) => {
         // REMOVE TOKEN
         if (window.chrome && chrome.storage) {
             chrome.storage.local.remove(['token']);
@@ -73,7 +73,9 @@ function App() {
             localStorage.removeItem('token');
         }
         setToken(null);
-        setMessage(null);
+
+        // Show an optional message (e.g., "Session expired") after logout
+        setMessage(customMessage ? { type: 'error', text: customMessage } : null);
     };
 
     // --- FAST-SAVE TRIGGER ---
@@ -88,10 +90,24 @@ function App() {
                 { action: 'FAST_SAVE', token: token },
                 (response) => {
                     setIsLoading(false);
-                    if (response && response.success) {
-                        setMessage({ type: 'success', text: response.message }); //
+
+                    if (response) {
+                        // 1. Check for token expiration (401 Unauthorized)
+                        if (response.isUnauthorized) {
+                            handleLogout("Votre session a expiré. Veuillez vous reconnecter.");
+                            return;
+                        }
+
+                        // 2. Check for success
+                        if (response.success) {
+                            setMessage({ type: 'success', text: response.message });
+                        }
+                        // 3. Handle errors (including 409 duplicates)
+                        else {
+                            setMessage({ type: 'error', text: response.error || 'Failed to grab link.' });
+                        }
                     } else {
-                        setMessage({ type: 'error', text: response.error || 'Failed to grab link.' });
+                         setMessage({ type: 'error', text: 'No response from background script.' });
                     }
                 }
             );
@@ -146,7 +162,7 @@ function App() {
                         <button className="btn-fast-save" onClick={handleFastSave}>
                             ⚡ Fast-Save Link
                         </button>
-                        <button className="btn-logout" onClick={handleLogout}>
+                        <button className="btn-logout" onClick={() => handleLogout()}>
                             Logout
                         </button>
                     </div>
