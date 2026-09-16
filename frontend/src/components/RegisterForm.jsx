@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import './Auth.css'; // Importing the shared authentication styles
 
 /**
  * Component rendering the user registration form.
@@ -37,7 +38,7 @@ function RegisterForm() {
         if (password !== confirmPassword) {
             setMessage({
                 type: 'warning',
-                text: '⚠️ Les deux mots de passe ne correspondent pas.'
+                text: 'Les deux mots de passe ne correspondent pas.'
             });
             return;
         }
@@ -48,7 +49,7 @@ function RegisterForm() {
         if (!passwordRegex.test(password)) {
             setMessage({
                 type: 'warning',
-                text: '⚠️ Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.'
+                text: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.'
             });
             return;
         }
@@ -70,97 +71,130 @@ function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                setMessage({ type: 'success', text: '✅ Inscription réussie ! Redirection...' });
+                setMessage({ type: 'success', text: 'Inscription réussie ! Redirection...' });
                 setTimeout(() => {
                     navigate('/login');
                 }, 1500);
             } else {
-                setMessage({ type: 'danger', text: '❌ ' + data.error });
+                setMessage({ type: 'danger', text: data.error || 'Erreur lors de l\'inscription.' });
             }
         } catch (error) {
-            setMessage({ type: 'danger', text: '❌ Impossible de joindre le serveur.' });
+            setMessage({ type: 'danger', text: 'Impossible de joindre le serveur.' });
         }
     };
 
     return (
-        <div className="container mt-5" style={{ maxWidth: '400px' }}>
-            <h2 className="text-center mb-4 fw-bold">Créer un compte</h2>
-            <form onSubmit={handleRegister} className="card p-4 shadow-sm border-0">
+        <div className="auth-wrapper">
+            <div className="surface-card auth-card">
 
-                {/* Grid responsive : g-3 ajoute un espacement, col-12 empile sur mobile, col-sm-6 aligne sur PC */}
-                <div className="row g-3 mb-3">
-                    <div className="col-12 col-sm-6">
-                        <label className="form-label fw-semibold">Prénom</label>
-                        <input type="text" className="form-control form-control-lg" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <h2 className="brand-gradient-text auth-title">Créer un compte</h2>
+
+                <form onSubmit={handleRegister} className="auth-form">
+
+                    {/* First Name & Last Name inline on desktop */}
+                    <div className="form-row">
+                        <div>
+                            <label className="custom-label">Prénom</label>
+                            <input
+                                type="text"
+                                className="styled-input w-100"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                placeholder="Votre prénom"
+                            />
+                        </div>
+                        <div>
+                            <label className="custom-label">Nom</label>
+                            <input
+                                type="text"
+                                className="styled-input w-100"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                placeholder="Votre nom"
+                            />
+                        </div>
                     </div>
-                    <div className="col-12 col-sm-6">
-                        <label className="form-label fw-semibold">Nom</label>
-                        <input type="text" className="form-control form-control-lg" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                    </div>
-                </div>
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Email</label>
-                    <input type="email" className="form-control form-control-lg" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </div>
-
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Mot de passe</label>
-                    <div className="input-group input-group-lg">
+                    <div className="form-group">
+                        <label className="custom-label">Adresse Email</label>
                         <input
-                            type={showPassword ? "text" : "password"}
-                            className="form-control"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            type="email"
+                            className="styled-input w-100"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Entrez votre email"
                             required
                         />
-                        <button
-                            className="btn btn-outline-secondary px-3"
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            aria-label="Toggle password visibility"
-                        >
-                            {showPassword ? "🙈" : "👁️"}
-                        </button>
                     </div>
-                    <div className="form-text mt-2" style={{ fontSize: '0.85rem' }}>
-                        Min. 8 caractères, 1 majuscule, 1 chiffre, 1 caractère spécial.
+
+                    <div className="form-group">
+                        <label className="custom-label">Mot de passe</label>
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="styled-input w-100"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Créer un mot de passe"
+                                required
+                            />
+                            <button
+                                className="btn-toggle-pwd"
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label="Toggle password visibility"
+                            >
+                                {showPassword ? "🙈" : "👁️"}
+                            </button>
+                        </div>
+                        <div className="form-text-custom mt-2">
+                            Min. 8 caractères, 1 majuscule, 1 chiffre, 1 caractère spécial.
+                        </div>
                     </div>
-                </div>
 
-                <div className="mb-4">
-                    <label className="form-label fw-semibold">Confirmer le mot de passe</label>
-                    <div className="input-group input-group-lg">
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            className="form-control"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                        <button
-                            className="btn btn-outline-secondary px-3"
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            aria-label="Toggle confirm password visibility"
-                        >
-                            {showConfirmPassword ? "🙈" : "👁️"}
-                        </button>
+                    <div className="form-group mb-4">
+                        <label className="custom-label">Confirmer le mot de passe</label>
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                className="styled-input w-100"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Répéter le mot de passe"
+                                required
+                            />
+                            <button
+                                className="btn-toggle-pwd"
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                aria-label="Toggle confirm password visibility"
+                            >
+                                {showConfirmPassword ? "🙈" : "👁️"}
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" className="btn btn-success btn-lg w-100 mb-3 fw-bold">
-                    S'inscrire
-                </button>
+                    <button type="submit" className="btn-primary w-100 mb-4">
+                        S'inscrire
+                    </button>
 
-                <div className="text-center mt-2">
-                    <Link to="/login" className="text-decoration-none text-muted">
-                        Déjà un compte ? <span className="text-primary fw-semibold">Se connecter</span>
-                    </Link>
-                </div>
-            </form>
+                    <div className="auth-footer">
+                        <span>Déjà un compte ? </span>
+                        <Link to="/login" className="auth-link">
+                            Se connecter
+                        </Link>
+                    </div>
+                </form>
 
-            {message && <div className={`alert alert-${message.type} mt-4 py-2`}>{message.text}</div>}
+                {message && (
+                    <div className={`custom-alert custom-alert-${message.type} mt-4 text-center justify-content-center`}>
+                        {message.type === 'success' && '✅ '}
+                        {message.type === 'danger' && '❌ '}
+                        {message.type === 'warning' && '⚠️ '}
+                        {message.text}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

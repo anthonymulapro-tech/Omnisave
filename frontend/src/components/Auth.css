@@ -57,3 +57,49 @@
 .mt-4 {
     margin-top: 1.5rem;
 }
+
+/* --- PASSWORD INPUT WITH TOGGLE --- */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.btn-toggle-pwd {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0;
+    transition: transform var(--transition-fast, 0.2s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-toggle-pwd:hover {
+    transform: scale(1.1);
+    color: #f8fafc;
+}
+
+/* --- HELP TEXT --- */
+.form-text-custom {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+/* --- FORM ROW (For First Name / Last Name) --- */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.form-row > div {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 150px; /* Sur mobile, si c'est trop petit, ça passera l'un sous l'autre */
+}
