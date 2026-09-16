@@ -330,3 +330,28 @@ class LinkRepository:
                     cursor.close()
                     connection.close()
         return False
+
+    @staticmethod
+    def exists_for_user(url: str, user_id: int) -> bool:
+        """
+        Checks if a user already has this specific link in their collection.
+        Returns True if the link exists, False otherwise.
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                # Select only the ID with LIMIT 1 for maximum performance
+                sql = "SELECT url_id FROM lien WHERE url = %s AND utilisateur_id = %s LIMIT 1"
+                cursor.execute(sql, (url, user_id))
+                result = cursor.fetchone()
+
+                return result is not None  # True if found, False otherwise
+
+            except Exception as e:
+                print(f"❌ Error checking duplicate: {e}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        return False

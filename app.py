@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import logging
+import html
 
 # --- Imports for AI Link Analysis ---
 from backend.link_analyzer import LinkAnalyzer
@@ -432,7 +433,6 @@ def save_link(current_user_id):
     """
     data = request.get_json()
 
-    # Changed 'category' to 'categories'
     required_fields = ['url', 'title', 'categories', 'tags']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields for saving"}), 400
@@ -440,7 +440,12 @@ def save_link(current_user_id):
     logging.info(f"User ID {current_user_id} requested SAVE for: {data['url']}")
 
     try:
-        # --- 1. VALIDATE CATEGORIES (MAX 5) ---
+        # --- 1. ANTI-DOUBLONS (SECURITY) ---
+        if LinkRepository.exists_for_user(data['url'], current_user_id):
+            logging.warning(f"Duplicate attempt: User {current_user_id} tried to save {data['url']} again.")
+            return jsonify({"error": "Ce lien est déjà sauvegardé dans votre collection."}), 409
+
+        # --- 2. VALIDATE CATEGORIES (MAX 5) ---
         categories_input = data['categories']
 
         if not isinstance(categories_input, list):
@@ -449,36 +454,37 @@ def save_link(current_user_id):
         if len(categories_input) > 5:
             return jsonify({"error": "You cannot assign more than 5 categories."}), 400
 
-        # Clean the list (remove duplicates and empty strings)
         cleaned_categories = list(set([cat.strip() for cat in categories_input if cat.strip()]))
-
-        # Must have at least one category
         if not cleaned_categories:
             return jsonify({"error": "At least one valid category is required."}), 400
 
-        # --- 2. PREPARE THE LINK OBJECT (Removed category_id) ---
+        # --- 3. ANTI-XSS CLEANUP (SECURITY) ---
+        safe_title = html.escape(data['title'].strip())
+        safe_categories = [html.escape(cat) for cat in cleaned_categories]
+        safe_tags = [html.escape(tag.strip()) for tag in data['tags'] if tag.strip()]
+
+        # --- 4. PREPARE THE LINK OBJECT ---
         new_link = Link(
             url=data['url'],
-            title=data['title'],
+            title=safe_title,
             thumbnail_url=data.get('thumbnail_url', ''),
             platform=data.get('platform', 'Web'),
             analysis_status='COMPLETED',
             user_id=current_user_id
         )
 
-        # --- 3. SAVE TO DB USING REPOSITORY ---
-        # LinkRepository handles both tags and categories creation/linking seamlessly
-        success = LinkRepository.create_with_details(new_link, data['tags'], cleaned_categories)
+        # --- 5. SAVE TO DB USING REPOSITORY ---
+        success = LinkRepository.create_with_details(new_link, safe_tags, safe_categories)
 
         if success:
             logging.info("Successfully saved user-validated link with tags and categories")
-            return jsonify({"message": "Link successfully saved!"}), 201
+            return jsonify({"message": "Lien sauvegardé avec succès !"}), 201
         else:
-            return jsonify({"error": "Error saving the link to the database."}), 500
+            return jsonify({"error": "Erreur lors de la sauvegarde du lien."}), 500
 
     except Exception as e:
         logging.error(f"Critical error during link save flow: {e}")
-        return jsonify({"error": "An internal server error occurred while saving."}), 500
+        return jsonify({"error": "Une erreur interne est survenue."}), 500
 
 
 @app.route('/api/links/<int:link_id>', methods=['PUT'])
@@ -523,15 +529,20 @@ def update_link(current_user_id, link_id):
                 f"User {current_user_id} attempted to edit link {link_id} belonging to User {existing_link.user_id}")
             return jsonify({"error": "Unauthorized to edit this link."}), 403
 
-        # --- 3. UPDATE THE LINK OBJECT ---
-        existing_link.title = data['title']
+        # --- 3. ANTI-XSS CLEANUP & UPDATE THE LINK OBJECT ---
+        # Nettoyage anti-XSS (on échappe les chevrons HTML)
+        safe_title = html.escape(data['title'].strip())
+        safe_categories = [html.escape(cat) for cat in cleaned_categories]
+        safe_tags = [html.escape(tag.strip()) for tag in data['tags'] if tag.strip()]
+
+        existing_link.title = safe_title
 
         if 'thumbnail_url' in data:
             existing_link.thumbnail_url = data['thumbnail_url']
 
         # --- 4. SAVE CHANGES TO DB USING REPOSITORY ---
-        # update_with_details replaces update_with_tags
-        success = LinkRepository.update_with_details(existing_link, data['tags'], cleaned_categories)
+        # update_with_details receives the safe arrays
+        success = LinkRepository.update_with_details(existing_link, safe_tags, safe_categories)
 
         if success:
             logging.info(f"Successfully updated link {link_id} with new details")
