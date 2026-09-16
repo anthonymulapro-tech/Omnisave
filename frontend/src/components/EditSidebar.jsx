@@ -113,14 +113,14 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                     zIndex: 1050
                 }}
             >
-                {/* HEADER */}
+                {/* --- HEADER --- */}
                 <div className="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
                     <h5 className="m-0 fw-bold">Modifier le lien</h5>
                     <button type="button" className="btn-close p-3" onClick={onClose} aria-label="Fermer"></button>
                 </div>
 
-                {/* BODY */}
-                <div className="p-4 flex-grow-1 overflow-auto">
+                {/* --- BODY --- */}
+                <div className="p-4 flex-grow-1 overflow-auto bg-white">
                     {linkData ? (
                         <div>
                             {/* THUMBNAIL PREVIEW */}
@@ -129,9 +129,8 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                     <img
                                         src={thumbnailUrl}
                                         alt="Preview"
-                                        className="img-fluid rounded shadow-sm w-100"
-                                        style={{ height: '180px', objectFit: 'cover' }}
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x180?text=Image+Invalide' }}
+                                        className="img-fluid rounded shadow-sm w-100 thumbnail-preview"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x180/eeeeee/999999?text=Image+Invalide' }}
                                     />
                                 </div>
                             )}
@@ -139,7 +138,6 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                             {/* IMAGE URL INPUT */}
                             <div className="mb-4">
                                 <label className="form-label fw-bold">URL de l'image</label>
-                                {/* form-control-lg pour une meilleure saisie tactile */}
                                 <input
                                     type="text"
                                     className="form-control form-control-lg"
@@ -160,7 +158,7 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                 />
                             </div>
 
-                            {/* DYNAMIC CATEGORIES SECTION */}
+                            {/* CATEGORIES SECTION */}
                             <div className="mb-4">
                                 <label className="form-label fw-bold">Catégories (Max 5)</label>
 
@@ -210,12 +208,19 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                 <div className="form-text">Séparez les tags par des virgules (ex: recette, sport).</div>
                             </div>
 
-                            {/* ERROR ALERT */}
                             {error && <div className="alert alert-danger py-2">{error}</div>}
 
                             {/* SUBMIT BUTTON */}
                             <button className="btn btn-primary btn-lg w-100 py-3 mt-3 fw-bold shadow-sm" onClick={handleConfirm}>
                                 Mettre à jour le lien
+                            </button>
+
+                            {/* CANCEL BUTTON */}
+                            <button
+                                className="btn btn-outline-danger btn-lg w-100 py-3 mt-2 fw-bold"
+                                onClick={onClose}
+                            >
+                                Annuler
                             </button>
                         </div>
                     ) : (
