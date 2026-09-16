@@ -1,0 +1,59 @@
+/* --- AUTHENTICATION LAYOUT --- */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* On prend presque toute la hauteur de l'écran moins la navbar */
+    min-height: calc(100vh - 100px);
+    padding: 2rem 1.5rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+    border-radius: 16px;
+    /* Un peu plus d'ombre pour bien détacher la carte du fond */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.auth-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* --- FORM ELEMENTS --- */
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* --- FOOTER & LINKS --- */
+.auth-footer {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #94a3b8; /* Texte discret */
+    margin-top: 1rem;
+}
+
+.auth-link {
+    color: #6366f1; /* Couleur primaire Omnisave */
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition-fast, 0.2s);
+}
+
+.auth-link:hover {
+    color: #a855f7; /* Dégradé vers le rose/violet au survol */
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+/* --- UTILS --- */
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
