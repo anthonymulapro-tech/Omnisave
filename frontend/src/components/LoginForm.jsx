@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. On importe l'outil de navigation
+import { useNavigate, Link } from 'react-router-dom'; // 1. On importe l'outil de navigation
 
 function LoginForm() {
     const [email, setEmail] = useState('');
@@ -35,36 +35,41 @@ function LoginForm() {
         }
     };
 
-    // Le reste de ton affichage HTML/Bootstrap en dessous ne change absolument pas !
     return (
         <div className="container mt-5" style={{ maxWidth: '400px' }}>
-            <h2 className="text-center mb-4">Connexion à Omnisave</h2>
-            <form onSubmit={handleLogin} className="card p-4 shadow-sm">
+            <h2 className="text-center mb-4 fw-bold">Connexion</h2>
+            <form onSubmit={handleLogin} className="card p-4 shadow-sm border-0">
                 <div className="mb-3">
-                    <label className="form-label">Email</label>
+                    <label className="form-label fw-semibold">Email</label>
                     <input
                         type="email"
-                        className="form-control"
+                        className="form-control form-control-lg"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
-                <div className="mb-3">
-                    <label className="form-label">Mot de passe</label>
+                <div className="mb-4">
+                    <label className="form-label fw-semibold">Mot de passe</label>
                     <input
                         type="password"
-                        className="form-control"
+                        className="form-control form-control-lg"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                 </div>
-                <button type="submit" className="btn btn-primary w-100">
+                <button type="submit" className="btn btn-primary btn-lg w-100 fw-bold">
                     Se connecter
                 </button>
+
+                <div className="text-center mt-4">
+                    <Link to="/register" className="text-decoration-none text-muted">
+                        Pas encore de compte ? <span className="text-primary fw-semibold">S'inscrire</span>
+                    </Link>
+                </div>
             </form>
-            {message && <div className="alert alert-info mt-3">{message}</div>}
+            {message && <div className="alert alert-info mt-4 py-2">{message}</div>}
         </div>
     );
 }
