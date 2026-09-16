@@ -13,7 +13,7 @@
 .add-link-title {
     font-size: 1.5rem;
     font-weight: 600;
-    margin-bottom: 1.25rem;
+    text-align: center;
     color: var(--text-main);
 }
 
@@ -117,4 +117,16 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* --- MOBILE TEXT CENTERING FIX --- */
+@media (max-width: 767px) {
+    .styled-input {
+        text-align: center; /* Centre le texte collé dans l'input sur mobile */
+    }
+
+    .custom-alert {
+        text-align: center;
+        justify-content: center; /* Centre les messages de succès/erreur */
+    }
 }
