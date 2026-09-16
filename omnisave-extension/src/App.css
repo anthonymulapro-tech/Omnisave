@@ -1,101 +1,171 @@
 /* src/App.css */
+
+html, body, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 320px;
+    height: 100%;
+    background-color: #0f172a !important;
+    border: none !important;
+    outline: none !important;
+}
+
 .extension-container {
     width: 320px;
     min-height: 250px;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px;
     box-sizing: border-box;
-    background-color: #f8f9fa;
-    color: #212529;
+    background-color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
 }
 
+/* --- HEADER --- */
 .extension-header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .extension-header h2 {
     margin: 0;
-    font-size: 24px;
-    color: #0d6efd;
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
 }
 
+/* --- FORMS & INPUTS --- */
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    flex-grow: 1;
 }
 
 input {
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
+    width: 100%;
+    padding: 12px 16px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #f8fafc;
     font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+    outline: none;
 }
 
+input::placeholder {
+    color: #64748b;
+}
+
+input:focus {
+    border-color: #6366f1;
+    background-color: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Fix Autofill Chrome for Extension */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-text-fill-color: #f8fafc !important;
+    -webkit-box-shadow: transparent 0px 0px 0px 1000px inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* --- BUTTONS --- */
 button {
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-primary {
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.btn-primary:hover {
-    background-color: #0b5ed7;
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+}
+
+.action-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+    justify-content: center;
 }
 
 .btn-fast-save {
-    background-color: #198754;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    width: 100%;
-    padding: 12px;
     font-size: 16px;
-    margin-bottom: 12px;
+    padding: 14px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-fast-save:hover {
-    background-color: #157347;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
 }
 
 .btn-logout {
     background-color: transparent;
-    color: #dc3545;
-    border: 1px solid #dc3545;
-    width: 100%;
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .btn-logout:hover {
-    background-color: #dc3545;
-    color: white;
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.5);
 }
 
+/* --- MESSAGES --- */
 .message {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 6px;
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 8px;
     font-size: 13px;
     text-align: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .message.error {
-    background-color: #f8d7da;
-    color: #842029;
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .message.success {
-    background-color: #d1e7dd;
-    color: #0f5132;
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-/* --- PASSWORD TOGGLE STYLES --- */
+/* --- PASSWORD TOGGLE --- */
 .password-wrapper {
     position: relative;
     display: flex;
@@ -104,9 +174,7 @@ button {
 }
 
 .password-wrapper input {
-    width: 100%;
-    padding-right: 40px; /* Make room for the icon */
-    box-sizing: border-box;
+    padding-right: 45px;
 }
 
 .btn-toggle-password {
@@ -117,10 +185,13 @@ button {
     padding: 5px;
     font-size: 16px;
     cursor: pointer;
-    width: auto;
+    color: #94a3b8;
+    box-shadow: none;
 }
 
 .btn-toggle-password:hover {
     background: transparent;
-    opacity: 0.7;
+    color: #f8fafc;
+    transform: none;
+    box-shadow: none;
 }

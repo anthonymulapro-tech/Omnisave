@@ -3,7 +3,6 @@ import './App.css';
 
 function App() {
     // --- STATES ---
-    // Token is initialized to null. It will be fetched via useEffect on mount.
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -14,14 +13,12 @@ function App() {
     // --- INIT: LOAD TOKEN ---
     useEffect(() => {
         if (window.chrome && chrome.storage) {
-            // Asynchronous read from the extension's local storage
             chrome.storage.local.get(['token'], (result) => {
                 if (result.token) {
                     setToken(result.token);
                 }
             });
         } else {
-            // Fallback for testing with npm run dev on a standard browser
             setToken(localStorage.getItem('token') || null);
         }
     }, []);
@@ -44,7 +41,6 @@ function App() {
             if (response.ok) {
                 const receivedToken = data.token || data.access_token;
 
-                // SAVE TOKEN
                 if (window.chrome && chrome.storage) {
                     chrome.storage.local.set({ token: receivedToken });
                 } else {
@@ -66,15 +62,12 @@ function App() {
 
     // --- LOGOUT LOGIC ---
     const handleLogout = (customMessage = null) => {
-        // REMOVE TOKEN
         if (window.chrome && chrome.storage) {
             chrome.storage.local.remove(['token']);
         } else {
             localStorage.removeItem('token');
         }
         setToken(null);
-
-        // Show an optional message (e.g., "Session expired") after logout
         setMessage(customMessage ? { type: 'error', text: customMessage } : null);
     };
 
@@ -83,27 +76,21 @@ function App() {
         setIsLoading(true);
         setMessage({ type: 'success', text: 'Analyzing... You can close this popup!' });
 
-        // Ensure Chrome extension API is available
         if (window.chrome && chrome.runtime) {
-            // Send message to background.js with the JWT token
             chrome.runtime.sendMessage(
                 { action: 'FAST_SAVE', token: token },
                 (response) => {
                     setIsLoading(false);
 
                     if (response) {
-                        // 1. Check for token expiration (401 Unauthorized)
                         if (response.isUnauthorized) {
                             handleLogout("Votre session a expiré. Veuillez vous reconnecter.");
                             return;
                         }
 
-                        // 2. Check for success
                         if (response.success) {
                             setMessage({ type: 'success', text: response.message });
-                        }
-                        // 3. Handle errors (including 409 duplicates)
-                        else {
+                        } else {
                             setMessage({ type: 'error', text: response.error || 'Failed to grab link.' });
                         }
                     } else {
@@ -112,7 +99,6 @@ function App() {
                 }
             );
         } else {
-            // Fallback if testing outside of Chrome Extension context
             setMessage({ type: 'error', text: 'Chrome API not available in local dev mode.' });
             setIsLoading(false);
         }
@@ -124,7 +110,7 @@ function App() {
                 <h2>Omnisave</h2>
             </header>
 
-            <main>
+            <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                 {!token ? (
                     <form onSubmit={handleLogin} className="login-form">
                         <input
@@ -160,7 +146,7 @@ function App() {
                 ) : (
                     <div className="action-section">
                         <button className="btn-fast-save" onClick={handleFastSave}>
-                            ⚡ Fast-Save Link
+                            <span>⚡</span> Fast-Save Link
                         </button>
                         <button className="btn-logout" onClick={() => handleLogout()}>
                             Logout
