@@ -16,8 +16,6 @@ const Profile = () => {
     });
     const [profileMessage, setProfileMessage] = useState(null);
     const [profileMessageType, setProfileMessageType] = useState('');
-
-    // Stores specific errors for fields (to display red borders)
     const [fieldErrors, setFieldErrors] = useState({});
 
     // --- STATE: PASSWORD UPDATE ---
@@ -29,7 +27,7 @@ const Profile = () => {
     const [pwdMessage, setPwdMessage] = useState(null);
     const [pwdMessageType, setPwdMessageType] = useState('');
 
-    // Toggles for password visibility
+    // --- STATE: PASSWORD VISIBILITY TOGGLES ---
     const [showOldPwd, setShowOldPwd] = useState(false);
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [showConfirmPwd, setShowConfirmPwd] = useState(false);
@@ -74,7 +72,7 @@ const Profile = () => {
             [name]: type === 'checkbox' ? checked : value
         });
 
-        // Remove the red border as soon as the user starts typing again
+        // Clear specific field error when user starts typing
         if (fieldErrors[name]) {
             setFieldErrors({ ...fieldErrors, [name]: null });
         }
@@ -83,7 +81,7 @@ const Profile = () => {
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         setProfileMessage(null);
-        setFieldErrors({}); // Reset previous errors
+        setFieldErrors({});
 
         const token = localStorage.getItem('token');
         try {
@@ -100,9 +98,8 @@ const Profile = () => {
 
             if (response.ok) {
                 setProfileMessageType('success');
-                setProfileMessage('Profile mis à jour !');
+                setProfileMessage('Profil mis à jour avec succès !');
             } else {
-                // Analyze the error string to map it to specific fields
                 const errorStr = (data.error || '').toLowerCase();
                 const newFieldErrors = {};
                 let hasSpecificError = false;
@@ -118,18 +115,16 @@ const Profile = () => {
 
                 setFieldErrors(newFieldErrors);
 
-                // If a specific field error was found, hide the ugly raw database error at the top
                 if (hasSpecificError) {
                     setProfileMessage(null);
                 } else {
-                    // Only show the top alert if it's an unknown server error
                     setProfileMessageType('danger');
-                    setProfileMessage(data.error || 'An error occurred while updating.');
+                    setProfileMessage(data.error || 'Une erreur est survenue lors de la mise à jour.');
                 }
             }
         } catch (error) {
             setProfileMessageType('danger');
-            setProfileMessage('Server connection error.');
+            setProfileMessage('Erreur de connexion au serveur.');
         }
     };
 
@@ -143,7 +138,6 @@ const Profile = () => {
         e.preventDefault();
         setPwdMessage(null);
 
-        // Client-side validation for matching passwords
         if (pwdData.new_password !== pwdData.confirm_password) {
             setPwdMessageType('danger');
             setPwdMessage("Les nouveaux mots de passe ne correspondent pas.");
@@ -169,7 +163,6 @@ const Profile = () => {
             if (response.ok) {
                 setPwdMessageType('success');
                 setPwdMessage('Mot de passe mis à jour avec succès !');
-                // Reset password form fields
                 setPwdData({ old_password: '', new_password: '', confirm_password: '' });
             } else {
                 setPwdMessageType('danger');
@@ -177,14 +170,14 @@ const Profile = () => {
             }
         } catch (error) {
             setPwdMessageType('danger');
-            setPwdMessage('Server connection error.');
+            setPwdMessage('Erreur de connexion au serveur.');
         }
     };
 
     // --- HANDLER: DELETE ACCOUNT ---
     const handleDeleteAccount = async () => {
         const isConfirmed = window.confirm(
-            "Are you sure you want to delete your account? This action is irreversible."
+            "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
         );
         if (!isConfirmed) return;
 
@@ -205,204 +198,205 @@ const Profile = () => {
     };
 
     return (
-        <div className="container mt-5 profile-container">
-            {/* --- SECTION 1: PROFILE INFORMATION --- */}
-            <div className="card shadow-sm mb-4">
-                <div className="card-header bg-white pb-0 border-bottom-0 pt-4 px-4">
-                    <h4 className="mb-0">Informations Générales</h4>
-                </div>
+        <div className="profile-wrapper">
+            <div className="profile-container">
 
-                <div className="card-body p-4">
-                    {profileMessage && (
-                        <div className={`alert alert-${profileMessageType}`} role="alert">
-                            {profileMessage}
-                        </div>
-                    )}
+                {/* --- SECTION 1: PROFILE INFORMATION --- */}
+                <div className="surface-card profile-card mb-4">
+                    <div className="brand-gradient-text">
+                        <h4>Informations Générales</h4>
+                    </div>
 
-                    <form onSubmit={handleProfileSubmit}>
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Adresse Email</label>
-                            <input
-                                type="email"
-                                // Adds a red border if fieldErrors.email exists
-                                className={`form-control ${fieldErrors.email ? 'is-invalid' : ''}`}
-                                name="email"
-                                value={formData.email}
-                                onChange={handleProfileChange}
-                            />
-                            {fieldErrors.email && (
-                                <div className="invalid-feedback">{fieldErrors.email}</div>
-                            )}
-                        </div>
+                    <div className="profile-body">
+                        {profileMessage && (
+                            <div className={`custom-alert custom-alert-${profileMessageType}`}>
+                                {profileMessageType === 'success' && '✅ '}
+                                {profileMessageType === 'danger' && '⚠️ '}
+                                {profileMessage}
+                            </div>
+                        )}
 
-                        <div className="row mb-3">
-                            <div className="col-md-6">
-                                <label className="form-label fw-bold">Prénom</label>
+                        <form onSubmit={handleProfileSubmit}>
+                            <div className="form-group mb-3">
+                                <label className="custom-label">Adresse Email</label>
+                                <input
+                                    type="email"
+                                    className={`styled-input w-100 ${fieldErrors.email ? 'input-error' : ''}`}
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleProfileChange}
+                                />
+                                {fieldErrors.email && <div className="error-text">{fieldErrors.email}</div>}
+                            </div>
+
+                            <div className="form-row mb-3">
+                                <div className="form-group half-width">
+                                    <label className="custom-label">Prénom</label>
+                                    <input
+                                        type="text"
+                                        className="styled-input w-100"
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleProfileChange}
+                                    />
+                                </div>
+                                <div className="form-group half-width">
+                                    <label className="custom-label">Nom</label>
+                                    <input
+                                        type="text"
+                                        className="styled-input w-100"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleProfileChange}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group mb-3">
+                                <label className="custom-label">Pseudo</label>
                                 <input
                                     type="text"
-                                    className="form-control"
-                                    name="first_name"
-                                    value={formData.first_name}
+                                    className={`styled-input w-100 ${fieldErrors.pseudo ? 'input-error' : ''}`}
+                                    name="pseudo"
+                                    value={formData.pseudo}
                                     onChange={handleProfileChange}
                                 />
+                                {fieldErrors.pseudo && <div className="error-text">{fieldErrors.pseudo}</div>}
                             </div>
-                            <div className="col-md-6">
-                                <label className="form-label fw-bold">Nom</label>
+
+                            <div className="form-group mb-4">
+                                <label className="custom-label">Pays</label>
                                 <input
                                     type="text"
-                                    className="form-control"
-                                    name="last_name"
-                                    value={formData.last_name}
+                                    className="styled-input w-100"
+                                    name="country"
+                                    value={formData.country}
                                     onChange={handleProfileChange}
                                 />
                             </div>
-                        </div>
 
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Pseudo</label>
-                            <input
-                                type="text"
-                                className={`form-control ${fieldErrors.pseudo ? 'is-invalid' : ''}`}
-                                name="pseudo"
-                                value={formData.pseudo}
-                                onChange={handleProfileChange}
-                            />
-                            {fieldErrors.pseudo && (
-                                <div className="invalid-feedback">{fieldErrors.pseudo}</div>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="form-label fw-bold">Pays</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                name="country"
-                                value={formData.country}
-                                onChange={handleProfileChange}
-                            />
-                        </div>
-
-                        <div className="mb-4 fast-save-box">
-                            <div className="form-check form-switch">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    role="switch"
-                                    id="fastSaveSwitch"
-                                    name="fast_save"
-                                    checked={formData.fast_save}
-                                    onChange={handleProfileChange}
-                                />
-                                <label className="form-check-label fw-bold" htmlFor="fastSaveSwitch">
-                                    Activer le Fast-Save
-                                </label>
+                            <div className="fast-save-box mb-4">
+                                <div className="switch-wrapper">
+                                    <input
+                                        className="custom-switch"
+                                        type="checkbox"
+                                        id="fastSaveSwitch"
+                                        name="fast_save"
+                                        checked={formData.fast_save}
+                                        onChange={handleProfileChange}
+                                    />
+                                    <label className="switch-label" htmlFor="fastSaveSwitch">
+                                        Activer le Fast-Save ⚡
+                                    </label>
+                                </div>
+                                <small className="fast-save-desc">
+                                    Si activé, les liens seront sauvegardés automatiquement sans passer par le tiroir de validation.
+                                </small>
                             </div>
-                            <small className="text-muted d-block mt-1">
-                                Si activé, les liens seront sauvegardés automatiquement sans passer par le tiroir de validation.
-                            </small>
-                        </div>
 
-                        <button type="submit" className="btn btn-primary w-100 fw-bold">
-                            Sauvegarder les modifications
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            {/* --- SECTION 2: SECURITY & PASSWORD --- */}
-            <div className="card shadow-sm border-danger border-opacity-25 mb-5">
-                <div className="card-header bg-white pb-0 border-bottom-0 pt-4 px-4">
-                    <h4 className="mb-0 text-danger">Sécurité</h4>
-                </div>
-
-                <div className="card-body p-4">
-                    {pwdMessage && (
-                        <div className={`alert alert-${pwdMessageType}`} role="alert">
-                            {pwdMessage}
-                        </div>
-                    )}
-
-                    <form onSubmit={handlePasswordSubmit}>
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Ancien mot de passe</label>
-                            <div className="input-group">
-                                <input
-                                    type={showOldPwd ? "text" : "password"}
-                                    className="form-control"
-                                    name="old_password"
-                                    value={pwdData.old_password}
-                                    onChange={handlePwdChange}
-                                    required
-                                />
-                                <button
-                                    className="btn btn-outline-secondary"
-                                    type="button"
-                                    onClick={() => setShowOldPwd(!showOldPwd)}
-                                >
-                                    {showOldPwd ? '🙈' : '👁️'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Nouveau mot de passe</label>
-                            <div className="input-group">
-                                <input
-                                    type={showNewPwd ? "text" : "password"}
-                                    className="form-control"
-                                    name="new_password"
-                                    value={pwdData.new_password}
-                                    onChange={handlePwdChange}
-                                    required
-                                />
-                                <button
-                                    className="btn btn-outline-secondary"
-                                    type="button"
-                                    onClick={() => setShowNewPwd(!showNewPwd)}
-                                >
-                                    {showNewPwd ? '🙈' : '👁️'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="form-label fw-bold">Confirmer le nouveau mot de passe</label>
-                            <div className="input-group">
-                                <input
-                                    type={showConfirmPwd ? "text" : "password"}
-                                    className="form-control"
-                                    name="confirm_password"
-                                    value={pwdData.confirm_password}
-                                    onChange={handlePwdChange}
-                                    required
-                                />
-                                <button
-                                    className="btn btn-outline-secondary"
-                                    type="button"
-                                    onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                                >
-                                    {showConfirmPwd ? '🙈' : '👁️'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn btn-outline-danger w-100 fw-bold mb-4">
-                            Changer le mot de passe
-                        </button>
-
-                        <hr />
-
-                        <div className="text-center mt-4">
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-delete-account"
-                                onClick={handleDeleteAccount}
-                            >
-                                Supprimer mon compte définitivement
+                            <button type="submit" className="btn-primary w-100">
+                                Sauvegarder les modifications
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                </div>
+
+                {/* --- SECTION 2: SECURITY & PASSWORD --- */}
+                <div className="surface-card profile-card danger-card mb-5">
+                    <div className="brand-gradient-text">
+                        <h4>Sécurité</h4>
+                    </div>
+
+                    <div className="profile-body">
+                        {pwdMessage && (
+                            <div className={`custom-alert custom-alert-${pwdMessageType}`}>
+                                {pwdMessageType === 'success' && '✅ '}
+                                {pwdMessageType === 'danger' && '⚠️ '}
+                                {pwdMessage}
+                            </div>
+                        )}
+
+                        <form onSubmit={handlePasswordSubmit}>
+                            <div className="form-group mb-3">
+                                <label className="custom-label">Ancien mot de passe</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showOldPwd ? "text" : "password"}
+                                        className="styled-input w-100"
+                                        name="old_password"
+                                        value={pwdData.old_password}
+                                        onChange={handlePwdChange}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn-toggle-pwd"
+                                        onClick={() => setShowOldPwd(!showOldPwd)}
+                                    >
+                                        {showOldPwd ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="form-group mb-3">
+                                <label className="custom-label">Nouveau mot de passe</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showNewPwd ? "text" : "password"}
+                                        className="styled-input w-100"
+                                        name="new_password"
+                                        value={pwdData.new_password}
+                                        onChange={handlePwdChange}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn-toggle-pwd"
+                                        onClick={() => setShowNewPwd(!showNewPwd)}
+                                    >
+                                        {showNewPwd ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="form-group mb-4">
+                                <label className="custom-label">Confirmer le nouveau mot de passe</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showConfirmPwd ? "text" : "password"}
+                                        className="styled-input w-100"
+                                        name="confirm_password"
+                                        value={pwdData.confirm_password}
+                                        onChange={handlePwdChange}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn-toggle-pwd"
+                                        onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                                    >
+                                        {showConfirmPwd ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" className="btn-primary w-100 mb-4">
+                                Changer le mot de passe
+                            </button>
+
+                            <hr className="custom-divider" />
+
+                            <div className="delete-account-wrapper mt-4">
+                                <button
+                                    type="button"
+                                    className="btn-delete-account"
+                                    onClick={handleDeleteAccount}
+                                >
+                                    Supprimer mon compte définitivement
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

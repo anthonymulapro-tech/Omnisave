@@ -1,0 +1,137 @@
+/* --- GLASSMORPHISM NAVBAR --- */
+.glass-navbar {
+    background-color: rgba(15, 23, 42, 0.75); /* Fond bleu nuit transparent */
+    backdrop-filter: blur(12px); /* Effet verre givré */
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 1rem 0;
+    transition: all var(--transition-fast, 0.3s ease);
+}
+
+/* --- BRAND LOGO (Gradient Text) --- */
+.brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    /* Un beau dégradé de ton Indigo vers du Violet/Rose */
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    transition: opacity 0.2s;
+}
+
+.brand-logo:hover {
+    opacity: 0.8;
+}
+
+/* --- NAVIGATION LINKS --- */
+.nav-link-custom {
+    font-weight: 500;
+    font-size: 1rem;
+    text-decoration: none;
+    padding: 0.5rem 0;
+    transition: all 0.3s ease;
+
+    /* On prépare le dégradé "caché" sous le texte */
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: #94a3b8; /* Couleur grise par défaut */
+}
+
+.nav-link-custom:hover {
+    -webkit-text-fill-color: transparent; /* Rend le texte transparent pour révéler le dégradé */
+    transform: translateY(-1px); /* Petit effet de soulèvement stylé */
+}
+
+/* --- NAVBAR BUTTONS --- */
+.btn-nav-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-nav-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-nav-primary {
+    background: #6366f1;
+    border: none;
+    color: #ffffff;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+}
+
+.btn-nav-primary:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+
+.btn-nav-danger {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-nav-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* --- MOBILE OVERRIDES --- */
+.navbar-toggler {
+    border: none !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none !important;
+}
+
+/* Assure un bel espacement sur mobile quand le menu est ouvert */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        background-color: rgba(15, 23, 42, 0.95);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link-custom {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-nav-outline, .btn-nav-primary, .btn-nav-danger {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}

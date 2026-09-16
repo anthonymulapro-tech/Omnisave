@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     if (!previewResponse.ok) {
                         const errorData = await previewResponse.json().catch(() => ({}));
-                        throw new Error(errorData.error || `Analysis error (${previewResponse.status})`);
+                        throw new Error(errorData.error || `Erreur d'analyse (${previewResponse.status})`);
                     }
 
                     const previewData = await previewResponse.json();
@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     if (!saveResponse.ok) {
                         const errorData = await saveResponse.json().catch(() => ({}));
                         // Throw the exact error message sent by our Flask backend
-                        throw new Error(errorData.error || `Save error (${saveResponse.status})`);
+                        throw new Error(errorData.error || `Erreur de sauvegarde (${saveResponse.status})`);
                     }
 
                     // --- SUCCESS NOTIFICATION ---
@@ -70,10 +70,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         type: "basic",
                         iconUrl: "test.png",
                         title: "Omnisave - Fast-Save",
-                        message: `Saved & Categorized: ${previewData.title}`
+                        message: `Sauvegardé et catégorisé : ${previewData.title}`
                     });
 
-                    sendResponse({ success: true, message: "Saved successfully! ✅" });
+                    sendResponse({ success: true, message: "Sauvegardé avec succès ! ✅" });
 
                 } catch (error) {
                     console.error("Fast-Save Error:", error);
@@ -90,7 +90,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     sendResponse({ success: false, error: error.message });
                 }
             } else {
-                sendResponse({ success: false, error: "Could not read active tab." });
+                sendResponse({ success: false, error: "Impossible de lire l'onglet actif." });
             }
         });
 

@@ -1,61 +1,188 @@
-/* SupervisionSidebar.css */
-
+/* --- SIDEBAR CONTAINER --- */
 .supervision-sidebar {
     position: fixed;
     top: 0;
-    /* RESPONSIVE MAGIC: 90% of screen on mobile, capped at 400px on desktop */
-    width: 90vw;
-    max-width: 400px;
-    height: 100vh;
-    background-color: #ffffff;
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-    transition: right 0.3s ease-in-out, border-left-color 0.3s ease-in-out;
-    z-index: 1050;
-    overflow-y: auto;
-    border-left: 5px solid transparent;
-}
-
-/* State: Open or Closed */
-.supervision-sidebar.is-open {
     right: 0;
+    width: 90vw;
+    max-width: 420px;
+    height: 100vh;
+
+    /* Glassmorphism */
+    background-color: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .supervision-sidebar.is-closed {
-    /* Using -100% ensures it's fully pushed off-screen regardless of actual width */
-    right: -100%;
+    transform: translateX(100%);
 }
 
-/* State: Loading or Ready (Border Colors) */
+.supervision-sidebar.is-open {
+    transform: translateX(0);
+}
+
+/* --- BORDER STATES (Loading vs Ready) --- */
 .supervision-sidebar.is-loading {
-    border-left-color: #0d6efd; /* Bootstrap Primary Blue */
+    border-left: 5px solid #6366f1; /* Indigo loading */
 }
 
 .supervision-sidebar.is-ready {
-    border-left-color: #198754; /* Bootstrap Success Green */
+    border-left: 5px solid #22c55e; /* Success green ready */
 }
 
-/* --- OVERLAY --- */
-.sidebar-overlay {
-    z-index: 1040;
-    opacity: 0.5;
+/* --- HEADER --- */
+.sidebar-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* Dynamic cursors for the overlay */
-.cursor-wait {
-    cursor: wait;
+.sidebar-header h5 {
+    font-size: 1.25rem;
+    margin: 0;
 }
 
-.cursor-default {
-    cursor: default;
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: all var(--transition-fast, 0.2s);
 }
 
-/* --- UI ELEMENTS --- */
+.btn-close-custom:hover {
+    color: #ef4444;
+    transform: scale(1.1) rotate(90deg);
+}
+
+.btn-close-custom:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --- BODY --- */
+.sidebar-body {
+    padding: 2rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.sidebar-body::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* --- LOADING STATE --- */
+.loading-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #6366f1;
+}
+
 .loading-spinner {
     width: 3rem;
     height: 3rem;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
 }
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- THUMBNAIL PREVIEW --- */
 .thumbnail-preview {
+    width: 100%;
     height: 180px;
     object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* --- CATEGORIES UI --- */
+.category-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.btn-remove-category {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.2s);
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.btn-remove-category:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.btn-add-category {
+    background-color: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    color: #94a3b8;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.2s);
+    margin-top: 0.5rem;
+}
+
+.btn-add-category:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+textarea.styled-input {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 0.4rem;
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './EditSidebar.css';
 import { sendLexiconSuggestions } from '../services/lexiconService';
 
-const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
+const EditSidebar = ({ isOpen, linkData, error, onClose, onSave, onDelete }) => {
     const [title, setTitle] = useState('');
     // Replaced single string category with an array to support up to 5 categories
     const [categories, setCategories] = useState(['']);
@@ -34,6 +34,30 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
             setOriginalTags(initialTags);
         }
     }, [linkData]);
+
+    // --- DELETE ---
+    const handleDeleteClick = async () => {
+        const isConfirmed = window.confirm("Êtes-vous sûr de vouloir supprimer ce lien définitivement ?");
+        if (!isConfirmed) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/links/${linkData.link_id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                // Si la suppression marche, on met à jour l'affichage et on ferme le menu
+                onDelete(linkData.link_id);
+                onClose();
+            } else {
+                alert("Erreur lors de la suppression du lien.");
+            }
+        } catch (err) {
+            alert("Erreur de connexion au serveur.");
+        }
+    };
 
     // --- CATEGORY MANAGEMENT FUNCTIONS ---
     const handleCategoryChange = (index, value) => {
@@ -88,39 +112,32 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
         onSave(updatedData);
     };
 
+
+
     return (
         <>
-            {/* OVERLAY*/}
+            {/* OVERLAY */}
             {isOpen && (
                 <div
-                    className="position-fixed top-0 start-0 w-100 h-100 bg-dark"
-                    style={{
-                        zIndex: 1040, // Juste en dessous de la sidebar
-                        opacity: 0.5, // Semi-transparent
-                        cursor: 'pointer' // Le curseur montre que c'est cliquable
-                    }}
+                    className="sidebar-overlay"
                     onClick={onClose}
                     title="Cliquer pour fermer"
                 ></div>
             )}
 
             {/* SIDEBAR */}
-            <div
-                className={`edit-sidebar d-flex flex-column shadow-lg ${isOpen ? 'is-open' : 'is-closed'}`}
-                style={{
-                    width: '90vw',
-                    maxWidth: '400px',
-                    zIndex: 1050
-                }}
-            >
+            <div className={`edit-sidebar ${isOpen ? 'is-open' : 'is-closed'}`}>
+
                 {/* --- HEADER --- */}
-                <div className="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
-                    <h5 className="m-0 fw-bold">Modifier le lien</h5>
-                    <button type="button" className="btn-close p-3" onClick={onClose} aria-label="Fermer"></button>
+                <div className="sidebar-header">
+                    <h5 className="brand-gradient-text">Modifier le lien</h5>
+                    <button type="button" className="btn-close-custom" onClick={onClose} aria-label="Fermer">
+                        ✕
+                    </button>
                 </div>
 
                 {/* --- BODY --- */}
-                <div className="p-4 flex-grow-1 overflow-auto bg-white">
+                <div className="sidebar-body">
                     {linkData ? (
                         <div>
                             {/* THUMBNAIL PREVIEW */}
@@ -128,31 +145,31 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                 <div className="mb-4 text-center">
                                     <img
                                         src={thumbnailUrl}
-                                        alt="Preview"
-                                        className="img-fluid rounded shadow-sm w-100 thumbnail-preview"
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x180/eeeeee/999999?text=Image+Invalide' }}
+                                        alt="Aperçu"
+                                        className="thumbnail-preview"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x180/1e293b/94a3b8?text=Image+Invalide' }}
                                     />
                                 </div>
                             )}
 
                             {/* IMAGE URL INPUT */}
                             <div className="mb-4">
-                                <label className="form-label fw-bold">URL de l'image</label>
+                                <label className="custom-label">URL de l'image</label>
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="styled-input w-100"
                                     value={thumbnailUrl}
                                     onChange={(e) => setThumbnailUrl(e.target.value)}
                                 />
-                                <div className="form-text mt-1">Modifiez l'image en collant un nouveau lien.</div>
+                                <div className="help-text">Modifiez l'image en collant un nouveau lien.</div>
                             </div>
 
                             {/* TITLE INPUT */}
                             <div className="mb-4">
-                                <label className="form-label fw-bold">Titre</label>
+                                <label className="custom-label">Titre</label>
                                 <input
                                     type="text"
-                                    className="form-control form-control-lg"
+                                    className="styled-input w-100"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                 />
@@ -160,13 +177,13 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
 
                             {/* CATEGORIES SECTION */}
                             <div className="mb-4">
-                                <label className="form-label fw-bold">Catégories (Max 5)</label>
+                                <label className="custom-label">Catégories (Max 5)</label>
 
                                 {categories.map((cat, index) => (
-                                    <div key={index} className="d-flex mb-2">
+                                    <div key={index} className="category-row">
                                         <input
                                             type="text"
-                                            className="form-control form-control-lg"
+                                            className="styled-input w-100"
                                             value={cat}
                                             onChange={(e) => handleCategoryChange(index, e.target.value)}
                                             placeholder={index === 0 ? "Catégorie principale" : `Catégorie ${index + 1}`}
@@ -174,11 +191,11 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                         {categories.length > 1 && (
                                             <button
                                                 type="button"
-                                                className="btn btn-outline-danger ms-2 px-3 fw-bold"
+                                                className="btn-remove-category"
                                                 onClick={() => removeCategory(index)}
                                                 title="Supprimer cette catégorie"
                                             >
-                                                &times;
+                                                ✕
                                             </button>
                                         )}
                                     </div>
@@ -187,44 +204,63 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave }) => {
                                 {categories.length < 5 && (
                                     <button
                                         type="button"
-                                        className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
+                                        className="btn-add-category"
                                         onClick={addCategory}
                                     >
                                         + Ajouter une catégorie
                                     </button>
                                 )}
-                                <div className="form-text mt-2">Ajoutez des catégories existantes ou créez-en.</div>
+                                <div className="help-text">Ajoutez des catégories existantes ou créez-en de nouvelles.</div>
                             </div>
 
                             {/* TAGS INPUT */}
                             <div className="mb-4">
-                                <label className="form-label fw-bold">Tags</label>
+                                <label className="custom-label">Tags</label>
                                 <textarea
-                                    className="form-control form-control-lg"
+                                    className="styled-input w-100"
                                     rows="3"
                                     value={tagsStr}
                                     onChange={(e) => setTagsStr(e.target.value)}
+                                    placeholder="ex: recette, sport, tech..."
                                 ></textarea>
-                                <div className="form-text">Séparez les tags par des virgules (ex: recette, sport).</div>
+                                <div className="help-text">Séparez les tags par des virgules.</div>
                             </div>
 
-                            {error && <div className="alert alert-danger py-2">{error}</div>}
+                            {error && (
+                                <div className="custom-alert custom-alert-danger mb-4 text-center justify-content-center">
+                                    ⚠️ {error}
+                                </div>
+                            )}
 
-                            {/* SUBMIT BUTTON */}
-                            <button className="btn btn-primary btn-lg w-100 py-3 mt-3 fw-bold shadow-sm" onClick={handleConfirm}>
+                            {/* ACTION BUTTONS */}
+                            <button className="btn-primary w-100 mb-3" onClick={handleConfirm}>
                                 Mettre à jour le lien
                             </button>
 
-                            {/* CANCEL BUTTON */}
                             <button
-                                className="btn btn-outline-danger btn-lg w-100 py-3 mt-2 fw-bold"
+                                className="btn-outline-danger w-100"
                                 onClick={onClose}
                             >
                                 Annuler
                             </button>
+
+                            <hr className="sidebar-divider" />
+
+                            <div className="delete-link-wrapper mt-2 mb-2">
+                                <button
+                                    type="button"
+                                    className="btn-delete-link"
+                                    onClick={handleDeleteClick}
+                                >
+                                    Supprimer ce lien définitivement
+                                </button>
+                            </div>
+
                         </div>
                     ) : (
-                        <div className="text-muted text-center mt-5">Aucun lien sélectionné.</div>
+                        <div className="text-center mt-5" style={{ color: '#94a3b8' }}>
+                            Aucun lien sélectionné.
+                        </div>
                     )}
                 </div>
             </div>
