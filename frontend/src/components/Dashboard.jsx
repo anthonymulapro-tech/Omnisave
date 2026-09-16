@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LinksDashboard from './LinksDashboard';
 import SupervisionSidebar from './SupervisionSidebar';
 import EditSidebar from '../components/EditSidebar';
+import './Dashboard.css'; // Import custom styles
 
 const Dashboard = () => {
     // --- States for displaying links ---
@@ -15,7 +16,7 @@ const Dashboard = () => {
     // --- States for the input form ---
     const [newUrl, setNewUrl] = useState('');
     const [addMessage, setAddMessage] = useState(null);
-    const [isFastSaving, setIsFastSaving] = useState(false); // To disable button during background save
+    const [isFastSaving, setIsFastSaving] = useState(false);
 
     // --- States for the Supervision Sidebar ---
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,7 +29,7 @@ const Dashboard = () => {
     const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
     const [editError, setEditError] = useState(null);
 
-    // Fetch User Profile to get Fast-Save preference
+    // Fetch User Profile
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -40,10 +41,11 @@ const Dashboard = () => {
                 setFastSaveEnabled(data.fast_save || false);
             }
         } catch (err) {
-            console.error("Erreur lors de la récupération du profil:", err);
+            console.error("Profile fetch error:", err);
         }
     };
 
+    // Fetch Links
     const fetchLinks = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -60,7 +62,7 @@ const Dashboard = () => {
         }
     };
 
-    // Load both links and user preferences on mount
+    // Load data on mount
     useEffect(() => {
         fetchUserProfile();
         fetchLinks();
@@ -77,7 +79,6 @@ const Dashboard = () => {
 
         setAddMessage(null);
 
-        // UI Feedback based on user preference
         if (fastSaveEnabled) {
             setIsFastSaving(true);
             setAddMessage({ type: 'info', text: 'Analyse et sauvegarde rapide en cours...' });
@@ -102,10 +103,8 @@ const Dashboard = () => {
 
             if (response.ok) {
                 if (fastSaveEnabled) {
-                    // FAST-SAVE: Directly save the preview data without sidebar
                     await performFastSave(data);
                 } else {
-                    // NORMAL: Pass the data to the sidebar
                     setPreviewData(data);
                 }
             } else {
@@ -140,8 +139,8 @@ const Dashboard = () => {
 
             if (response.ok) {
                 setAddMessage({ type: 'success', text: 'Lien sauvegardé automatiquement avec succès ! ⚡' });
-                setNewUrl(''); // Clear input
-                fetchLinks();  // Refresh the list
+                setNewUrl('');
+                fetchLinks();
             } else {
                 setAddMessage({ type: 'danger', text: data.error || 'Échec de la sauvegarde rapide.' });
             }
@@ -150,7 +149,7 @@ const Dashboard = () => {
         }
     };
 
-    // --- STEP 2: HANDLE FINAL SAVE FROM SIDEBAR (Normal Mode) ---
+    // --- STEP 2: HANDLE FINAL SAVE FROM SIDEBAR ---
     const handleSaveLink = async (finalizedData) => {
         setIsSidebarLoading(true);
         setSidebarError(null);
@@ -187,16 +186,6 @@ const Dashboard = () => {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="container mt-5 text-center">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Chargement...</span>
-                </div>
-            </div>
-        );
-    }
-
     const handleEditClick = (link) => {
         setSelectedLinkForEdit(link);
         setEditError(null);
@@ -210,17 +199,16 @@ const Dashboard = () => {
     };
 
     const handleToggleFavorite = (linkId, newFavoriteStatus) => {
-    setLinks(prevLinks =>
-        prevLinks.map(link =>
-            link.link_id === linkId
-                ? { ...link, is_favorite: newFavoriteStatus }
-                : link
-        )
-    );
-};
+        setLinks(prevLinks =>
+            prevLinks.map(link =>
+                link.link_id === linkId
+                    ? { ...link, is_favorite: newFavoriteStatus }
+                    : link
+            )
+        );
+    };
 
     const handleSaveEdit = async (updatedData) => {
-        console.log("2. Dashboard a bien reçu l'ordre ! Données :", updatedData);
         setEditError(null);
         try {
             const token = localStorage.getItem('token');
@@ -257,57 +245,63 @@ const Dashboard = () => {
         }
     };
 
+    // Render loading state with custom spinner
+    if (isLoading) {
+        return (
+            <div className="loader-container">
+                <div className="spinner"></div>
+                <span>Chargement de vos liens...</span>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mt-4">
+        <div className="dashboard-container">
 
             {/* --- ADD NEW LINK SECTION --- */}
-            <div className="card shadow-sm mb-5 border-0">
-                <div className="card-body p-4 bg-light rounded">
-                    <h4 className="mb-3">Ajouter un lien</h4>
-                    <form onSubmit={handlePreviewLink}>
-                        {/*
-                            MAGIE RESPONSIVE :
-                            flex-column = empilé de haut en bas sur mobile
-                            flex-md-row = côte à côte sur ordinateur
-                            gap-2 = espace entre le champ et le bouton
-                        */}
-                        <div className="d-flex flex-column flex-md-row gap-2">
-                            <input
-                                type="url"
-                                className="form-control form-control-lg flex-grow-1"
-                                placeholder="Collez votre lien ici (Instagram, TikTok, Youtube)..."
-                                value={newUrl}
-                                onChange={(e) => setNewUrl(e.target.value)}
-                                disabled={isSidebarOpen || isFastSaving}
-                                required
-                            />
-                            {/* Le bouton prendra toute la largeur sur mobile, et s'adaptera sur PC */}
-                            <button
-                                className="btn btn-primary btn-lg px-4"
-                                type="submit"
-                                disabled={isSidebarOpen || isFastSaving}
-                            >
-                                {fastSaveEnabled ? 'Sauvegarde rapide ⚡' : 'Analysez votre lien'}
-                            </button>
-                        </div>
-                    </form>
+            {/* Uses surface-card from index.css for the global modern look */}
+            <div className="surface-card add-link-section">
+                <h4 className="add-link-title">Ajouter un lien</h4>
+                <form onSubmit={handlePreviewLink} className="add-link-form">
+                    <input
+                        type="url"
+                        className="styled-input"
+                        placeholder="Collez votre lien ici (Instagram, TikTok, Youtube)..."
+                        value={newUrl}
+                        onChange={(e) => setNewUrl(e.target.value)}
+                        disabled={isSidebarOpen || isFastSaving}
+                        required
+                    />
+                    {/* Uses the global btn-primary from index.css */}
+                    <button
+                        className="btn-primary"
+                        type="submit"
+                        disabled={isSidebarOpen || isFastSaving}
+                    >
+                        {fastSaveEnabled ? 'Sauvegarde rapide ⚡' : 'Analyser le lien'}
+                    </button>
+                </form>
 
-                    {addMessage && (
-                        <div className={`alert alert-${addMessage.type} mt-3 mb-0`} role="alert">
-                            {addMessage.text}
-                        </div>
-                    )}
-                </div>
+                {addMessage && (
+                    <div className={`custom-alert custom-alert-${addMessage.type}`}>
+                        {addMessage.type === 'success' && '✅ '}
+                        {addMessage.type === 'danger' && '⚠️ '}
+                        {addMessage.type === 'info' && '⏳ '}
+                        {addMessage.text}
+                    </div>
+                )}
             </div>
 
             {/* --- SAVED LINKS SECTION --- */}
-            <h2 className="mb-4">Mes liens sauvegardés</h2>
+            <h2 className="section-title">Mes liens sauvegardés</h2>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && (
+                <div className="custom-alert custom-alert-danger">{error}</div>
+            )}
 
             {links.length === 0 && !error ? (
-                <div className="alert alert-info text-center">
-                    Vous n'avez pas encore sauvegardés de lien. Collez une URL ci-dessus pour commencer votre collection !
+                <div className="custom-alert custom-alert-info">
+                    💡 Vous n'avez pas encore sauvegardé de lien. Collez une URL ci-dessus pour commencer votre collection !
                 </div>
             ) : (
                 <LinksDashboard
@@ -318,7 +312,7 @@ const Dashboard = () => {
                 />
             )}
 
-            {/* --- SUPERVISION SIDEBAR COMPONENT --- */}
+            {/* --- SIDEBARS --- */}
             <SupervisionSidebar
                 isOpen={isSidebarOpen}
                 isLoading={isSidebarLoading}
