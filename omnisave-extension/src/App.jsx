@@ -50,11 +50,11 @@ function App() {
                 setToken(receivedToken);
                 setMessage(null);
             } else {
-                setMessage({ type: 'error', text: data.error || 'Login failed.' });
+                setMessage({ type: 'error', text: data.error || 'Échec de la connexion.' });
             }
         } catch (error) {
             console.error("Login Error:", error);
-            setMessage({ type: 'error', text: 'Network error. Is the server running?' });
+            setMessage({ type: 'error', text: 'Erreur réseau. Le serveur est-il en ligne ?' });
         } finally {
             setIsLoading(false);
         }
@@ -74,7 +74,7 @@ function App() {
     // --- FAST-SAVE TRIGGER ---
     const handleFastSave = () => {
         setIsLoading(true);
-        setMessage({ type: 'success', text: 'Analyzing... You can close this popup!' });
+        setMessage({ type: 'success', text: 'Analyse en cours... Vous pouvez fermer cette fenêtre !' });
 
         if (window.chrome && chrome.runtime) {
             chrome.runtime.sendMessage(
@@ -91,15 +91,15 @@ function App() {
                         if (response.success) {
                             setMessage({ type: 'success', text: response.message });
                         } else {
-                            setMessage({ type: 'error', text: response.error || 'Failed to grab link.' });
+                            setMessage({ type: 'error', text: response.error || 'Échec de la récupération du lien.' });
                         }
                     } else {
-                         setMessage({ type: 'error', text: 'No response from background script.' });
+                         setMessage({ type: 'error', text: 'Aucune réponse de l\'extension.' });
                     }
                 }
             );
         } else {
-            setMessage({ type: 'error', text: 'Chrome API not available in local dev mode.' });
+            setMessage({ type: 'error', text: 'API Chrome indisponible en mode développement local.' });
             setIsLoading(false);
         }
     };
@@ -124,7 +124,7 @@ function App() {
                         <div className="password-wrapper">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Password"
+                                placeholder="Mot de passe"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -133,23 +133,23 @@ function App() {
                                 type="button"
                                 className="btn-toggle-password"
                                 onClick={() => setShowPassword(!showPassword)}
-                                title={showPassword ? "Hide password" : "Show password"}
+                                title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                             >
                                 {showPassword ? '🙈' : '👁️'}
                             </button>
                         </div>
 
                         <button type="submit" className="btn-primary" disabled={isLoading}>
-                            {isLoading ? 'Connecting...' : 'Login'}
+                            {isLoading ? 'Connexion...' : 'Se connecter'}
                         </button>
                     </form>
                 ) : (
                     <div className="action-section">
                         <button className="btn-fast-save" onClick={handleFastSave}>
-                            <span>⚡</span> Fast-Save Link
+                            <span>⚡</span> Sauvegarde rapide
                         </button>
                         <button className="btn-logout" onClick={() => handleLogout()}>
-                            Logout
+                            Déconnexion
                         </button>
                     </div>
                 )}
