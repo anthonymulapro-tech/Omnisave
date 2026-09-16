@@ -84,29 +84,29 @@ function RegisterForm() {
 
     return (
         <div className="container mt-5" style={{ maxWidth: '400px' }}>
-            <h2 className="text-center mb-4">Créer un compte</h2>
-            <form onSubmit={handleRegister} className="card p-4 shadow-sm">
+            <h2 className="text-center mb-4 fw-bold">Créer un compte</h2>
+            <form onSubmit={handleRegister} className="card p-4 shadow-sm border-0">
 
-                <div className="row mb-3">
-                    <div className="col">
-                        <label className="form-label">Prénom</label>
-                        <input type="text" className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                {/* Grid responsive : g-3 ajoute un espacement, col-12 empile sur mobile, col-sm-6 aligne sur PC */}
+                <div className="row g-3 mb-3">
+                    <div className="col-12 col-sm-6">
+                        <label className="form-label fw-semibold">Prénom</label>
+                        <input type="text" className="form-control form-control-lg" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                     </div>
-                    <div className="col">
-                        <label className="form-label">Nom</label>
-                        <input type="text" className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    <div className="col-12 col-sm-6">
+                        <label className="form-label fw-semibold">Nom</label>
+                        <input type="text" className="form-control form-control-lg" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="mb-3">
-                    <label className="form-label">Email</label>
-                    <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <label className="form-label fw-semibold">Email</label>
+                    <input type="email" className="form-control form-control-lg" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
 
                 <div className="mb-3">
-                    <label className="form-label">Mot de passe</label>
-                    {/* NEW: Input group for password with toggle button */}
-                    <div className="input-group">
+                    <label className="form-label fw-semibold">Mot de passe</label>
+                    <div className="input-group input-group-lg">
                         <input
                             type={showPassword ? "text" : "password"}
                             className="form-control"
@@ -115,7 +115,7 @@ function RegisterForm() {
                             required
                         />
                         <button
-                            className="btn btn-outline-secondary"
+                            className="btn btn-outline-secondary px-3"
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label="Toggle password visibility"
@@ -123,15 +123,14 @@ function RegisterForm() {
                             {showPassword ? "🙈" : "👁️"}
                         </button>
                     </div>
-                    <div className="form-text" style={{ fontSize: '0.8rem' }}>
+                    <div className="form-text mt-2" style={{ fontSize: '0.85rem' }}>
                         Min. 8 caractères, 1 majuscule, 1 chiffre, 1 caractère spécial.
                     </div>
                 </div>
 
                 <div className="mb-4">
-                    <label className="form-label">Confirmer le mot de passe</label>
-                    {/* NEW: Input group for confirm password with toggle button */}
-                    <div className="input-group">
+                    <label className="form-label fw-semibold">Confirmer le mot de passe</label>
+                    <div className="input-group input-group-lg">
                         <input
                             type={showConfirmPassword ? "text" : "password"}
                             className="form-control"
@@ -140,7 +139,7 @@ function RegisterForm() {
                             required
                         />
                         <button
-                            className="btn btn-outline-secondary"
+                            className="btn btn-outline-secondary px-3"
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             aria-label="Toggle confirm password visibility"
@@ -150,16 +149,18 @@ function RegisterForm() {
                     </div>
                 </div>
 
-                <button type="submit" className="btn btn-success w-100 mb-3">
+                <button type="submit" className="btn btn-success btn-lg w-100 mb-3 fw-bold">
                     S'inscrire
                 </button>
 
-                <div className="text-center">
-                    <Link to="/login" className="text-decoration-none">Déjà un compte ? Se connecter</Link>
+                <div className="text-center mt-2">
+                    <Link to="/login" className="text-decoration-none text-muted">
+                        Déjà un compte ? <span className="text-primary fw-semibold">Se connecter</span>
+                    </Link>
                 </div>
             </form>
 
-            {message && <div className={`alert alert-${message.type} mt-3`}>{message.text}</div>}
+            {message && <div className={`alert alert-${message.type} mt-4 py-2`}>{message.text}</div>}
         </div>
     );
 }

@@ -3,7 +3,11 @@
     position: fixed;
     top: 0;
     left: 0; /* Slide from the left side */
-    width: 400px;
+
+    /* RESPONSIVE MAGIC: 90% of screen on mobile, capped at 400px on desktop */
+    width: 90vw;
+    max-width: 400px;
+
     height: 100vh;
     background-color: #ffffff;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1); /* Shadow cast to the right */
@@ -20,4 +24,20 @@
 /* When open, it slides into its normal position */
 .edit-sidebar.is-open {
     transform: translateX(0);
+}
+
+/* --- OVERLAY --- */
+.sidebar-overlay {
+    z-index: 1040;
+    opacity: 0.5;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* --- UI ELEMENTS --- */
+.thumbnail-preview {
+    height: 180px;
+    object-fit: cover;
 }

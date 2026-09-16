@@ -24,14 +24,15 @@ function Navbar() {
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
             <div className="container">
-                {/* Brand Logo / Name */}
-                <Link className="navbar-brand fw-bold" to="/">
+                {/* BRAND LOGO */}
+                <Link className="navbar-brand fw-bold fs-4" to="/">
                     Omnisave
                 </Link>
 
-                {/* Mobile Toggle Button */}
+                {/* MOBILE TOGGLE BUTTON */}
+                {/* Removed borders and shadow for a cleaner look on mobile */}
                 <button
-                    className="navbar-toggler"
+                    className="navbar-toggler border-0 shadow-none p-2"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarNav"
@@ -42,38 +43,47 @@ function Navbar() {
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
-                {/* Navigation Links */}
+                {/* NAVIGATION LINKS */}
                 <div className="collapse navbar-collapse" id="navbarNav">
-                    {/* Added align-items-center to keep buttons and text vertically aligned */}
-                    <ul className="navbar-nav ms-auto align-items-center">
+                    {/*
+                        RESPONSIVE ALIGNMENT:
+                        - align-items-lg-center: Centered only on desktop
+                        - gap-2 gap-lg-3: Clean spacing between items (no need for manual mt-1 or ms-3)
+                        - pb-3 pb-lg-0: Adds padding at the bottom of the open mobile menu
+                    */}
+                    <ul className="navbar-nav ms-auto align-items-lg-center gap-2 gap-lg-3 mt-3 mt-lg-0 pb-3 pb-lg-0">
                         {isAuthenticated ? (
-                            // Links visible ONLY to logged-in users
+                            // AUTHENTICATED USERS
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/dashboard">Accueil</Link>
+                                    {/* Increased padding for better touch targets */}
+                                    <Link className="nav-link px-2 py-2" to="/dashboard">Accueil</Link>
                                 </li>
 
-                                {/* Link to navigate to the user profile settings */}
-                                <li className="nav-item ms-lg-3">
-                                    <Link className="btn btn-outline-light btn-sm mt-1" to="/profile">
+                                <li className="nav-item">
+                                    {/* w-100 makes the button full-width on mobile, auto-width on desktop */}
+                                    <Link className="btn btn-outline-light w-100 px-4 py-2 fw-semibold" to="/profile">
                                         Profil
                                     </Link>
                                 </li>
 
-                                <li className="nav-item ms-lg-2">
-                                    <button onClick={handleLogout} className="btn btn-outline-danger btn-sm mt-1">
+                                <li className="nav-item">
+                                    <button onClick={handleLogout} className="btn btn-outline-danger w-100 px-4 py-2 fw-semibold">
                                         Se déconnecter
                                     </button>
                                 </li>
                             </>
                         ) : (
-                            // Links visible ONLY to guests (not logged in)
+                            // GUESTS
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/login">Connexion</Link>
+                                    <Link className="nav-link px-2 py-2" to="/login">Connexion</Link>
                                 </li>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/register">Inscription</Link>
+                                    {/* Differentiated UI: Register is a solid primary button */}
+                                    <Link className="btn btn-primary w-100 px-4 py-2 fw-semibold" to="/register">
+                                        Inscription
+                                    </Link>
                                 </li>
                             </>
                         )}

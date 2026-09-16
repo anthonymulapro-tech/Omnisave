@@ -265,19 +265,25 @@ const Dashboard = () => {
                 <div className="card-body p-4 bg-light rounded">
                     <h4 className="mb-3">Ajouter un lien</h4>
                     <form onSubmit={handlePreviewLink}>
-                        <div className="input-group input-group-lg">
+                        {/*
+                            MAGIE RESPONSIVE :
+                            flex-column = empilé de haut en bas sur mobile
+                            flex-md-row = côte à côte sur ordinateur
+                            gap-2 = espace entre le champ et le bouton
+                        */}
+                        <div className="d-flex flex-column flex-md-row gap-2">
                             <input
                                 type="url"
-                                className="form-control"
-                                placeholder="Collez votre lien Instagram, TikTok, ou Youtube ici..."
+                                className="form-control form-control-lg flex-grow-1"
+                                placeholder="Collez votre lien ici (Instagram, TikTok, Youtube)..."
                                 value={newUrl}
                                 onChange={(e) => setNewUrl(e.target.value)}
                                 disabled={isSidebarOpen || isFastSaving}
                                 required
                             />
-                            {/* Dynamic button text based on Fast-Save status */}
+                            {/* Le bouton prendra toute la largeur sur mobile, et s'adaptera sur PC */}
                             <button
-                                className="btn btn-primary px-4"
+                                className="btn btn-primary btn-lg px-4"
                                 type="submit"
                                 disabled={isSidebarOpen || isFastSaving}
                             >
