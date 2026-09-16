@@ -1,0 +1,103 @@
+/* frontend/src/pages/LegalMentions.css */
+
+.legal-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+    width: 100%;
+    /* Smooth fade-in animation on page load */
+    animation: fadeIn 0.4s ease-out;
+}
+
+.legal-content {
+    max-width: 800px;
+    width: 100%;
+    padding: 48px;
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.legal-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-top: 0;
+    margin-bottom: 40px;
+    text-align: center;
+    /* Omnisave gradient */
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.legal-section {
+    margin-bottom: 32px;
+}
+
+.legal-section:last-child {
+    margin-bottom: 0;
+}
+
+.legal-section h2 {
+    font-size: 20px;
+    color: #f8fafc;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-section p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.legal-section strong {
+    color: #e2e8f0;
+    font-weight: 600;
+}
+
+.legal-section a {
+    color: #6366f1;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.legal-section a:hover {
+    color: #a855f7;
+    text-decoration: underline;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .legal-content {
+        padding: 32px 24px;
+    }
+
+    .legal-title {
+        font-size: 28px;
+        margin-bottom: 32px;
+    }
+
+    .legal-section h2 {
+        font-size: 18px;
+    }
+}

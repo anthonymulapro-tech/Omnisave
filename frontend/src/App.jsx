@@ -1,43 +1,50 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import React from 'react';
-// Adjust the path depending on where you saved LinkCard.jsx
-import LinkCard from './components/LinkCard';
+import LegalMentions from './pages/LegalMentions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function App() {
   return (
     <Router>
-      {/* The Navbar is placed inside the Router but outside the Routes,
-          so it renders on every single page! */}
-      <Navbar />
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
-      {/* Main content wrapper with margin for spacing */}
-      <div className="container mt-4">
-        <Routes>
+        <Navbar />
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <div className="container mt-4" style={{ flex: 1 }}>
+          <Routes>
 
-          {/* Authentication */}
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Dashboard (Placeholder for now) */}
-          <Route path="/dashboard" element={<Dashboard />} />
+            {/* Authentication */}
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/register" element={<RegisterForm />} />
 
-          {/* User Profile */}
-          <Route path="/profile" element={<Profile />} />
+            {/* Dashboard (Placeholder for now) */}
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Fallback route: Return to Homepage if URL is unknown */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+            {/* User Profile */}
+            <Route path="/profile" element={<Profile />} />
+
+            {/* Legal Pages */}
+            <Route path="/legal-mentions" element={<LegalMentions />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+            {/* Fallback route: Return to Homepage if URL is unknown */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+
+        <Footer />
+
       </div>
     </Router>
   );
 }
-
 
 export default App;
