@@ -75,17 +75,7 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
     }`;
 
     return (
-        <>
-            {/* 1. OVERLAY (NON-CLICKABLE DARK BACKDROP) */}
-            {sidebarClasses.includes('is-open') && (
-                <div
-                    // Replaced inline styles with 'sidebar-overlay' and dynamic cursor classes
-                    className={`position-fixed top-0 start-0 w-100 h-100 bg-dark sidebar-overlay ${isLoading ? 'cursor-wait' : 'cursor-default'}`}
-                    title={isLoading ? "Veuillez patienter..." : ""}
-                ></div>
-            )}
 
-            {/* 2. THE SIDEBAR */}
             <div
                 className={`${sidebarClasses} shadow-lg d-flex flex-column`}
             >
@@ -231,7 +221,6 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
                     )}
                 </div>
             </div>
-        </>
     );
 };
 
