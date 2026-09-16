@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CATEGORY_TRANSLATIONS } from '../constants/translations';
+import './LinkCard.css'; // Importing our new specific styles
 
 const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
     const [imageError, setImageError] = useState(false);
@@ -76,61 +77,61 @@ const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
         : ["Autres"];
 
     return (
-        <div className="card mb-3 shadow-sm border-0 overflow-hidden position-relative">
+        /* We use 'surface-card' from App.css for the base styling and 'link-card' for specifics */
+        <div className="surface-card link-card">
 
-            {/* FAVORITE BUTTON: Increased touch target to 44x44px for better mobile UX */}
-            <button
-                onClick={handleToggleFavorite}
-                className="btn position-absolute top-0 start-0 m-2 bg-light shadow-sm rounded-circle d-flex align-items-center justify-content-center"
-                aria-label="Toggle favorite"
-                style={{ zIndex: 10, cursor: 'pointer', width: '44px', height: '44px', border: 'none', fontSize: '1.2rem' }}
-                title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-            >
-                {isFavorite ? '❤️' : '🤍'}
-            </button>
+            {/* THUMBNAIL & FLOATING ACTIONS */}
+            <div className="link-card-image-wrapper">
 
-            {/* DELETE BUTTON: Added custom padding to expand the clickable hitbox without distorting the icon */}
-            <button
-                onClick={handleDelete}
-                className="btn-close position-absolute top-0 end-0 m-2 bg-light shadow-sm rounded-circle"
-                aria-label="Delete link"
-                style={{ zIndex: 10, cursor: 'pointer', padding: '0.8rem' }}
-                title="Delete this link"
-            ></button>
-
-            {/* THUMBNAIL */}
-            {link.thumbnail_url && !imageError ? (
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    <img
-                        src={link.thumbnail_url}
-                        alt={link.title}
-                        className="card-img-top"
-                        referrerPolicy="no-referrer"
-                        onError={() => setImageError(true)}
-                        style={{ height: '220px', objectFit: 'cover' }}
-                    />
-                </a>
-            ) : (
-                <div
-                    className="card-img-top bg-light d-flex align-items-center justify-content-center"
-                    style={{ height: '220px' }}
+                {/* FAVORITE BUTTON */}
+                <button
+                    onClick={handleToggleFavorite}
+                    className="card-action-btn btn-favorite"
+                    aria-label="Toggle favorite"
+                    title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                 >
-                    <span className="text-muted fw-bold">
-                        📷 Image indisponible
-                    </span>
-                </div>
-            )}
+                    {isFavorite ? '❤️' : '🤍'}
+                </button>
 
-            <div className="card-body">
+                {/* DELETE BUTTON */}
+                <button
+                    onClick={handleDelete}
+                    className="card-action-btn btn-delete"
+                    aria-label="Delete link"
+                    title="Supprimer ce lien"
+                >
+                    🗑️
+                </button>
+
+                {/* IMAGE */}
+                {link.thumbnail_url && !imageError ? (
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                        <img
+                            src={link.thumbnail_url}
+                            alt={link.title}
+                            className="link-card-img"
+                            referrerPolicy="no-referrer"
+                            onError={() => setImageError(true)}
+                        />
+                    </a>
+                ) : (
+                    <div className="link-card-no-image">
+                        <span>📷 Image indisponible</span>
+                    </div>
+                )}
+            </div>
+
+            {/* CARD BODY */}
+            <div className="link-card-body">
+
                 {/* HEADER: Platform and Categories */}
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                    <span className="text-muted small fw-bold text-uppercase mt-1">
+                <div className="link-card-header">
+                    <span className="link-platform">
                         {link.platform}
                     </span>
-                    <div className="d-flex flex-wrap gap-1 justify-content-end">
-                        {/* Map over the categories array to display multiple badges */}
+                    <div className="badge-group">
                         {displayCategories.map((cat, index) => (
-                            <span key={index} className="badge bg-secondary py-1 px-2">
+                            <span key={index} className="badge-category">
                                 {CATEGORY_TRANSLATIONS[cat] || cat}
                             </span>
                         ))}
@@ -138,26 +139,20 @@ const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
                 </div>
 
                 {/* TITLE */}
-                <h5 className="card-title mb-2">
-                    <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-decoration-none text-dark fw-semibold"
-                        style={{ lineHeight: '1.4' }}
-                    >
-                        {link.title}
-                    </a>
-                </h5>
+                <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-title"
+                >
+                    {link.title}
+                </a>
 
                 {/* TAGS SECTION */}
                 {link.tags && link.tags.length > 0 && (
-                    <div className="mt-3">
+                    <div className="badge-group mt-auto">
                         {link.tags.map((tag, index) => (
-                            <span
-                                key={index}
-                                className="badge rounded-pill bg-primary me-2 mb-1 py-1 px-2"
-                            >
+                            <span key={index} className="badge-tag">
                                 #{tag}
                             </span>
                         ))}
@@ -166,12 +161,10 @@ const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
             </div>
 
             {/* FOOTER */}
-            <div className="card-footer bg-white text-muted small d-flex justify-content-between align-items-center border-top-0 py-3">
+            <div className="link-card-footer">
                 <span>Ajouté le {formattedDate}</span>
-
-                {/* EDIT BUTTON: Removed btn-sm and added padding for a larger touch area */}
                 <button
-                    className="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
+                    className="btn-edit"
                     onClick={() => onEdit(link)}
                     title="Modifier les éléments"
                 >

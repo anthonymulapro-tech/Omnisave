@@ -1,0 +1,157 @@
+/* --- LINK CARD CONTAINER --- */
+.link-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    /* surface-card classes from App.css will handle background, border, and hover shadow */
+}
+
+/* --- IMAGE WRPAPER & ANIMATION --- */
+.link-card-image-wrapper {
+    position: relative;
+    height: 200px;
+    overflow: hidden; /* Keeps the zoom effect inside the box */
+    background-color: rgba(255, 255, 255, 0.05); /* Fallback dark mode background */
+}
+
+.link-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-fast);
+}
+
+.link-card:hover .link-card-img {
+    transform: scale(1.05); /* Slight zoom on card hover */
+}
+
+.link-card-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* --- FLOATING ACTION BUTTONS (Glassmorphism) --- */
+.card-action-btn {
+    position: absolute;
+    top: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-light);
+    background: rgba(15, 23, 42, 0.6); /* Semi-transparent dark */
+    backdrop-filter: blur(8px); /* Frost/Glass effect */
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all var(--transition-fast);
+}
+
+.card-action-btn:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.btn-favorite { left: 10px; }
+.btn-delete { right: 10px; }
+
+/* --- CARD CONTENT --- */
+.link-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.link-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.link-platform {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.link-title {
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Truncate after 2 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color var(--transition-fast);
+}
+
+.link-title:hover {
+    color: var(--primary-hover);
+}
+
+/* --- BADGES --- */
+.badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.badge-category {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.badge-tag {
+    background-color: rgba(99, 102, 241, 0.15); /* Primary color with transparency */
+    color: #818cf8; /* Lighter primary color */
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px; /* Pill shape */
+    font-weight: 500;
+}
+
+/* --- FOOTER --- */
+.link-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.btn-edit {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.btn-edit:hover {
+    background: var(--primary);
+    color: white;
+}
