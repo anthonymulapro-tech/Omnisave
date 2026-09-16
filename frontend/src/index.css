@@ -1,0 +1,73 @@
+:root {
+  /* BACKGROUNDS (Modern Deep Slate) */
+  --bg-main: #0f172a;       /* Le fond principal de la page */
+  --bg-surface: #1e293b;    /* Le fond de tes cartes de liens et de la sidebar */
+
+  /* ACCENT COLOR (Brand Identity) */
+  --primary: #6366f1;       /* Un bel Indigo tech */
+  --primary-hover: #4f46e5;
+
+  /* TEXT (RGAA Compliant) */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+
+  /* BORDERS & SHADOWS */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+
+  /* ANIMATIONS */
+  --transition-fast: 0.2s ease-in-out;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif; /* Police moderne et propre */
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- MODERN BUTTON --- */
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px; /* Bords légèrement arrondis */
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+
+  /* La magie est ici : on dit au navigateur d'animer TOUT changement d'état */
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  /* Le bouton "monte" de 2 pixels vers le haut */
+  transform: translateY(-2px);
+  /* L'ombre s'agrandit et prend la couleur du bouton */
+  box-shadow: var(--shadow-hover);
+}
+
+.btn-primary:active {
+  /* Effet d'enfoncement quand on clique */
+  transform: translateY(0);
+}
+
+/* --- SURFACES (Cards, Sidebar, Modals) --- */
+.surface-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all var(--transition-fast);
+}
+
+/* Un bel effet hover sur les cartes de tes liens */
+.surface-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
