@@ -42,7 +42,7 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave, onDelete }) => 
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/links/${linkData.link_id}`, {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links/${linkData.link_id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

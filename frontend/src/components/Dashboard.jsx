@@ -54,7 +54,7 @@ const Dashboard = () => {
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/profile', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -70,7 +70,7 @@ const Dashboard = () => {
     const fetchLinks = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/links', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Impossible de récupérer les liens');
@@ -111,7 +111,7 @@ const Dashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/links/preview', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links/preview`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ const Dashboard = () => {
     const performFastSave = async (analyzedData) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/links', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ const Dashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/links', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ const Dashboard = () => {
         setEditError(null);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/links/${updatedData.link_id}`, {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links/${updatedData.link_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
