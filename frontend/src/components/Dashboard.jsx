@@ -29,6 +29,27 @@ const Dashboard = () => {
     const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
     const [editError, setEditError] = useState(null);
 
+    // --- PWA Share Target Handler ---
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        // Android share target might send the link in 'url' or 'text' params
+        const sharedData = params.get('url') || params.get('text');
+
+        if (sharedData) {
+            // Extract the exact URL using regex in case the OS adds extra text
+            const extractedUrl = sharedData.match(/https?:\/\/[^\s]+/)?.[0];
+
+            if (extractedUrl) {
+                setNewUrl(extractedUrl);
+                setAddMessage({ type: 'info', text: 'Lien reçu depuis le partage !' });
+            }
+
+            // Clean the URL bar to prevent re-processing the same link on page refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
+
     // Fetch User Profile
     const fetchUserProfile = async () => {
         try {
