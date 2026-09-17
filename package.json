@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "react-select": "^5.10.2"
+  },
+  "devDependencies": {
+    "vite-plugin-pwa": "^1.3.0"
   }
 }
