@@ -40,7 +40,7 @@ const Profile = () => {
     const fetchProfile = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:5000/api/profile', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/profile`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ const Profile = () => {
 
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:5000/api/profile', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ const Profile = () => {
 
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:5000/api/profile/password', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/profile/password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ const Profile = () => {
 
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:5000/api/profile', {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/profile`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

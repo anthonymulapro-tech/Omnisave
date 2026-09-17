@@ -24,7 +24,7 @@ const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://127.0.0.1:5000/api/links/${link.link_id}/favorite`, {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links/${link.link_id}/favorite`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -53,7 +53,7 @@ const LinkCard = ({ link, onDelete, onEdit, onToggleFavorite }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://127.0.0.1:5000/api/links/${link.link_id}`, {
+            const response = await fetch(`http://${window.location.hostname}:5000/api/links/${link.link_id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

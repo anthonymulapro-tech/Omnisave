@@ -22,7 +22,7 @@ export const sendLexiconSuggestions = (category, tags, isEdit = false, originalT
     // If no tags to send after filtering, stop here
     if (tagsToSend.length === 0) return;
 
-    const BACKEND_URL = 'http://localhost:5000';
+    const BACKEND_URL = `http://${window.location.hostname}:5000`;
     const token = localStorage.getItem('token') || localStorage.getItem('access_token') || localStorage.getItem('jwt');
 
     tagsToSend.forEach(tag => {
