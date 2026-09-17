@@ -50,7 +50,20 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ]
+        ],
+        screenshots: [
+          {
+            src: '/screenshot-desktop.png',
+            sizes: '2544x1272',
+            type: 'image/png',
+            form_factor: 'wide'
+          },
+          {
+            src: '/screenshot-mobile.png',
+            sizes: '376x864',
+            type: 'image/png'
+          }
+          ]
       }
     })
   ]
