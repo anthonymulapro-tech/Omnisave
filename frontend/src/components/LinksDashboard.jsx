@@ -12,6 +12,9 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
     const [sortOrder, setSortOrder] = useState('DESC');
     const [selectedPlatform, setSelectedPlatform] = useState('all');
 
+    // NEW STATE: Toggle filters on mobile
+    const [showFilters, setShowFilters] = useState(false);
+
     // Extract unique categories
     const uniqueCategories = useMemo(() => {
         const allCategories = initialLinks.flatMap(link => link.categories || []);
@@ -125,7 +128,6 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
 
     }, [initialLinks, searchQuery, categoryFilter, selectedPlatform, dateFilter, showFavoritesOnly, sortOrder]);
 
-    // --- RESET FILTERS FUNCTION ---
     const handleResetFilters = () => {
         setSearchQuery('');
         setCategoryFilter('ALL');
@@ -135,12 +137,21 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
         setShowFavoritesOnly(false);
     };
 
-
     return (
-        <div className="links-dashboard-wrapper">{/* HEADER: SEARCH AND FILTERS */}
+        <div className="links-dashboard-wrapper">
             <div className="surface-card filters-container">
 
+                {/* SEARCH & QUICK ACTIONS (Always visible) */}
                 <div className="search-group">
+                    {/* FAVORITES BUTTON (Mobile Version - Hidden on Desktop) */}
+                    <button
+                        className={`btn-icon btn-favorite-mobile ${showFavoritesOnly ? 'active' : ''}`}
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        title="Afficher uniquement les favoris"
+                    >
+                        {showFavoritesOnly ? '❤️' : '🤍'}
+                    </button>
+
                     <input
                         type="text"
                         className="styled-input search-input"
@@ -148,12 +159,24 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+
+                    {/* TOGGLE FILTERS BUTTON (Visible only on mobile) */}
+                    <button
+                        className={`btn-icon btn-filter-toggle ${showFilters ? 'active' : ''}`}
+                        onClick={() => setShowFilters(!showFilters)}
+                        title="Afficher/Masquer les filtres"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
                 </div>
 
-                <div className="dropdown-group">
-                    {/* BOUTON FAVORIS */}
+                {/* DROPDOWNS (Hidden on mobile by default) */}
+                <div className={`dropdown-group ${showFilters ? 'mobile-expanded' : ''}`}>
+                   {/* FAVORITES BUTTON (Desktop Version - Hidden on Mobile) */}
                     <button
-                        className={`btn-icon ${showFavoritesOnly ? 'active' : ''}`}
+                        className={`btn-icon btn-favorite-desktop ${showFavoritesOnly ? 'active' : ''}`}
                         onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                         title="Afficher uniquement les favoris"
                     >
