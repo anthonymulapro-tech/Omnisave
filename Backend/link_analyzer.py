@@ -131,7 +131,7 @@ class LinkAnalyzer:
         return final_tags[:limit]
 
     def analyze(self, text):
-        """Analyzes the text and returns the category and tags."""
+        """Analyzes the text and returns the categories and tags."""
         self._check_and_reload()
 
         scores = {category: 0 for category in self.lexicon.keys()}
@@ -159,27 +159,31 @@ class LinkAnalyzer:
                     if root_word in words:
                         scores[category] += (points * coef * grammar_multiplier)
 
-        best_category = self._determine_winner(scores)
+        best_categories = self._determine_winners(scores)
 
-        if best_category == "Non catégorisé":
+        if "Non catégorisé" in best_categories:
             self._log_unknown_words(doc)
 
         raw_tags = self._extract_tags(text, doc)
         cleaned_tags = list(dict.fromkeys(tag.strip().lower() for tag in raw_tags))
 
         return {
-            "category": best_category,
+            "categories": best_categories,
             "tags": cleaned_tags
         }
 
-    def _determine_winner(self, scores):
-        """Finds the category with the highest score."""
+    def _determine_winners(self, scores):
+        """Trouve toutes les catégories pertinentes dépassant le seuil (Max 5)."""
         minimum_threshold = 50
-        best_category = max(scores, key=scores.get)
 
-        if scores[best_category] < minimum_threshold:
-            return "Non catégorisé"
-        return best_category
+        valid_categories = {cat: score for cat, score in scores.items() if score >= minimum_threshold}
+
+        if not valid_categories:
+            return ["Non catégorisé"]
+
+        sorted_categories = sorted(valid_categories.keys(), key=lambda k: valid_categories[k], reverse=True)
+
+        return sorted_categories[:5]
 
 
 if __name__ == '__main__':

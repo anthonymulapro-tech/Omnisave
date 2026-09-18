@@ -200,11 +200,11 @@ def analyze_api():
         logging.info("Sending text to AI analyzer (spaCy)...")
 
         # --- ANALYSIS LOGIC ---
-        category = analyzer.analyze(extracted_text)
+        ai_result = analyzer.analyze(extracted_text)
 
-        logging.info(f"Analysis complete. Category detected: {category}")
+        logging.info(f"Analysis complete. Categories detected: {ai_result.get('categories')}")
 
-        return jsonify({'category': category}), 200
+        return jsonify({'categories': ai_result.get('categories')}), 200
 
     except Exception as e:
         logging.error(f"Critical error during link analysis: {e}")
@@ -403,7 +403,7 @@ def preview_link(current_user_id):
             "title": dynamic_title,
             "thumbnail_url": dynamic_thumbnail,
             "platform": domain,
-            "categories": [ai_result["category"]],
+            "categories": ai_result.get("categories", ["Divers"]),
             "tags": ai_result["tags"]
         }), 200
 
