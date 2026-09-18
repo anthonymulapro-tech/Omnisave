@@ -2,29 +2,23 @@ import React, { useState, useEffect } from 'react';
 import LinksDashboard from './LinksDashboard';
 import SupervisionSidebar from './SupervisionSidebar';
 import EditSidebar from '../components/EditSidebar';
-import './Dashboard.css'; // Import custom styles
+import './Dashboard.css';
 
 const Dashboard = () => {
-    // --- States for displaying links ---
+    // --- States ---
     const [links, setLinks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    // --- State for User Preferences ---
     const [fastSaveEnabled, setFastSaveEnabled] = useState(false);
-
-    // --- States for the input form ---
     const [newUrl, setNewUrl] = useState('');
     const [addMessage, setAddMessage] = useState(null);
     const [isFastSaving, setIsFastSaving] = useState(false);
 
-    // --- States for the Supervision Sidebar ---
+    // Sidebars states
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarLoading, setIsSidebarLoading] = useState(false);
     const [previewData, setPreviewData] = useState(null);
     const [sidebarError, setSidebarError] = useState(null);
-
-    // --- States for the Edit Sidebar ---
     const [isEditSidebarOpen, setIsEditSidebarOpen] = useState(false);
     const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
     const [editError, setEditError] = useState(null);
@@ -32,20 +26,14 @@ const Dashboard = () => {
     // --- PWA Share Target Handler ---
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-
-        // Android share target might send the link in 'url' or 'text' params
         const sharedData = params.get('url') || params.get('text');
 
         if (sharedData) {
-            // Extract the exact URL using regex in case the OS adds extra text
             const extractedUrl = sharedData.match(/https?:\/\/[^\s]+/)?.[0];
-
             if (extractedUrl) {
                 setNewUrl(extractedUrl);
                 setAddMessage({ type: 'info', text: 'Lien reçu depuis le partage !' });
             }
-
-            // Clean the URL bar to prevent re-processing the same link on page refresh
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
@@ -83,14 +71,53 @@ const Dashboard = () => {
         }
     };
 
-    // Load data on mount
+    // --- EVENTS ---
     useEffect(() => {
         fetchUserProfile();
         fetchLinks();
+
+        let timeout1;
+        let timeout2;
+
+        const syncData = () => {
+
+            fetchLinks();
+            clearTimeout(timeout1);
+            clearTimeout(timeout2);
+            timeout1 = setTimeout(fetchLinks, 3000);
+            timeout2 = setTimeout(fetchLinks, 7000);
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') syncData();
+        };
+        const handleFocus = () => syncData();
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+            clearTimeout(timeout1);
+            clearTimeout(timeout2);
+        };
     }, []);
 
+    // --- OPTIMISTIC UI : Delete ---
     const handleDeleteLink = (deletedLinkId) => {
         setLinks(prevLinks => prevLinks.filter(link => link.link_id !== deletedLinkId));
+    };
+
+    // --- OPTIMISTIC UI : Favorite ---
+    const handleToggleFavorite = (linkId, newFavoriteStatus) => {
+        setLinks(prevLinks =>
+            prevLinks.map(link =>
+                link.link_id === linkId
+                    ? { ...link, is_favorite: newFavoriteStatus }
+                    : link
+            )
+        );
     };
 
     // --- STEP 1: TRIGGER PREVIEW ---
@@ -113,10 +140,7 @@ const Dashboard = () => {
             const token = localStorage.getItem('token');
             const response = await fetch(`http://${window.location.hostname}:5000/api/links/preview`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ url: newUrl })
             });
 
@@ -136,9 +160,7 @@ const Dashboard = () => {
             setAddMessage({ type: 'danger', text: 'Erreur de connexion au serveur.' });
             setIsSidebarOpen(false);
         } finally {
-            if (!fastSaveEnabled) {
-                setIsSidebarLoading(false);
-            }
+            if (!fastSaveEnabled) setIsSidebarLoading(false);
             setIsFastSaving(false);
         }
     };
@@ -149,24 +171,21 @@ const Dashboard = () => {
             const token = localStorage.getItem('token');
             const response = await fetch(`http://${window.location.hostname}:5000/api/links`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(analyzedData)
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setAddMessage({ type: 'success', text: 'Lien sauvegardé automatiquement avec succès ! ⚡' });
+                setAddMessage({ type: 'success', text: 'Lien sauvegardé avec succès ! ⚡' });
                 setNewUrl('');
                 fetchLinks();
             } else {
-                setAddMessage({ type: 'danger', text: data.error || 'Échec de la sauvegarde rapide.' });
+                setAddMessage({ type: 'danger', text: data.error || 'Échec de la sauvegarde.' });
             }
         } catch (err) {
-            setAddMessage({ type: 'danger', text: 'Erreur de connexion lors de la sauvegarde.' });
+            setAddMessage({ type: 'danger', text: 'Erreur lors de la sauvegarde.' });
         }
     };
 
@@ -179,10 +198,7 @@ const Dashboard = () => {
             const token = localStorage.getItem('token');
             const response = await fetch(`http://${window.location.hostname}:5000/api/links`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(finalizedData)
             });
 
@@ -194,14 +210,10 @@ const Dashboard = () => {
                 setIsSidebarOpen(false);
                 fetchLinks();
             } else {
-                if (data.error && data.error.includes("not configured")) {
-                    setSidebarError("Nous ne connaissons pas cette catégorie");
-                } else {
-                    setSidebarError(data.error || 'Échec de la sauvegarde du lien.');
-                }
+                setSidebarError(data.error || 'Échec de la sauvegarde.');
             }
         } catch (err) {
-            setSidebarError('Erreur de connexion au serveur lors de la sauvegarde.');
+            setSidebarError('Erreur de connexion au serveur.');
         } finally {
             setIsSidebarLoading(false);
         }
@@ -219,26 +231,19 @@ const Dashboard = () => {
         setEditError(null);
     };
 
-    const handleToggleFavorite = (linkId, newFavoriteStatus) => {
-        setLinks(prevLinks =>
-            prevLinks.map(link =>
-                link.link_id === linkId
-                    ? { ...link, is_favorite: newFavoriteStatus }
-                    : link
-            )
-        );
-    };
-
+    // --- OPTIMISTIC UI : Edit ---
     const handleSaveEdit = async (updatedData) => {
         setEditError(null);
+        setLinks(prevLinks => prevLinks.map(link =>
+            link.link_id === updatedData.link_id ? { ...link, ...updatedData } : link
+        ));
+        handleCloseEdit();
+
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`http://${window.location.hostname}:5000/api/links/${updatedData.link_id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
                     title: updatedData.title,
                     categories: updatedData.categories,
@@ -247,26 +252,15 @@ const Dashboard = () => {
                 })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                if (data.error && data.error.includes("is not configured")) {
-                    setEditError("Nous ne connaissons pas cette catégorie");
-                } else {
-                    setEditError(data.error || "Une erreur est survenue");
-                }
-                return;
+                fetchLinks();
+                alert("Une erreur est survenue lors de la modification en arrière-plan.");
             }
-
-            handleCloseEdit();
-            fetchLinks();
-
         } catch (error) {
-            setEditError("Erreur de connexion au serveur");
+            fetchLinks();
         }
     };
 
-    // Render loading state with custom spinner
     if (isLoading) {
         return (
             <div className="loader-container">
@@ -278,9 +272,7 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
-
-            {/* --- ADD NEW LINK SECTION --- */}
-            {/* Uses surface-card from index.css for the global modern look */}
+            {/* ADD NEW LINK SECTION */}
             <div className="surface-card add-link-section">
                 <h4 className="add-link-title">Ajouter un lien</h4>
                 <form onSubmit={handlePreviewLink} className="add-link-form">
@@ -293,12 +285,7 @@ const Dashboard = () => {
                         disabled={isFastSaving}
                         required
                     />
-                    {/* Uses the global btn-primary from index.css */}
-                    <button
-                        className="btn-primary"
-                        type="submit"
-                        disabled={isFastSaving}
-                    >
+                    <button className="btn-primary" type="submit" disabled={isFastSaving}>
                         {fastSaveEnabled ? 'Sauvegarde rapide ⚡' : 'Analyser le lien'}
                     </button>
                 </form>
@@ -313,12 +300,10 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* --- SAVED LINKS SECTION --- */}
+            {/* SAVED LINKS SECTION */}
             <h2 className="section-title">Mes liens sauvegardés</h2>
 
-            {error && (
-                <div className="custom-alert custom-alert-danger">{error}</div>
-            )}
+            {error && <div className="custom-alert custom-alert-danger">{error}</div>}
 
             {links.length === 0 && !error ? (
                 <div className="custom-alert custom-alert-info">
@@ -333,7 +318,7 @@ const Dashboard = () => {
                 />
             )}
 
-            {/* --- SIDEBARS --- */}
+            {/* SIDEBARS */}
             <SupervisionSidebar
                 isOpen={isSidebarOpen}
                 isLoading={isSidebarLoading}
