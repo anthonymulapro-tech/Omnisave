@@ -53,8 +53,8 @@ const SupervisionSidebar = ({ isOpen, isLoading, previewData, error, onClose, on
             .filter(cat => cat !== '');
 
         const primaryCategory = validCategories.length > 0 ? validCategories[0] : '';
-        if (primaryCategory) {
-            sendLexiconSuggestions(primaryCategory, tagsArray);
+        if (validCategories.length > 0) {
+            sendLexiconSuggestions(validCategories, tagsArray);
         }
 
         const finalizedData = {

@@ -23,17 +23,15 @@ def categorize_url(url):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         json_path = os.path.join(base_dir, 'data', 'lexicon.json')
 
-        # 3. On initialise l'IA et on lance l'analyse
-        analyzer = LinkAnalyzer(json_path)
-        categorie_finale = analyzer.analyze(texte_extrait)
+        analyzer = LinkAnalyzer(json_path, os.path.join(base_dir, 'data', 'blacklist.json'))
+        ai_result = analyzer.analyze(texte_extrait)
+        categories_finales = ai_result.get("categories", [])
 
-        # 4. Affichage du succès
         print("-" * 50)
-        print(f"🎉 RÉSULTAT : Ce post parle de {categorie_finale.upper()} !")
+        print(f"🎉 RÉSULTAT : Ce post parle de {', '.join(categories_finales).upper()} !")
         print("-" * 50)
 
-        return categorie_finale
-
+        return categories_finales
     except Exception as e:
         print(f"❌ Erreur critique : {e}")
         return "Erreur"
