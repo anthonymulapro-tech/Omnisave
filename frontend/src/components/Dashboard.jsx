@@ -24,20 +24,34 @@ const Dashboard = () => {
     const [editError, setEditError] = useState(null);
 
     // --- PWA Share Target Handler ---
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const sharedData = params.get('url') || params.get('text');
+useEffect(() => {
+    try {
+        const currentUrl = window.location.href;
 
-        if (sharedData) {
+        // 1. Check if the URL contains the parameter
+        if (currentUrl.includes('url=')) {
+            // Extract directly from the full string to avoid React Router stripping
+            const sharedData = currentUrl.split('url=')[1];
             const extractedUrl = sharedData.match(/https?:\/\/[^\s]+/)?.[0];
+
             if (extractedUrl) {
+                // Populate the UI input visually
                 setNewUrl(extractedUrl);
-                setAddMessage({ type: 'info', text: 'Lien reçu depuis le partage !' });
+
+                // Trigger the analysis automatically with a small delay
+                // This prevents React state race conditions during initial mount
+                setTimeout(() => {
+                    handlePreviewLink(null, extractedUrl);
+                }, 500);
             }
+
+            // 2. Clean the URL to prevent infinite loops on manual refresh
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-    }, []);
-
+    } catch (error) {
+        console.error("PWA Share Error:", error);
+    }
+}, []); // Empty array guarantees it runs ONLY ONCE
     // Fetch User Profile
     const fetchUserProfile = async () => {
         try {
@@ -121,49 +135,60 @@ const Dashboard = () => {
     };
 
     // --- STEP 1: TRIGGER PREVIEW ---
-    const handlePreviewLink = async (e) => {
+const handlePreviewLink = async (e, directUrl = null) => {
+    // Prevent default only if triggered by the manual form submit button
+    if (e && e.preventDefault) {
         e.preventDefault();
-        if (!newUrl.trim()) return;
+    }
 
-        setAddMessage(null);
+    // Use the URL from the iOS shortcut if provided, otherwise fallback to React state
+    const targetUrl = directUrl || newUrl;
 
-        if (fastSaveEnabled) {
-            setIsFastSaving(true);
-            setAddMessage({ type: 'info', text: 'Analyse et sauvegarde rapide en cours...' });
-        } else {
-            setIsSidebarOpen(true);
-            setIsSidebarLoading(true);
-            setPreviewData(null);
-        }
+    // VISUAL DEBUG: Check if the function is triggered with the correct URL
+    setAddMessage({ type: 'info', text: `Début de l'analyse pour : ${targetUrl.substring(0, 30)}...` });
 
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://${window.location.hostname}:5000/api/links/preview`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ url: newUrl })
-            });
+    if (!targetUrl || !targetUrl.trim()) return;
 
-            const data = await response.json();
+    if (fastSaveEnabled) {
+        setIsFastSaving(true);
+        // VISUAL DEBUG: Fast save route
+        setAddMessage({ type: 'info', text: 'Analyse et sauvegarde rapide en cours ⚡' });
+    } else {
+        setIsSidebarOpen(true);
+        setIsSidebarLoading(true);
+        setPreviewData(null);
+    }
 
-            if (response.ok) {
-                if (fastSaveEnabled) {
-                    await performFastSave(data);
-                } else {
-                    setPreviewData(data);
-                }
+    try {
+        const token = localStorage.getItem('token');
+
+        // Send the POST request to the analyzer
+        const response = await fetch(`http://${window.location.hostname}:5000/api/links/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ url: targetUrl }) // MUST use targetUrl here
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (fastSaveEnabled) {
+                await performFastSave(data);
             } else {
-                setAddMessage({ type: 'danger', text: data.error || "Échec de l'analyse du lien." });
-                setIsSidebarOpen(false);
+                setPreviewData(data);
             }
-        } catch (err) {
-            setAddMessage({ type: 'danger', text: 'Erreur de connexion au serveur.' });
+        } else {
+            setAddMessage({ type: 'danger', text: data.error || "Échec de l'analyse du lien." });
             setIsSidebarOpen(false);
-        } finally {
-            if (!fastSaveEnabled) setIsSidebarLoading(false);
-            setIsFastSaving(false);
         }
-    };
+    } catch (err) {
+        setAddMessage({ type: 'danger', text: `Erreur de connexion : ${err.message}` });
+        setIsSidebarOpen(false);
+    } finally {
+        if (!fastSaveEnabled) setIsSidebarLoading(false);
+        setIsFastSaving(false);
+    }
+};
 
     // --- STEP 1.5: BACKGROUND FAST-SAVE ---
     const performFastSave = async (analyzedData) => {
