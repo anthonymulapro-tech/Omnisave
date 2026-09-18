@@ -639,6 +639,78 @@ def delete_link(current_user_id, link_id):
         logging.error(f"Failed to delete link {link_id} from database.")
         return jsonify({"error": "Une erreur est survenue lors de la suppression."}), 500
 
+# MOBILE
+@app.route('/api/links/ios-share', methods=['POST'])
+@token_required
+def ios_smart_share(current_user_id):
+    """
+    Smart endpoint for iOS Shortcuts.
+    Checks user preferences and decides whether to save in background or redirect to frontend.
+    """
+    data = request.get_json()
+    if not data or not data.get('url'):
+        return jsonify({"error": "Missing url"}), 400
+
+    target_url = data['url']
+    user = UserRepository.get_by_id(current_user_id)
+
+    # 1. Check user preference for fast save
+    if not user.fast_save:
+        # Fast save is OFF: tell the iOS shortcut to open the React app
+        client_ip = request.host.split(':')[0]
+        frontend_url = f"http://{client_ip}:5173/?url={target_url}"
+
+        return jsonify({
+            "action": "redirect",
+            "redirect_url": frontend_url
+        }), 200
+
+    # 2. Fast Save is ON: execute extraction, analysis and save directly
+    try:
+        domain = extract_platform(target_url)
+        extractor = ExtractorFactory.get_extractor(target_url)
+        extracted_data = extractor.extract_data(target_url)
+
+        # Fallback for protected websites
+        if not extracted_data or not extracted_data.get("text"):
+            categories = ["Divers"]
+            tags = [domain.split('.')[0]]
+            title = f"Post on {domain.capitalize()}"
+            thumbnail = ""
+        else:
+            ai_result = analyzer.analyze(extracted_data["text"])
+            categories = ai_result.get("categories", ["Divers"])
+            tags = ai_result.get("tags", [])
+            title = extracted_data["title"]
+            thumbnail = extracted_data["thumbnail_url"]
+
+        safe_title = html.escape(title.strip())
+        safe_categories = [html.escape(cat) for cat in categories]
+        safe_tags = [html.escape(tag.strip()) for tag in tags if tag.strip()]
+
+        new_link = Link(
+            url=target_url,
+            title=safe_title,
+            thumbnail_url=thumbnail,
+            platform=domain,
+            analysis_status='COMPLETED',
+            user_id=current_user_id
+        )
+
+        success = LinkRepository.create_with_details(new_link, safe_tags, safe_categories)
+
+        if success:
+            return jsonify({
+                "action": "saved",
+                "message": "✅ Lien sauvegardé en arrière-plan !"
+            }), 200
+        else:
+            return jsonify({"error": "Failed to save link in database"}), 500
+
+    except Exception as e:
+        logging.error(f"Error during iOS smart share: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
 # ==========================================
 #               LEXICON
 # ==========================================
