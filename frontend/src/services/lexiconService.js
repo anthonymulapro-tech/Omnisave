@@ -1,13 +1,13 @@
 /**
- * Silently sends category tags to the backend lexicon API.
+ * Silently sends categories and tags to the backend lexicon API.
  *
- * @param {string} category - The category validated by the user
+ * @param {Array<string>|string} categories - The categories validated by the user
  * @param {Array<string>} tags - The tags to process
  * @param {boolean} isEdit - True if this is an edit action, false if it's a new link creation
  * @param {Array<string>} originalTags - (Only required if isEdit=true) The tags before editing
  */
-export const sendLexiconSuggestions = (category, tags, isEdit = false, originalTags = []) => {
-    if (!category || !tags || tags.length === 0) return;
+export const sendLexiconSuggestions = (categories, tags, isEdit = false, originalTags = []) => {
+    if (!categories || categories.length === 0 || !tags || tags.length === 0) return;
 
     let tagsToSend = tags;
 
@@ -24,20 +24,19 @@ export const sendLexiconSuggestions = (category, tags, isEdit = false, originalT
 
     const BACKEND_URL = `http://${window.location.hostname}:5000`;
     const token = localStorage.getItem('token') || localStorage.getItem('access_token') || localStorage.getItem('jwt');
+    const categoriesArray = Array.isArray(categories) ? categories : [categories];
 
-    tagsToSend.forEach(tag => {
-        fetch(`${BACKEND_URL}/api/lexicon/suggest`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` })
-            },
-            body: JSON.stringify({
-                word: tag,
-                category: category
-            })
-        }).catch(error => {
-            console.error("Silent suggestion error:", error);
-        });
+    fetch(`${BACKEND_URL}/api/lexicon/suggest`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+            tags: tagsToSend,
+            categories: categoriesArray
+        })
+    }).catch(error => {
+        console.error("Silent suggestion error:", error);
     });
 };

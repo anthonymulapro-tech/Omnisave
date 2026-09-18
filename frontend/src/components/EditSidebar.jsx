@@ -91,12 +91,12 @@ const EditSidebar = ({ isOpen, linkData, error, onClose, onSave, onDelete }) => 
             .filter(cat => cat !== '');
 
         // 3. SILENT CROWDSOURCING (EDIT MODE)
-        const currentPrimaryCategory = validCategories.length > 0 ? validCategories[0] : '';
-        const hasPrimaryCategoryChanged = currentPrimaryCategory !== originalPrimaryCategory;
-        const tagsToCompare = hasPrimaryCategoryChanged ? [] : originalTags;
+        const originalCategories = linkData.categories || [];
+        const hasCategoriesChanged = JSON.stringify(validCategories) !== JSON.stringify(originalCategories);
+        const tagsToCompare = hasCategoriesChanged ? [] : originalTags;
 
-        if (currentPrimaryCategory) {
-            sendLexiconSuggestions(currentPrimaryCategory, tagsArray, true, tagsToCompare);
+        if (validCategories.length > 0) {
+            sendLexiconSuggestions(validCategories, tagsArray, true, tagsToCompare);
         }
 
         // 4. Prepare updated data payload

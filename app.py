@@ -58,7 +58,7 @@ if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
 
     # Ensure proper shutdown when Flask stops
     atexit.register(lambda: scheduler.shutdown())
-    logging.info("🚀 Community Lexicon background scheduler started (every 10 minutes).")
+    logging.info("🚀 Community Lexicon background scheduler started (every minute).")
 # ==========================================
 # API ENDPOINTS (ROUTES)
 # ==========================================
@@ -648,31 +648,39 @@ def delete_link(current_user_id, link_id):
 def suggest_lexicon_word(current_user_id):
     """
     Endpoint to receive community suggestions for new words and categories.
-    Handles both single word or a list of tags sent by React sidebars.
+    Handles both single word/tags and single/multiple categories.
     """
     try:
         data = request.get_json()
-        category = data.get('category')
 
-        # Support both 'word' (single) and 'tags' (list) from frontend
+        categories = data.get('categories', [])
+        single_category = data.get('category')
+        if single_category and single_category not in categories:
+            categories.append(single_category)
+
         words = data.get('tags', [])
         single_word = data.get('word')
         if single_word and single_word not in words:
             words.append(single_word)
 
-        if not words or not category:
-            return jsonify({"error": "Category and at least one word/tag are required."}), 400
+        if not words or not categories:
+            return jsonify({"error": "At least one category and one word/tag are required."}), 400
 
-        # Loop through each word and use your repository
         success_count = 0
-        for word in words:
-            clean_word = word.strip().lower()
-            if len(clean_word) < 2:
+
+        for category in categories:
+            clean_category = category.strip().lower()
+            if not clean_category:
                 continue
 
-            success, error_msg = LexiconRepository.add_suggestion(clean_word, category)
-            if success:
-                success_count += 1
+            for word in words:
+                clean_word = word.strip().lower()
+                if len(clean_word) < 2:
+                    continue
+
+                success, error_msg = LexiconRepository.add_suggestion(clean_word, clean_category)
+                if success:
+                    success_count += 1
 
         if success_count > 0:
             return jsonify({"message": f"Successfully recorded {success_count} suggestions!"}), 201
