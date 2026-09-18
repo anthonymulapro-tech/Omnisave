@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     console.log("1. Requesting AI Preview for:", pageUrl);
 
                     // --- STEP 1: CALL PREVIEW ENDPOINT ---
-                    const previewResponse = await fetch(`http://${window.location.hostname}:5000/api/links/preview`, {
+                    const previewResponse = await fetch(`http://127.0.0.1:5000/api/links/preview`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     // --- STEP 2: CALL SAVE ENDPOINT ---
                     console.log("2. Saving to database with AI tags/categories...");
-                    const saveResponse = await fetch(`http://${window.location.hostname}:5000/api/links`, {
+                    const saveResponse = await fetch(`http://127.0.0.1:5000/api/links`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
