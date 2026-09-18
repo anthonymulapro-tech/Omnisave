@@ -4,12 +4,6 @@ import os
 import re
 from collections import Counter
 
-import json
-import spacy
-import os
-import re
-from collections import Counter
-
 
 class LinkAnalyzer:
     def __init__(self, lexicon_path, blacklist_path, community_lexicon_path=None):
@@ -183,7 +177,7 @@ class LinkAnalyzer:
 
         sorted_categories = sorted(valid_categories.keys(), key=lambda k: valid_categories[k], reverse=True)
 
-        return sorted_categories[:5]
+        return sorted_categories[:2]
 
 
 if __name__ == '__main__':
