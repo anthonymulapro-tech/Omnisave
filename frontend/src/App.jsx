@@ -19,7 +19,8 @@ function App() {
         <div className="container mt-4" style={{ flex: 1 }}>
           <Routes>
 
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* REDIRECTION FIX: Preserve query parameters (?url=...) when redirecting to dashboard */}
+            <Route path="/" element={<Navigate to={`/dashboard${window.location.search}`} replace />} />
 
             {/* Authentication */}
             <Route path="/login" element={<LoginForm />} />
