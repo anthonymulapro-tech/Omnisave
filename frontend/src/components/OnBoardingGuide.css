@@ -76,3 +76,26 @@
     color: var(--primary) !important;
     transform: scale(0.6);
 }
+
+/* --- MEDIA INTEGRATION --- */
+.media-placeholder {
+    margin-top: 1.5rem;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    background-color: #1e293b;
+    min-height: 220px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.guide-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}

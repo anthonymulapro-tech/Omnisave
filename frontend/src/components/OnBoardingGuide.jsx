@@ -31,45 +31,73 @@ const OnboardingGuide = ({ onClose }) => {
                     navigation={true}
                     className="onboarding-swiper"
                 >
-                    {/* SLIDE 1: Concept */}
+                    {/* SLIDE 1: Welcome & Filters */}
                     <SwiperSlide className="onboarding-slide">
                         <div className="slide-content">
                             <h3>Bienvenue sur Omnisave 🚀</h3>
                             <p>
-                                Fini les liens perdus ! Omnisave centralise toutes vos vidéos, articles et posts favoris d'Instagram, TikTok, YouTube et X au même endroit.
+                                Centralisez toutes vos vidéos et articles favoris (Instagram, TikTok, YouTube...).
+                                Surtout, <strong>retrouvez-les instantanément</strong> grâce à nos filtres intelligents de recherche et de catégorisation !
                             </p>
+                            {/* Placeholder for an image or short demo video of the filters */}
+                            <div className="media-placeholder">
+                                <video src="/videos/demo-filters.mp4" autoPlay loop muted playsInline className="guide-video" />
+                            </div>
                         </div>
                     </SwiperSlide>
 
-                    {/* SLIDE 2: PC Usage */}
+                    {/* SLIDE 2: PC - Manual Link Addition */}
                     <SwiperSlide className="onboarding-slide">
                         <div className="slide-content">
-                            <h3>Utilisation sur Ordinateur 💻</h3>
+                            <h3>Sur Ordinateur (1/2) 💻</h3>
                             <p>
-                                Naviguez sur vos réseaux préférés, copiez le lien d'un contenu et collez-le simplement dans votre Dashboard. Notre IA se charge de catégoriser le contenu pour vous !
+                                Copiez un lien et collez-le dans le Dashboard. Notre IA analyse le contenu, génère les tags et la catégorie. Vous pouvez éditer ces infos maintenant ou plus tard !
                             </p>
+                            <div className="media-placeholder">
+                                <video src="/videos/demo-pc-manual.mp4" autoPlay loop muted playsInline className="guide-video" />
+                            </div>
                         </div>
                     </SwiperSlide>
 
-                    {/* SLIDE 3: Mobile (iOS/Android) */}
+                    {/* SLIDE 3: PC - Chrome Extension & Fast Save */}
                     <SwiperSlide className="onboarding-slide">
                         <div className="slide-content">
-                            <h3>Le pouvoir du Mobile 📱</h3>
+                            <h3>L'Extension Chrome (2/2) 🧩</h3>
                             <p>
-                                Sur votre téléphone, utilisez le bouton "Partager" directement depuis Instagram ou TikTok. Choisissez "Omnisave" via notre raccourci iOS, et le lien sera importé automatiquement.
+                                Activez le <strong>Fast Save</strong> dans votre profil. Sur YouTube ou X, cliquez simplement sur notre extension : le lien est sauvegardé instantanément en arrière-plan.
                             </p>
+                            <div className="media-placeholder">
+                                <video src="/videos/demo-pc-extension.mp4" autoPlay loop muted playsInline className="guide-video" />
+                            </div>
                         </div>
                     </SwiperSlide>
 
-                    {/* SLIDE 4: Fast Save */}
+                    {/* SLIDE 4: Mobile - PWA Installation & Shortcut Setup */}
                     <SwiperSlide className="onboarding-slide">
                         <div className="slide-content">
-                            <h3>Sauvegarde Rapide ⚡</h3>
+                            <h3>Configuration Mobile (1/2) 📱</h3>
                             <p>
-                                Activez l'option "Fast Save" dans votre profil. Plus besoin de valider chaque lien : collez-le, et l'IA l'enregistre en arrière-plan instantanément.
+                                Ajoutez Omnisave à votre écran d'accueil. Sur iOS, ajoutez également notre <strong>Raccourci de partage</strong> pour une intégration native. Sur Android, c'est automatique !
                             </p>
-                            <button className="btn-primary mt-4" onClick={onClose}>
-                                Commencer à sauvegarder
+                            <div className="media-placeholder">
+                                <video src="/videos/demo-mobile-setup.mp4" autoPlay loop muted playsInline className="guide-video" />
+                            </div>
+                        </div>
+                    </SwiperSlide>
+
+                    {/* SLIDE 5: Mobile - Native Usage with/without Fast Save */}
+                    <SwiperSlide className="onboarding-slide">
+                        <div className="slide-content">
+                            <h3>Partagez en un clic (2/2) ⚡</h3>
+                            <p>
+                                Depuis Instagram ou TikTok, utilisez le bouton "Partager" vers Omnisave.
+                                <br/><br/>
+                                <strong>Sans Fast Save :</strong> Éditez vos tags avant de valider.<br/>
+                                <strong>Avec Fast Save :</strong> Restez sur votre app, l'IA sauvegarde tout en silence !
+                            </p>
+                            {/* Call to action button to close the guide and start using the app */}
+                            <button className="btn-primary mt-3" onClick={onClose}>
+                                J'ai compris, c'est parti !
                             </button>
                         </div>
                     </SwiperSlide>
