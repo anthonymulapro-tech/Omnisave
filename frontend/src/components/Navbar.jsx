@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import './Navbar.css'; // Importing custom glassmorphism styles
+import './Navbar.css';
 
 /**
  * Navbar component providing main navigation for the application.

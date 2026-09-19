@@ -9,6 +9,15 @@
     z-index: 100;
 }
 
+.sticky-filter-bar {
+    position: sticky;
+    top: 76px;
+    z-index: 990;
+    background-color: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
 /* --- SEARCH & PRIMARY ACTIONS --- */
 .search-group {
     display: flex;

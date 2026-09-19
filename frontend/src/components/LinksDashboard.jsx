@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Select from 'react-select';
 import LinkCard from './LinkCard';
 import './LinksDashboard.css';
@@ -12,8 +12,25 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
     const [sortOrder, setSortOrder] = useState('DESC');
     const [selectedPlatform, setSelectedPlatform] = useState('all');
 
-    // NEW STATE: Toggle filters on mobile
+    // Toggle filters on mobile
     const [showFilters, setShowFilters] = useState(false);
+
+    const filterRef = useRef(null);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showFilters && filterRef.current && !filterRef.current.contains(event.target)) {
+                setShowFilters(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [showFilters]);
 
     // Extract unique categories
     const uniqueCategories = useMemo(() => {
@@ -139,7 +156,7 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
 
     return (
         <div className="links-dashboard-wrapper">
-            <div className="surface-card filters-container">
+            <div className="surface-card filters-container sticky-filter-bar" ref={filterRef}>
 
                 {/* SEARCH & QUICK ACTIONS (Always visible) */}
                 <div className="search-group">
