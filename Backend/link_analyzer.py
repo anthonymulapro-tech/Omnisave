@@ -2,12 +2,7 @@ import json
 import spacy
 import os
 import re
-from collections import Counter
-
-import json
-import spacy
-import os
-import re
+import unicodedata
 from collections import Counter
 
 
@@ -130,12 +125,24 @@ class LinkAnalyzer:
 
         return final_tags[:limit]
 
+    def _clean_text(self, text):
+        """Nettoie le texte brut avant l'analyse lexicale."""
+        if not text:
+            return ""
+
+        text = unicodedata.normalize('NFKC', text)
+        text = re.sub(r'@[\w.-]+', '', text)
+
+        return text
+
     def analyze(self, text):
         """Analyzes the text and returns the categories and tags."""
         self._check_and_reload()
 
+        clean_text = self._clean_text(text)
+
         scores = {category: 0 for category in self.lexicon.keys()}
-        doc = self.nlp(text)
+        doc = self.nlp(clean_text)
 
         for token in doc:
             if token.is_punct or token.is_space:
@@ -164,7 +171,7 @@ class LinkAnalyzer:
         if "Non catégorisé" in best_categories:
             self._log_unknown_words(doc)
 
-        raw_tags = self._extract_tags(text, doc)
+        raw_tags = self._extract_tags(clean_text, doc)
         cleaned_tags = list(dict.fromkeys(tag.strip().lower() for tag in raw_tags))
 
         return {
@@ -183,7 +190,7 @@ class LinkAnalyzer:
 
         sorted_categories = sorted(valid_categories.keys(), key=lambda k: valid_categories[k], reverse=True)
 
-        return sorted_categories[:5]
+        return sorted_categories[:2]
 
 
 if __name__ == '__main__':
