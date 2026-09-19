@@ -114,6 +114,15 @@ const LinksDashboard = ({ initialLinks, onDelete, onEdit, onToggleFavorite }) =>
         })
     };
 
+    // --- RESET SCROLL ON FILTER CHANGE ---
+    useEffect(() => {
+        // Automatically smoothly scroll to the top so the user can see the new filtered results
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, [searchQuery, categoryFilter, dateFilter, showFavoritesOnly, sortOrder, selectedPlatform]);
+
     // Filtering and sorting logic
     const processedLinks = useMemo(() => {
         let filtered = initialLinks.filter((link) => {
