@@ -19,7 +19,7 @@
 .onboarding-container {
     position: relative;
     width: 100%;
-    max-width: 500px;
+    max-width: 1000px;
     padding: 2rem 1rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
@@ -98,4 +98,19 @@
     height: auto;
     display: block;
     object-fit: contain;
+}
+
+/* --- OPTIMISATION MOBILE --- */
+@media (max-width: 768px) {
+    .onboarding-overlay {
+        padding: 0; /* Colle la modale aux bords de l'écran */
+    }
+
+    .onboarding-container {
+        padding: 1.5rem 0.5rem; /* Réduit drastiquement l'espace vide interne */
+    }
+
+    .onboarding-slide {
+        padding: 0 0.5rem; /* Laisse juste un léger espace autour du texte et de la vidéo */
+    }
 }

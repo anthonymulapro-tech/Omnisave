@@ -36,12 +36,13 @@ const OnboardingGuide = ({ onClose }) => {
                         <div className="slide-content">
                             <h3>Bienvenue sur Omnisave 🚀</h3>
                             <p>
-                                Centralisez toutes vos vidéos et articles favoris (Instagram, TikTok, YouTube...).
-                                Surtout, <strong>retrouvez-les instantanément</strong> grâce à nos filtres intelligents de recherche et de catégorisation !
+                                Centralisez tous vos contenus favoris (Instagram, TikTok, YouTube...)
+                                 <br />
+                                    <strong>Recherchez, filtrez, éditez.</strong>
                             </p>
                             {/* Placeholder for an image or short demo video of the filters */}
                             <div className="media-placeholder">
-                                <video src="/videos/demo-filters.mp4" autoPlay loop muted playsInline className="guide-video" />
+                                <video src="/videos/onboarding-slide-1.mp4" autoPlay loop muted playsInline className="guide-video" />
                             </div>
                         </div>
                     </SwiperSlide>
