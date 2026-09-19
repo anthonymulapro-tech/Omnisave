@@ -13,6 +13,7 @@ const Dashboard = () => {
     const [newUrl, setNewUrl] = useState('');
     const [addMessage, setAddMessage] = useState(null);
     const [isFastSaving, setIsFastSaving] = useState(false);
+    const [blurOpacity, setBlurOpacity] = useState(0);
 
     // Sidebars states
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,35 +24,49 @@ const Dashboard = () => {
     const [selectedLinkForEdit, setSelectedLinkForEdit] = useState(null);
     const [editError, setEditError] = useState(null);
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScroll = window.scrollY;
+            const startThreshold = 200;
+            const fadeDistance =  250;
+            const newOpacity = Math.max(0, Math.min((currentScroll - startThreshold) / fadeDistance, 1));
+
+            setBlurOpacity(newOpacity);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     // --- PWA Share Target Handler ---
-useEffect(() => {
-    try {
-        const currentUrl = window.location.href;
+    useEffect(() => {
+        try {
+            const currentUrl = window.location.href;
 
-        // 1. Check if the URL contains the parameter
-        if (currentUrl.includes('url=')) {
-            // Extract directly from the full string to avoid React Router stripping
-            const sharedData = currentUrl.split('url=')[1];
-            const extractedUrl = sharedData.match(/https?:\/\/[^\s]+/)?.[0];
+            // 1. Check if the URL contains the parameter
+            if (currentUrl.includes('url=')) {
+                // Extract directly from the full string to avoid React Router stripping
+                const sharedData = currentUrl.split('url=')[1];
+                const extractedUrl = sharedData.match(/https?:\/\/[^\s]+/)?.[0];
 
-            if (extractedUrl) {
-                // Populate the UI input visually
-                setNewUrl(extractedUrl);
+                if (extractedUrl) {
+                    // Populate the UI input visually
+                    setNewUrl(extractedUrl);
 
-                // Trigger the analysis automatically with a small delay
-                // This prevents React state race conditions during initial mount
-                setTimeout(() => {
-                    handlePreviewLink(null, extractedUrl);
-                }, 500);
+                    // Trigger the analysis automatically with a small delay
+                    // This prevents React state race conditions during initial mount
+                    setTimeout(() => {
+                        handlePreviewLink(null, extractedUrl);
+                    }, 500);
+                }
+
+                // 2. Clean the URL to prevent infinite loops on manual refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
-
-            // 2. Clean the URL to prevent infinite loops on manual refresh
-            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error) {
+            console.error("PWA Share Error:", error);
         }
-    } catch (error) {
-        console.error("PWA Share Error:", error);
-    }
-}, []); // Empty array guarantees it runs ONLY ONCE
+    }, []); // Empty array guarantees it runs ONLY ONCE
     // Fetch User Profile
     const fetchUserProfile = async () => {
         try {
@@ -297,6 +312,8 @@ const handlePreviewLink = async (e, directUrl = null) => {
 
     return (
         <div className="dashboard-container">
+            <div className="progressive-blur-zone" style={{ opacity: blurOpacity }}></div>
+
             {/* ADD NEW LINK SECTION */}
             <div className="surface-card add-link-section">
                 <h4 className="add-link-title">Ajouter un lien</h4>
