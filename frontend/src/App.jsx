@@ -8,10 +8,13 @@ import Profile from './components/Profile';
 import React from 'react';
 import LegalMentions from './pages/LegalMentions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
+
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
         <Navbar />
