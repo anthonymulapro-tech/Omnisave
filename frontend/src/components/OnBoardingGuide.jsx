@@ -59,13 +59,24 @@ const OnboardingGuide = ({ onClose }) => {
                         </div>
                     </SwiperSlide>
 
-                    {/* SLIDE 3: PC - Chrome Extension & Fast Save */}
+                    {/* SLIDE 3: PC - Extension & Fast Save */}
                     <SwiperSlide className="onboarding-slide">
                         <div className="slide-content">
                             <h3>L'Extension Chrome (2/2) 🧩</h3>
                             <p>
-                                Activez le <strong>Fast Save</strong> dans votre profil. Sur YouTube ou X, cliquez simplement sur notre extension : le lien est sauvegardé instantanément en arrière-plan.
+                                Activez le <strong>Fast Save</strong> dans votre profil. Sur YouTube ou X, cliquez simplement sur notre extension pour sauvegarder en arrière-plan.
                             </p>
+
+                            {/* NOUVEAU : Bouton de téléchargement */}
+                            <a
+                                href="/downloads/omnisave-extension.zip"
+                                download="omnisave-extension.zip"
+                                className="btn-primary mt-2 mb-3"
+                                style={{ textDecoration: 'none', display: 'inline-block' }}
+                            >
+                                📥 Télécharger l'Extension (.zip)
+                            </a>
+
                             <div className="media-placeholder">
                                 <video src="/videos/demo-pc-extension.mp4" autoPlay loop muted playsInline className="guide-video" />
                             </div>
@@ -77,8 +88,20 @@ const OnboardingGuide = ({ onClose }) => {
                         <div className="slide-content">
                             <h3>Configuration Mobile (1/2) 📱</h3>
                             <p>
-                                Ajoutez Omnisave à votre écran d'accueil. Sur iOS, ajoutez également notre <strong>Raccourci de partage</strong> pour une intégration native. Sur Android, c'est automatique !
+                                Sur iOS, installez notre <strong>Raccourci de partage</strong> pour envoyer vos liens vers Omnisave directement depuis Instagram ou TikTok !
                             </p>
+
+                            {/* NOUVEAU : Bouton lien iCloud */}
+                            <a
+                                href="https://www.icloud.com/shortcuts/d4db78d78dc740c3b4a0f61e6a7629eb"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-primary mt-2 mb-3"
+                                style={{ textDecoration: 'none', display: 'inline-block' }}
+                            >
+                                🍎 Ajouter le Raccourci iOS
+                            </a>
+
                             <div className="media-placeholder">
                                 <video src="/videos/demo-mobile-setup.mp4" autoPlay loop muted playsInline className="guide-video" />
                             </div>
