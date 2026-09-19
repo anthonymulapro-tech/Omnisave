@@ -55,7 +55,7 @@ const OnboardingGuide = ({ onClose }) => {
                                 Copiez un lien et collez-le dans le Dashboard. Notre IA analyse le contenu, génère les tags et la catégorie. Vous pouvez éditer ces infos maintenant ou plus tard !
                             </p>
                             <div className="media-placeholder">
-                                <video src="/videos/demo-pc-manual.mp4" autoPlay loop muted playsInline className="guide-video" />
+                                <video src="/videos/onboarding-slide-2.mp4" autoPlay loop muted playsInline className="guide-video" />
                             </div>
                         </div>
                     </SwiperSlide>
@@ -79,7 +79,7 @@ const OnboardingGuide = ({ onClose }) => {
                             </a>
 
                             <div className="media-placeholder">
-                                <video src="/videos/demo-pc-extension.mp4" autoPlay loop muted playsInline className="guide-video" />
+                                <video src="/videos/onboarding-slide-3.mp4" autoPlay loop muted playsInline className="guide-video" />
                             </div>
                         </div>
                     </SwiperSlide>
