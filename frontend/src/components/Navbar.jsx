@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css'; // Importing custom glassmorphism styles
 
 /**
@@ -10,6 +11,15 @@ import './Navbar.css'; // Importing custom glassmorphism styles
  */
 function Navbar() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Gère l'état d'ouverture du menu mobile
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Ferme le menu automatiquement à chaque changement d'URL
+    useEffect(() => {
+        setIsMenuOpen(false);
+    }, [location.pathname]);
 
     // Check if the user is authenticated by looking for the JWT in local storage
     const isAuthenticated = !!localStorage.getItem('token');
@@ -22,9 +32,12 @@ function Navbar() {
         navigate('/login');
     };
 
+    // Fonction pour basculer l'état du menu au clic sur le burger
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
     return (
-        // We keep 'navbar navbar-expand-lg' for structural behavior, but use 'glass-navbar' for styling.
-        // 'navbar-dark' ensures the mobile hamburger icon is white.
         <nav className="navbar navbar-expand-lg navbar-dark glass-navbar">
             <div className="container">
                 {/* BRAND LOGO */}
@@ -36,17 +49,17 @@ function Navbar() {
                 <button
                     className="navbar-toggler"
                     type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav"
+                    onClick={toggleMenu} // React prend le contrôle ici
                     aria-controls="navbarNav"
-                    aria-expanded="false"
+                    aria-expanded={isMenuOpen}
                     aria-label="Toggle navigation"
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
                 {/* NAVIGATION LINKS */}
-                <div className="collapse navbar-collapse" id="navbarNav">
+                {/* On ajoute conditionnellement la classe 'show' de Bootstrap si isMenuOpen est true */}
+                <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`} id="navbarNav">
                     <ul className="navbar-nav ms-auto align-items-lg-center gap-3 mt-3 mt-lg-0">
                         {isAuthenticated ? (
                             // AUTHENTICATED USERS
