@@ -217,5 +217,26 @@
         "words": []
       }
     }
+  },
+  "automobile": {
+    "coefficient": 1.0,
+    "groups": {
+      "core_fr": {
+        "points": 300,
+        "words": []
+      },
+      "strong_fr": {
+        "points": 150,
+        "words": []
+      },
+      "medium_fr": {
+        "points": 50,
+        "words": []
+      },
+      "bonus_fr": {
+        "points": 15,
+        "words": []
+      }
+    }
   }
 }
