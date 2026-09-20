@@ -86,7 +86,10 @@
     "groups": {
       "core_fr": {
         "points": 300,
-        "words": []
+        "words": [
+          "tofu",
+          "poivron"
+        ]
       },
       "strong_fr": {
         "points": 150,
@@ -97,9 +100,8 @@
       "medium_fr": {
         "points": 50,
         "words": [
-          "tofu",
-          "poivron",
-          "ail"
+          "ail",
+          "rapide"
         ]
       },
       "bonus_fr": {
@@ -121,7 +123,10 @@
       },
       "medium_fr": {
         "points": 50,
-        "words": []
+        "words": [
+          "poivron",
+          "tofu"
+        ]
       },
       "bonus_fr": {
         "points": 15,
